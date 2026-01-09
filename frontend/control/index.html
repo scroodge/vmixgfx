@@ -9,14 +9,21 @@
 <body>
     <div class="container">
         <header>
-            <h1>vMix Russian Billiard Score Control</h1>
+            <h1 data-i18n="title">vMix Russian Billiard Score Control</h1>
             <div class="status-bar">
                 <div id="connection-status" class="status-indicator disconnected">
                     <span class="status-dot"></span>
-                    <span class="status-text">Disconnected</span>
+                    <span class="status-text" data-i18n="disconnected">Disconnected</span>
                 </div>
                 <div class="match-id-display">
-                    Game ID: <input type="text" id="match-id-input" value="1" />
+                    <span data-i18n="gameId">Game ID</span>: <input type="text" id="match-id-input" value="1" />
+                </div>
+                <div class="language-switcher">
+                    <select id="language-select">
+                        <option value="en">English</option>
+                        <option value="ru">Русский</option>
+                        <option value="be">Беларуская</option>
+                    </select>
                 </div>
             </div>
         </header>
@@ -24,40 +31,40 @@
         <main>
             <!-- Setup Section -->
             <section class="panel setup-panel">
-                <h2>Game Setup</h2>
+                <h2 data-i18n="gameSetup">Game Setup</h2>
                 <div class="form-group">
-                    <label for="home-name">Player 1 Name:</label>
-                    <input type="text" id="home-name" placeholder="Player 1" />
+                    <label for="home-name" data-i18n="player1Name">Player 1 Name:</label>
+                    <input type="text" id="home-name" data-i18n-placeholder="player1Name" placeholder="Player 1" />
                 </div>
                 <div class="form-group">
-                    <label for="away-name">Player 2 Name:</label>
-                    <input type="text" id="away-name" placeholder="Player 2" />
+                    <label for="away-name" data-i18n="player2Name">Player 2 Name:</label>
+                    <input type="text" id="away-name" data-i18n-placeholder="player2Name" placeholder="Player 2" />
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="period-input">Game:</label>
+                        <label for="period-input" data-i18n="game">Game:</label>
                         <input type="number" id="period-input" min="1" max="20" value="1" />
                     </div>
                     <div class="form-group">
-                        <label for="timer-minutes">Timer (MM):</label>
+                        <label for="timer-minutes" data-i18n="timerMM">Timer (MM):</label>
                         <input type="number" id="timer-minutes" min="0" max="99" value="0" />
                     </div>
                     <div class="form-group">
-                        <label for="timer-seconds">Timer (SS):</label>
+                        <label for="timer-seconds" data-i18n="timerSS">Timer (SS):</label>
                         <input type="number" id="timer-seconds" min="0" max="59" value="0" />
                     </div>
                 </div>
-                <button id="setup-btn" class="btn btn-primary">Apply Setup</button>
+                <button id="setup-btn" class="btn btn-primary" data-i18n="applySetup">Apply Setup</button>
             </section>
 
             <!-- Score Control Section -->
             <section class="panel score-panel">
-                <h2>Score Control</h2>
+                <h2 data-i18n="scoreControl">Score Control</h2>
                 <div class="score-controls">
                     <div class="team-control home-team">
                         <h3 id="home-team-name-display">Player 1</h3>
                         <div class="score-display">
-                            <span class="score-label">Score:</span>
+                            <span class="score-label" data-i18n="score">Score:</span>
                             <span id="home-score-display" class="score-value">0</span>
                         </div>
                         <div class="score-buttons">
@@ -66,7 +73,7 @@
                             <button id="home-plus-ball" class="btn btn-score btn-plus-ball">+Ball</button>
                         </div>
                         <div class="match-score-display" style="margin-top: 15px;">
-                            <span class="score-label">Match Score (Games Won):</span>
+                            <span class="score-label" data-i18n="matchScore">Match Score (Games Won):</span>
                             <span id="home-match-score-display" class="score-value" style="font-size: 32px;">0</span>
                         </div>
                         <div class="score-buttons">
@@ -78,7 +85,7 @@
                     <div class="team-control away-team">
                         <h3 id="away-team-name-display">Player 2</h3>
                         <div class="score-display">
-                            <span class="score-label">Score:</span>
+                            <span class="score-label" data-i18n="score">Score:</span>
                             <span id="away-score-display" class="score-value">0</span>
                         </div>
                         <div class="score-buttons">
@@ -87,7 +94,7 @@
                             <button id="away-plus-ball" class="btn btn-score btn-plus-ball">+Ball</button>
                         </div>
                         <div class="match-score-display" style="margin-top: 15px;">
-                            <span class="score-label">Match Score (Games Won):</span>
+                            <span class="score-label" data-i18n="matchScore">Match Score (Games Won):</span>
                             <span id="away-match-score-display" class="score-value" style="font-size: 32px;">0</span>
                         </div>
                         <div class="score-buttons">
@@ -100,27 +107,27 @@
 
             <!-- Game & Timer Control Section -->
             <section class="panel period-timer-panel">
-                <h2>Game & Timer</h2>
+                <h2 data-i18n="gameTimer">Game & Timer</h2>
                 
                 <!-- Visibility Toggles -->
                 <div class="visibility-controls">
                     <div class="visibility-toggle">
                         <label>
                             <input type="checkbox" id="show-game-display" checked />
-                            Show Game Number in Overlay
+                            <span data-i18n="showGameNumber">Show Game Number in Overlay</span>
                         </label>
                     </div>
                     <div class="visibility-toggle">
                         <label>
                             <input type="checkbox" id="show-timer-display" checked />
-                            Show Timer in Overlay
+                            <span data-i18n="showTimer">Show Timer in Overlay</span>
                         </label>
                     </div>
                 </div>
                 
                 <div class="period-controls">
                     <div class="period-display">
-                        <span class="label">Current Game:</span>
+                        <span class="label" data-i18n="currentGame">Current Game:</span>
                         <span id="period-display" class="value">1</span>
                     </div>
                     <div class="period-buttons">
@@ -131,87 +138,87 @@
 
                 <div class="timer-controls">
                     <div class="timer-display">
-                        <span class="label">Timer:</span>
+                        <span class="label" data-i18n="timer">Timer:</span>
                         <span id="timer-display" class="value">00:00</span>
                         <span id="timer-status" class="timer-status stopped">●</span>
                     </div>
                     <div class="timer-buttons">
-                        <button id="timer-start" class="btn btn-timer btn-start">Start</button>
-                        <button id="timer-stop" class="btn btn-timer btn-stop">Stop</button>
+                        <button id="timer-start" class="btn btn-timer btn-start" data-i18n="start">Start</button>
+                        <button id="timer-stop" class="btn btn-timer btn-stop" data-i18n="stop">Stop</button>
                     </div>
                     <div class="timer-set">
                         <input type="number" id="set-timer-minutes" placeholder="MM" min="0" max="99" />
                         <span>:</span>
                         <input type="number" id="set-timer-seconds" placeholder="SS" min="0" max="59" />
-                        <button id="timer-set-btn" class="btn btn-small">Set</button>
+                        <button id="timer-set-btn" class="btn btn-small" data-i18n="set">Set</button>
                     </div>
                 </div>
             </section>
 
             <!-- Reset Section -->
             <section class="panel reset-panel">
-                <h2>Reset</h2>
-                <button id="reset-btn" class="btn btn-danger">Reset Game</button>
+                <h2 data-i18n="reset">Reset</h2>
+                <button id="reset-btn" class="btn btn-danger" data-i18n="resetGame">Reset Game</button>
             </section>
 
             <!-- GFX Designer Section -->
             <section class="panel gfx-panel">
-                <h2>GFX Designer</h2>
+                <h2 data-i18n="gfxDesigner">GFX Designer</h2>
                 
                 <!-- Preview -->
                 <div class="gfx-preview-container">
-                    <div class="gfx-preview-label">Live Preview:</div>
+                    <div class="gfx-preview-label" data-i18n="livePreview">Live Preview:</div>
                     <iframe id="gfx-preview" src="/overlay?matchId=1&preview=true" class="gfx-preview-frame"></iframe>
                 </div>
 
                 <!-- Color Settings -->
                 <div class="gfx-section">
-                    <h3>Colors</h3>
+                    <h3 data-i18n="colors">Colors</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control">
-                            <label for="color-player1">Player 1 Name Color:</label>
+                            <label for="color-player1" data-i18n="player1NameColor">Player 1 Name Color:</label>
                             <div class="color-input-group">
                                 <input type="color" id="color-player1" value="#ffffff" />
                                 <input type="text" id="color-player1-text" value="#ffffff" class="color-text-input" />
                             </div>
                         </div>
                         <div class="gfx-control">
-                            <label for="color-player1-score">Player 1 Score Color:</label>
+                            <label for="color-player1-score" data-i18n="player1ScoreColor">Player 1 Score Color:</label>
                             <div class="color-input-group">
                                 <input type="color" id="color-player1-score" value="#ffffff" />
                                 <input type="text" id="color-player1-score-text" value="#ffffff" class="color-text-input" />
                             </div>
                         </div>
                         <div class="gfx-control">
-                            <label for="color-player2">Player 2 Name Color:</label>
+                            <label for="color-player2" data-i18n="player2NameColor">Player 2 Name Color:</label>
                             <div class="color-input-group">
                                 <input type="color" id="color-player2" value="#ffffff" />
                                 <input type="text" id="color-player2-text" value="#ffffff" class="color-text-input" />
                             </div>
                         </div>
                         <div class="gfx-control">
-                            <label for="color-player2-score">Player 2 Score Color:</label>
+                            <label for="color-player2-score" data-i18n="player2ScoreColor">Player 2 Score Color:</label>
                             <div class="color-input-group">
                                 <input type="color" id="color-player2-score" value="#ffffff" />
                                 <input type="text" id="color-player2-score-text" value="#ffffff" class="color-text-input" />
                             </div>
                         </div>
                         <div class="gfx-control">
-                            <label for="color-separator">Separator Color:</label>
+                            <label for="color-separator" data-i18n="separatorColor">Separator Color:</label>
                             <div class="color-input-group">
                                 <input type="color" id="color-separator" value="#ffffff" />
                                 <input type="text" id="color-separator-text" value="#ffffff" class="color-text-input" />
                             </div>
                         </div>
                         <div class="gfx-control">
-                            <label for="color-game-timer">Game/Timer Text Color:</label>
+                            <label for="color-game-timer" data-i18n="gameTimerTextColor">Game/Timer Text Color:</label>
                             <div class="color-input-group">
                                 <input type="color" id="color-game-timer" value="#ffffff" />
                                 <input type="text" id="color-game-timer-text" value="#ffffff" class="color-text-input" />
                             </div>
                         </div>
                         <div class="gfx-control">
-                            <label for="color-glow">Score Change Glow Color:</label>
+                            <label for="color-glow" data-i18n="scoreChangeGlowColor">Score Change Glow Color:</label>
                             <div class="color-input-group">
                                 <input type="color" id="color-glow" value="#ffd700" />
                                 <input type="text" id="color-glow-text" value="#ffd700" class="color-text-input" />
@@ -222,10 +229,10 @@
 
                 <!-- Typography Settings -->
                 <div class="gfx-section">
-                    <h3>Typography</h3>
+                    <h3 data-i18n="typography">Typography</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control">
-                            <label for="font-family">Font Family:</label>
+                            <label for="font-family" data-i18n="fontFamily">Font Family:</label>
                             <select id="font-family" class="gfx-select">
                                 <option value="'Arial Black', 'Arial Bold', Arial, sans-serif">Arial Black (Default)</option>
                                 <option value="Impact, Charcoal, sans-serif">Impact</option>
@@ -238,22 +245,22 @@
                             </select>
                         </div>
                         <div class="gfx-control">
-                            <label for="font-size-player-name">Player Name Size (px):</label>
+                            <label for="font-size-player-name" data-i18n="playerNameSize">Player Name Size (px):</label>
                             <input type="range" id="font-size-player-name" min="24" max="96" value="48" class="gfx-range" />
                             <span id="font-size-player-name-value" class="range-value">48px</span>
                         </div>
                         <div class="gfx-control">
-                            <label for="font-size-score">Score Size (px):</label>
+                            <label for="font-size-score" data-i18n="scoreSize">Score Size (px):</label>
                             <input type="range" id="font-size-score" min="60" max="200" value="120" class="gfx-range" />
                             <span id="font-size-score-value" class="range-value">120px</span>
                         </div>
                         <div class="gfx-control">
-                            <label for="font-size-game-timer">Game/Timer Size (px):</label>
+                            <label for="font-size-game-timer" data-i18n="gameTimerSize">Game/Timer Size (px):</label>
                             <input type="range" id="font-size-game-timer" min="20" max="72" value="42" class="gfx-range" />
                             <span id="font-size-game-timer-value" class="range-value">42px</span>
                         </div>
                         <div class="gfx-control">
-                            <label for="font-weight">Font Weight:</label>
+                            <label for="font-weight" data-i18n="fontWeight">Font Weight:</label>
                             <select id="font-weight" class="gfx-select">
                                 <option value="300">Light (300)</option>
                                 <option value="400">Normal (400)</option>
@@ -269,7 +276,7 @@
 
                 <!-- Effects Settings -->
                 <div class="gfx-section">
-                    <h3>Effects</h3>
+                    <h3 data-i18n="effects">Effects</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control">
                             <label for="text-shadow-blur">Text Shadow Blur (px):</label>
@@ -297,7 +304,7 @@
 
                 <!-- Layout Style Settings -->
                 <div class="gfx-section">
-                    <h3>Layout Style</h3>
+                    <h3 data-i18n="layoutStyle">Layout Style</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control">
                             <label for="layout-style">Display Style:</label>
@@ -722,22 +729,22 @@
 
                 <!-- Presets -->
                 <div class="gfx-section">
-                    <h3>Presets</h3>
+                    <h3 data-i18n="presets">Presets</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control">
-                            <button id="gfx-preset-default" class="btn btn-small">Default</button>
-                            <button id="gfx-preset-bold" class="btn btn-small">Bold</button>
-                            <button id="gfx-preset-elegant" class="btn btn-small">Elegant</button>
-                            <button id="gfx-preset-minimal" class="btn btn-small">Minimal</button>
+                            <button id="gfx-preset-default" class="btn btn-small" data-i18n="default">Default</button>
+                            <button id="gfx-preset-bold" class="btn btn-small" data-i18n="bold">Bold</button>
+                            <button id="gfx-preset-elegant" class="btn btn-small" data-i18n="elegant">Elegant</button>
+                            <button id="gfx-preset-minimal" class="btn btn-small" data-i18n="minimal">Minimal</button>
                         </div>
                         <div class="gfx-control">
-                            <button id="gfx-export" class="btn btn-primary">Export Settings</button>
-                            <button id="gfx-import" class="btn btn-primary">Import Settings</button>
+                            <button id="gfx-export" class="btn btn-primary" data-i18n="exportSettings">Export Settings</button>
+                            <button id="gfx-import" class="btn btn-primary" data-i18n="importSettings">Import Settings</button>
                             <input type="file" id="gfx-import-file" accept=".json" style="display: none;" />
                         </div>
                         <div class="gfx-control">
-                            <button id="gfx-apply" class="btn btn-primary">Apply to Overlay</button>
-                            <button id="gfx-reset" class="btn btn-small">Reset Changes</button>
+                            <button id="gfx-apply" class="btn btn-primary" data-i18n="applyToOverlay">Apply to Overlay</button>
+                            <button id="gfx-reset" class="btn btn-small" data-i18n="resetChanges">Reset Changes</button>
                         </div>
                     </div>
                 </div>
@@ -745,6 +752,7 @@
         </main>
     </div>
 
+    <script src="/frontend/translations.js"></script>
     <script src="app.js"></script>
     <script src="gfx-designer.js"></script>
 </body>

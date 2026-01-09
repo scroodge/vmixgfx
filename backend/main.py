@@ -87,9 +87,12 @@ app.add_middleware(
 
 # Static file serving - resolve paths relative to this file's parent directory
 BASE_DIR = Path(__file__).resolve().parent.parent
+FRONTEND_DIR = BASE_DIR / "frontend"
 CONTROL_DIR = BASE_DIR / "frontend" / "control"
 OVERLAY_DIR = BASE_DIR / "frontend" / "overlay"
 
+# Mount frontend directory for shared files like translations.js
+app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR), html=False), name="frontend")
 app.mount("/control", StaticFiles(directory=str(CONTROL_DIR), html=True), name="control")
 app.mount("/overlay", StaticFiles(directory=str(OVERLAY_DIR), html=True), name="overlay")
 

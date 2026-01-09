@@ -407,9 +407,18 @@ function applyGFXSettings(settings) {
     }
     
     // Store animation settings for access in animateScoreChange
+    // Always initialize window.gfxSettings to ensure it exists
+    if (!window.gfxSettings) window.gfxSettings = {};
+    
     if (settings.animations) {
-        if (!window.gfxSettings) window.gfxSettings = {};
         window.gfxSettings.animations = settings.animations;
+        console.log('✅ Animation settings stored:', settings.animations);
+    } else {
+        // Initialize with defaults if not present
+        window.gfxSettings.animations = {
+            enabled: false,
+            type: 'explosion'
+        };
     }
     
     // Banner styling - apply directly to banner elements
@@ -958,29 +967,32 @@ function animateScoreChange(element, newValue) {
     // Update value
     element.textContent = newValue;
     
-    // Check animation settings
+    // Check animation settings - try multiple sources
     let animationsEnabled = false;
     let animationType = 'explosion';
     
-    // Try to get from loaded settings
+    // First try: window.gfxSettings (most up-to-date)
     if (window.gfxSettings && window.gfxSettings.animations) {
-        animationsEnabled = window.gfxSettings.animations.enabled || false;
+        animationsEnabled = window.gfxSettings.animations.enabled === true;
         animationType = window.gfxSettings.animations.type || 'explosion';
+        console.log('🎬 Animation settings from window.gfxSettings:', { enabled: animationsEnabled, type: animationType });
     } else {
-        // Fallback: check localStorage (for preview mode) or API
-        const isPreview = window.location.search.includes('preview=true');
-        if (isPreview) {
-            const settingsStr = localStorage.getItem('gfxSettings');
-            if (settingsStr) {
-                try {
-                    const settings = JSON.parse(settingsStr);
-                    if (settings.animations) {
-                        animationsEnabled = settings.animations.enabled || false;
-                        animationType = settings.animations.type || 'explosion';
-                    }
-                } catch (e) {
-                    // Ignore parse errors
+        // Fallback: check localStorage (works in both preview and vMix mode)
+        const settingsStr = localStorage.getItem('gfxSettings');
+        if (settingsStr) {
+            try {
+                const settings = JSON.parse(settingsStr);
+                if (settings.animations) {
+                    animationsEnabled = settings.animations.enabled === true;
+                    animationType = settings.animations.type || 'explosion';
+                    console.log('🎬 Animation settings from localStorage:', { enabled: animationsEnabled, type: animationType });
+                    
+                    // Also update window.gfxSettings for future calls
+                    if (!window.gfxSettings) window.gfxSettings = {};
+                    window.gfxSettings.animations = settings.animations;
                 }
+            } catch (e) {
+                console.error('Failed to parse animation settings:', e);
             }
         }
     }
@@ -990,17 +1002,21 @@ function animateScoreChange(element, newValue) {
     
     if (animationsEnabled && animationType) {
         // Apply fantastic animation
-        element.classList.add(`animation-${animationType}`);
+        const animationClass = `animation-${animationType}`;
+        console.log(`🎬 Applying animation: ${animationClass} to element:`, element.id || element.className);
+        element.classList.add(animationClass);
         
         // Remove animation class after animation completes
         const animationDuration = animationType === 'bounce' ? 900 : 
                                   animationType === 'rotate' || animationType === 'flip' ? 800 :
                                   animationType === 'particles' ? 1000 : 700;
         setTimeout(() => {
-            element.classList.remove(`animation-${animationType}`);
+            element.classList.remove(animationClass);
+            console.log(`🎬 Removed animation: ${animationClass}`);
         }, animationDuration);
     } else {
         // Use default animation
+        console.log('🎬 Using default animation (fantastic animations disabled or not configured)');
         element.classList.add('score-changed');
         if (glowEnabled) {
             element.classList.add('glow-enabled');
@@ -1201,8 +1217,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get match ID first
     matchId = getMatchId();
     
+    // Initialize language switcher
+    const languageSelect = document.getElementById('language-select');
+    if (languageSelect) {
+        languageSelect.value = getLanguage();
+        languageSelect.addEventListener('change', (e) => {
+            setLanguage(e.target.value);
+        });
+    }
+    
     // Check if this is preview mode (iframe in control panel) or vMix (standalone)
     const isPreview = window.location.search.includes('preview=true');
+    
+    // Also load from localStorage immediately (for preview mode quick updates)
+    if (isPreview) {
+        loadGFXSettings();
+    }
     
     // For vMix: Load ONLY from API (no localStorage dependency)
     // For preview: Can use localStorage as cache for same-origin performance

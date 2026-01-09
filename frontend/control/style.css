@@ -97,6 +97,32 @@ header h1 {
     font-weight: 500;
 }
 
+.language-switcher {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.language-switcher select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.language-switcher select:hover {
+    border-color: #667eea;
+}
+
+.language-switcher select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
 .match-id-display input {
     padding: 6px 12px;
     border: 2px solid #ddd;

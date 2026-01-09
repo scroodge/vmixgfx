@@ -109,12 +109,12 @@ function updateConnectionStatus(connected) {
     if (connected) {
         elements.connectionStatus.classList.remove('disconnected');
         elements.connectionStatus.classList.add('connected');
-        elements.connectionStatus.querySelector('.status-text').textContent = 'Connected';
+        elements.connectionStatus.querySelector('.status-text').textContent = t('connected');
         reconnectDelay = 1000; // Reset reconnect delay on successful connection
     } else {
         elements.connectionStatus.classList.remove('connected');
         elements.connectionStatus.classList.add('disconnected');
-        elements.connectionStatus.querySelector('.status-text').textContent = 'Disconnected';
+        elements.connectionStatus.querySelector('.status-text').textContent = t('disconnected');
     }
 }
 
@@ -276,11 +276,11 @@ async function apiCall(endpoint, method = 'GET', body = null) {
         } else {
             const error = await response.json();
             console.error('API error:', error);
-            alert(`Error: ${error.detail || 'Unknown error'}`);
+            alert(`${t('error')}: ${error.detail || t('unknownError')}`);
         }
     } catch (error) {
         console.error('API call failed:', error);
-        alert('Failed to connect to server. Please check your connection.');
+        alert(t('connectionError'));
     }
     return null;
 }
@@ -503,7 +503,7 @@ async function loadVisibilitySettings() {
 
 // Reset
 elements.resetBtn.addEventListener('click', async () => {
-    if (confirm('Are you sure you want to reset the game? This will reset scores, game number, and timer.')) {
+    if (confirm(t('resetConfirm'))) {
         await apiCall('/reset', 'POST');
         // Clear form inputs
         elements.homeName.value = '';
@@ -521,6 +521,20 @@ elements.resetBtn.addEventListener('click', async () => {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     matchId = elements.matchIdInput.value || '1';
+    
+    // Initialize language switcher
+    const languageSelect = document.getElementById('language-select');
+    if (languageSelect) {
+        languageSelect.value = getLanguage();
+        languageSelect.addEventListener('change', (e) => {
+            setLanguage(e.target.value);
+        });
+    }
+    
+    // Listen for language changes
+    window.addEventListener('languageChanged', () => {
+        updateConnectionStatus(ws && ws.readyState === WebSocket.OPEN);
+    });
     
     // Load visibility settings (async, from API first)
     await loadVisibilitySettings();

@@ -290,6 +290,8 @@ body {
     display: inline-block;
     transition: transform 0.2s ease;
     position: relative;
+    will-change: transform;
+    transform-origin: center center;
 }
 
 .game-score #home-score {
@@ -349,6 +351,9 @@ body {
 .game-score #home-score.animation-zoom,
 .game-score #away-score.animation-zoom {
     position: relative;
+    will-change: transform;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
 }
 
 .game-score #home-score.animation-explosion,
