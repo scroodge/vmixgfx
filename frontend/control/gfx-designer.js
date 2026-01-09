@@ -91,6 +91,10 @@ const defaultSettings = {
     visibility: {
         showGame: true,
         showTimer: true
+    },
+    animations: {
+        enabled: false,
+        type: 'explosion'  // 'explosion', 'bounce', 'rotate', 'particles', 'flip', 'zoom'
     }
 };
 
@@ -246,7 +250,18 @@ const gfxElements = {
     importFile: document.getElementById('gfx-import-file'),
     applyBtn: document.getElementById('gfx-apply'),
     resetBtn: document.getElementById('gfx-reset'),
-    preview: document.getElementById('gfx-preview')
+    preview: document.getElementById('gfx-preview'),
+    
+    // Background Upload
+    backgroundUpload: document.getElementById('background-upload'),
+    backgroundUploadBtn: document.getElementById('background-upload-btn'),
+    backgroundRemoveBtn: document.getElementById('background-remove-btn'),
+    backgroundUploadStatus: document.getElementById('background-upload-status'),
+    
+    // Animations
+    enableScoreAnimations: document.getElementById('enable-score-animations'),
+    animationType: document.getElementById('animation-type'),
+    animationTypeControl: document.getElementById('animation-type-control')
 };
 
 // ============================================================================
@@ -497,6 +512,26 @@ function applySettingsToUI(settings) {
         gfxElements.bgInfoGradientColor1Text.value = bg.gradientColor1 || '#000000';
         gfxElements.bgInfoGradientColor2.value = bg.gradientColor2 || '#333333';
         gfxElements.bgInfoGradientColor2Text.value = bg.gradientColor2 || '#333333';
+    }
+    
+    // Animations
+    if (settings.animations) {
+        if (gfxElements.enableScoreAnimations) {
+            gfxElements.enableScoreAnimations.checked = settings.animations.enabled || false;
+            if (gfxElements.animationTypeControl) {
+                gfxElements.animationTypeControl.style.display = settings.animations.enabled ? 'block' : 'none';
+            }
+        }
+        if (gfxElements.animationType) {
+            gfxElements.animationType.value = settings.animations.type || 'explosion';
+        }
+    } else {
+        if (gfxElements.enableScoreAnimations) {
+            gfxElements.enableScoreAnimations.checked = false;
+            if (gfxElements.animationTypeControl) {
+                gfxElements.animationTypeControl.style.display = 'none';
+            }
+        }
     }
 }
 
@@ -794,6 +829,116 @@ function initializeEventListeners() {
             applySettingsToUI(currentSettings);
             applySettingsToOverlay(currentSettings);
         }
+    });
+    
+    // Background Upload
+    gfxElements.backgroundUploadBtn.addEventListener('click', async () => {
+        const file = gfxElements.backgroundUpload.files[0];
+        if (!file) {
+            gfxElements.backgroundUploadStatus.textContent = 'Please select a file first';
+            gfxElements.backgroundUploadStatus.style.color = '#ff4444';
+            return;
+        }
+        
+        if (!file.type.startsWith('image/')) {
+            gfxElements.backgroundUploadStatus.textContent = 'Please select an image file';
+            gfxElements.backgroundUploadStatus.style.color = '#ff4444';
+            return;
+        }
+        
+        gfxElements.backgroundUploadStatus.textContent = 'Uploading...';
+        gfxElements.backgroundUploadStatus.style.color = '#666';
+        gfxElements.backgroundUploadBtn.disabled = true;
+        
+        try {
+            const matchIdInput = document.getElementById('match-id-input');
+            const matchId = matchIdInput ? matchIdInput.value || '1' : '1';
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch(`/api/match/${matchId}/background-upload`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                // Update current settings with uploaded background
+                if (!currentSettings.backgrounds) currentSettings.backgrounds = {};
+                if (!currentSettings.backgrounds.container) currentSettings.backgrounds.container = {};
+                currentSettings.backgrounds.container.type = 'image';
+                currentSettings.backgrounds.container.imageUrl = data.settings.backgrounds.container.imageUrl;
+                currentSettings.backgrounds.container.imageSize = 'cover';
+                currentSettings.backgrounds.container.imageOpacity = 100;
+                
+                // Update UI
+                if (gfxElements.bgContainerType) {
+                    gfxElements.bgContainerType.value = 'image';
+                    updateBackgroundControls('container', 'image');
+                }
+                if (gfxElements.bgContainerImageUrl) {
+                    gfxElements.bgContainerImageUrl.value = data.settings.backgrounds.container.imageUrl;
+                }
+                
+                saveSettings();
+                applySettingsToOverlay(currentSettings);
+                updatePreview(currentSettings);
+                
+                gfxElements.backgroundUploadStatus.textContent = 'Background uploaded successfully!';
+                gfxElements.backgroundUploadStatus.style.color = '#44ff44';
+            } else {
+                const error = await response.json();
+                gfxElements.backgroundUploadStatus.textContent = 'Upload failed: ' + (error.detail || 'Unknown error');
+                gfxElements.backgroundUploadStatus.style.color = '#ff4444';
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            gfxElements.backgroundUploadStatus.textContent = 'Upload failed: ' + error.message;
+            gfxElements.backgroundUploadStatus.style.color = '#ff4444';
+        } finally {
+            gfxElements.backgroundUploadBtn.disabled = false;
+        }
+    });
+    
+    // Remove Background
+    gfxElements.backgroundRemoveBtn.addEventListener('click', () => {
+        if (confirm('Remove background image?')) {
+            if (!currentSettings.backgrounds) currentSettings.backgrounds = {};
+            if (!currentSettings.backgrounds.container) currentSettings.backgrounds.container = {};
+            currentSettings.backgrounds.container.type = 'transparent';
+            currentSettings.backgrounds.container.imageUrl = '';
+            
+            if (gfxElements.bgContainerType) {
+                gfxElements.bgContainerType.value = 'transparent';
+                updateBackgroundControls('container', 'transparent');
+            }
+            
+            saveSettings();
+            applySettingsToOverlay(currentSettings);
+            updatePreview(currentSettings);
+            
+            gfxElements.backgroundUploadStatus.textContent = 'Background removed';
+            gfxElements.backgroundUploadStatus.style.color = '#666';
+        }
+    });
+    
+    // Animations
+    gfxElements.enableScoreAnimations.addEventListener('change', (e) => {
+        if (!currentSettings.animations) currentSettings.animations = {};
+        currentSettings.animations.enabled = e.target.checked;
+        if (gfxElements.animationTypeControl) {
+            gfxElements.animationTypeControl.style.display = e.target.checked ? 'block' : 'none';
+        }
+        saveSettings();
+        applySettingsToOverlay(currentSettings);
+    });
+    
+    gfxElements.animationType.addEventListener('change', (e) => {
+        if (!currentSettings.animations) currentSettings.animations = {};
+        currentSettings.animations.type = e.target.value;
+        saveSettings();
+        applySettingsToOverlay(currentSettings);
     });
     
 }

@@ -630,6 +630,52 @@
                     </div>
                 </div>
 
+                <!-- Background Image Upload -->
+                <div class="gfx-section">
+                    <h3>Background Image Upload</h3>
+                    <div class="gfx-controls">
+                        <div class="gfx-control">
+                            <label for="background-upload">Upload Background Image:</label>
+                            <input type="file" id="background-upload" accept="image/*" class="gfx-file-input" />
+                            <button id="background-upload-btn" class="btn btn-primary">Upload Background</button>
+                            <div id="background-upload-status" class="upload-status"></div>
+                        </div>
+                        <div class="gfx-control">
+                            <button id="background-remove-btn" class="btn btn-small">Remove Background Image</button>
+                        </div>
+                        <div class="gfx-control">
+                            <small>Upload a background image/title. The system will overlay text and scores on top of it.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Score Animations -->
+                <div class="gfx-section">
+                    <h3>Score Animations</h3>
+                    <div class="gfx-controls">
+                        <div class="gfx-control">
+                            <label>
+                                <input type="checkbox" id="enable-score-animations" />
+                                Enable Fantastic Score Animations
+                            </label>
+                        </div>
+                        <div class="gfx-control" id="animation-type-control" style="display: none;">
+                            <label for="animation-type">Animation Type:</label>
+                            <select id="animation-type" class="gfx-select">
+                                <option value="explosion">Explosion (with particles)</option>
+                                <option value="bounce">Bounce (elastic bounce)</option>
+                                <option value="rotate">Rotate (3D spin)</option>
+                                <option value="particles">Particles (floating particles)</option>
+                                <option value="flip">Flip (card flip)</option>
+                                <option value="zoom">Zoom (scale burst)</option>
+                            </select>
+                        </div>
+                        <div class="gfx-control">
+                            <small>When enabled, score changes will trigger spectacular animations!</small>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Presets -->
                 <div class="gfx-section">
                     <h3>Presets</h3>

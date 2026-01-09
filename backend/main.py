@@ -11,11 +11,12 @@ from collections import defaultdict
 from typing import Dict, Set, Optional
 from datetime import datetime
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field, field_validator
+import base64
 
 # ============================================================================
 # Pydantic Models
@@ -437,6 +438,55 @@ async def set_gfx_settings(match_id: str, settings: dict):
         for ws in disconnected:
             connections[match_id].discard(ws)
     return {"status": "ok"}
+
+@app.post("/api/match/{match_id}/background-upload")
+async def upload_background(match_id: str, file: UploadFile = File(...)):
+    """Upload a background image for a match (converts to base64)"""
+    # Read file content
+    contents = await file.read()
+    
+    # Convert to base64
+    base64_content = base64.b64encode(contents).decode('utf-8')
+    
+    # Get file extension/mime type
+    mime_type = file.content_type or "image/png"
+    
+    # Create data URL
+    data_url = f"data:{mime_type};base64,{base64_content}"
+    
+    # Get or create GFX settings for this match
+    if match_id not in gfx_settings:
+        gfx_settings[match_id] = {}
+    
+    if 'backgrounds' not in gfx_settings[match_id]:
+        gfx_settings[match_id]['backgrounds'] = {}
+    
+    if 'container' not in gfx_settings[match_id]['backgrounds']:
+        gfx_settings[match_id]['backgrounds']['container'] = {}
+    
+    # Store the uploaded background image
+    gfx_settings[match_id]['backgrounds']['container']['type'] = 'image'
+    gfx_settings[match_id]['backgrounds']['container']['imageUrl'] = data_url
+    gfx_settings[match_id]['backgrounds']['container']['imageSize'] = 'cover'
+    gfx_settings[match_id]['backgrounds']['container']['imageOpacity'] = 100
+    
+    # Broadcast settings update to connected overlays via WebSocket
+    if match_id in connections:
+        message = json.dumps({"type": "gfxSettings", "settings": gfx_settings[match_id]})
+        disconnected = []
+        for ws in connections[match_id]:
+            try:
+                await ws.send_text(message)
+            except:
+                disconnected.append(ws)
+        for ws in disconnected:
+            connections[match_id].discard(ws)
+    
+    return {
+        "status": "ok",
+        "message": "Background uploaded successfully",
+        "settings": gfx_settings[match_id]
+    }
 
 @app.get("/")
 async def root(request: Request):
