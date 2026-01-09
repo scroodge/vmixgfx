@@ -232,6 +232,12 @@ function applyGFXSettings(settings) {
         document.body.dataset.glowEnabled = settings.effects.enableGlow;
     }
     
+    // Store animation settings for access in animateScoreChange
+    if (settings.animations) {
+        if (!window.gfxSettings) window.gfxSettings = {};
+        window.gfxSettings.animations = settings.animations;
+    }
+    
     // Banner styling - apply directly to banner elements
     if (settings.banner) {
         // Always set CSS variables
@@ -648,11 +654,20 @@ function updateUI(state, eventType = null, changed = null) {
 }
 
 /**
- * Animate score change with bump/pop effect
+ * Animate score change with bump/pop effect or fantastic animations
  */
 function animateScoreChange(element, newValue) {
-    // Remove any existing animation class
-    element.classList.remove('score-changed', 'glow-enabled');
+    // Remove any existing animation classes
+    element.classList.remove(
+        'score-changed', 
+        'glow-enabled',
+        'animation-explosion',
+        'animation-bounce',
+        'animation-rotate',
+        'animation-particles',
+        'animation-flip',
+        'animation-zoom'
+    );
     
     // Trigger reflow to restart animation
     void element.offsetWidth;
@@ -660,19 +675,59 @@ function animateScoreChange(element, newValue) {
     // Update value
     element.textContent = newValue;
     
-    // Check if glow is enabled
-    const glowEnabled = document.body.dataset.glowEnabled === 'true';
+    // Check animation settings
+    let animationsEnabled = false;
+    let animationType = 'explosion';
     
-    // Add animation class
-    element.classList.add('score-changed');
-    if (glowEnabled) {
-        element.classList.add('glow-enabled');
+    // Try to get from loaded settings
+    if (window.gfxSettings && window.gfxSettings.animations) {
+        animationsEnabled = window.gfxSettings.animations.enabled || false;
+        animationType = window.gfxSettings.animations.type || 'explosion';
+    } else {
+        // Fallback: check localStorage (for preview mode) or API
+        const isPreview = window.location.search.includes('preview=true');
+        if (isPreview) {
+            const settingsStr = localStorage.getItem('gfxSettings');
+            if (settingsStr) {
+                try {
+                    const settings = JSON.parse(settingsStr);
+                    if (settings.animations) {
+                        animationsEnabled = settings.animations.enabled || false;
+                        animationType = settings.animations.type || 'explosion';
+                    }
+                } catch (e) {
+                    // Ignore parse errors
+                }
+            }
+        }
     }
     
-    // Remove animation class after animation completes
-    setTimeout(() => {
-        element.classList.remove('score-changed', 'glow-enabled');
-    }, 500);
+    // Check if glow is enabled (for basic animation)
+    const glowEnabled = document.body.dataset.glowEnabled === 'true';
+    
+    if (animationsEnabled && animationType) {
+        // Apply fantastic animation
+        element.classList.add(`animation-${animationType}`);
+        
+        // Remove animation class after animation completes
+        const animationDuration = animationType === 'bounce' ? 900 : 
+                                  animationType === 'rotate' || animationType === 'flip' ? 800 :
+                                  animationType === 'particles' ? 1000 : 700;
+        setTimeout(() => {
+            element.classList.remove(`animation-${animationType}`);
+        }, animationDuration);
+    } else {
+        // Use default animation
+        element.classList.add('score-changed');
+        if (glowEnabled) {
+            element.classList.add('glow-enabled');
+        }
+        
+        // Remove animation class after animation completes
+        setTimeout(() => {
+            element.classList.remove('score-changed', 'glow-enabled');
+        }, 500);
+    }
 }
 
 /**
