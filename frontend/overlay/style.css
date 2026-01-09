@@ -81,20 +81,52 @@ body {
     position: absolute;
 }
 
-/* Score Section - Vertical Layout */
-.score-section.layout-vertical {
+/* Score Section - Horizontal Layout */
+.score-section.layout-horizontal {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: var(--spacing-scores);
-    width: fit-content;
-    background: var(--bg-score);
-    padding: var(--bg-score-padding);
-    border-radius: var(--bg-score-radius);
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Allow clicks to pass through */
+}
+
+.score-element {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+}
+
+.score-left {
+    left: var(--pos-left-x, 10%);
+    top: var(--pos-left-y, 50%);
+    transform: translateY(-50%);
+    justify-content: flex-start;
+}
+
+.score-center {
+    left: var(--pos-center-x, 50%);
+    top: var(--pos-center-y, 50%);
+    transform: translate(-50%, -50%);
+    justify-content: center;
+}
+
+.score-right {
+    left: var(--pos-right-x, 90%);
+    top: var(--pos-right-y, 50%);
+    transform: translate(-100%, -50%);
+    justify-content: flex-end;
 }
 
 .overlay-container.position-absolute .score-section {
     position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 
 /* Banner Layout */
@@ -217,20 +249,199 @@ body {
     text-transform: uppercase;
     letter-spacing: var(--letter-spacing);
     white-space: nowrap;
-    min-width: 200px;
     text-align: center;
 }
 
-.home-team .team-name {
-    text-align: right;
+/* Horizontal layout name styling */
+.score-left .team-name {
     color: var(--color-player1);
-}
-
-.away-team .team-name {
     text-align: left;
-    color: var(--color-player2);
 }
 
+.score-right .team-name {
+    color: var(--color-player2);
+    text-align: right;
+}
+
+.score-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.game-score {
+    font-size: var(--font-size-score);
+    font-weight: var(--font-weight);
+    color: var(--color-player1-score);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    text-shadow: 
+        3px 3px calc(var(--text-shadow-blur) * 1.5) rgba(0, 0, 0, var(--text-shadow-opacity)),
+        0 0 20px rgba(0, 0, 0, calc(var(--text-shadow-opacity) * 0.75));
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+
+.game-score #home-score,
+.game-score #away-score {
+    display: inline-block;
+    transition: transform 0.2s ease;
+    position: relative;
+}
+
+.game-score #home-score {
+    color: var(--color-player1-score);
+}
+
+.game-score #away-score {
+    color: var(--color-player2-score);
+}
+
+.match-score {
+    font-size: calc(var(--font-size-score) * 0.6);
+    color: var(--color-separator);
+    font-weight: 500;
+    margin: 0 4px;
+}
+
+/* Score animations for horizontal layout */
+.game-score #home-score.score-changed,
+.game-score #away-score.score-changed {
+    animation: scoreBump 0.5s ease-out;
+}
+
+.game-score #home-score.score-changed.glow-enabled,
+.game-score #away-score.score-changed.glow-enabled {
+    animation: scoreBumpGlow 0.5s ease-out;
+    position: relative;
+}
+
+.game-score #home-score.score-changed.glow-enabled::after,
+.game-score #away-score.score-changed.glow-enabled::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 10px;
+    opacity: 0;
+    box-shadow: 0 0 30px var(--color-glow), 0 0 50px var(--color-glow);
+    pointer-events: none;
+    animation: glowPulse 0.5s ease-out;
+    z-index: -1;
+}
+
+/* Fantastic animations for horizontal layout scores */
+.game-score #home-score.animation-explosion,
+.game-score #away-score.animation-explosion,
+.game-score #home-score.animation-bounce,
+.game-score #away-score.animation-bounce,
+.game-score #home-score.animation-rotate,
+.game-score #away-score.animation-rotate,
+.game-score #home-score.animation-particles,
+.game-score #away-score.animation-particles,
+.game-score #home-score.animation-flip,
+.game-score #away-score.animation-flip,
+.game-score #home-score.animation-zoom,
+.game-score #away-score.animation-zoom {
+    position: relative;
+}
+
+.game-score #home-score.animation-explosion,
+.game-score #away-score.animation-explosion {
+    animation: explosionAnimation 0.8s ease-out;
+}
+
+.game-score #home-score.animation-explosion::before,
+.game-score #away-score.animation-explosion::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200px;
+    height: 200px;
+    margin: -100px 0 0 -100px;
+    border-radius: 50%;
+    opacity: 0;
+    background: radial-gradient(circle, var(--color-glow) 0%, transparent 70%);
+    animation: explosionParticles 0.8s ease-out;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.game-score #home-score.animation-bounce,
+.game-score #away-score.animation-bounce {
+    animation: bounceAnimation 0.9s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.game-score #home-score.animation-rotate,
+.game-score #away-score.animation-rotate {
+    animation: rotateAnimation 0.8s ease-out;
+    transform-style: preserve-3d;
+}
+
+.game-score #home-score.animation-particles,
+.game-score #away-score.animation-particles {
+    animation: particlesBase 0.7s ease-out;
+}
+
+.game-score #home-score.animation-particles::after,
+.game-score #away-score.animation-particles::after {
+    content: '✦';
+    position: absolute;
+    font-size: 0.5em;
+    color: var(--color-glow);
+    opacity: 0;
+    animation: particlesFloat 1s ease-out;
+    pointer-events: none;
+}
+
+.game-score #home-score.animation-particles::before,
+.game-score #away-score.animation-particles::before {
+    content: '✦ ✦ ✦';
+    position: absolute;
+    font-size: 0.4em;
+    color: var(--color-glow);
+    opacity: 0;
+    animation: particlesFloat 1.2s ease-out 0.1s;
+    pointer-events: none;
+    left: 50%;
+    top: 50%;
+}
+
+.game-score #home-score.animation-flip,
+.game-score #away-score.animation-flip {
+    animation: flipAnimation 0.8s ease-out;
+    transform-style: preserve-3d;
+}
+
+.game-score #home-score.animation-zoom,
+.game-score #away-score.animation-zoom {
+    animation: zoomAnimation 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.game-score #home-score.animation-zoom::before,
+.game-score #away-score.animation-zoom::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    margin: -50% 0 0 -50%;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--color-glow) 0%, transparent 70%);
+    opacity: 0.6;
+    animation: zoomRipple 0.7s ease-out;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Legacy vertical layout styles (kept for compatibility if needed) */
 .team-score {
     font-size: var(--font-size-score);
     font-weight: var(--font-weight);

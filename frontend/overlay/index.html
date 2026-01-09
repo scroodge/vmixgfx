@@ -8,17 +8,23 @@
 </head>
 <body>
     <div class="overlay-container">
-        <!-- Vertical Layout (default) -->
-        <div class="score-section layout-vertical">
-            <div class="team home-team">
+        <!-- Horizontal Layout (default) -->
+        <div class="score-section layout-horizontal">
+            <div class="score-element score-left" id="score-left">
                 <div class="team-name" id="home-name">Player 1</div>
-                <div class="team-score" id="home-score">0</div>
             </div>
             
-            <div class="score-separator">|</div>
+            <div class="score-element score-center" id="score-center">
+                <div class="score-container">
+                    <span class="game-score">
+                        <span id="home-score">0</span>
+                        <span class="match-score" id="match-scores" style="display: none;">(0)</span>
+                        <span id="away-score">0</span>
+                    </span>
+                </div>
+            </div>
             
-            <div class="team away-team">
-                <div class="team-score" id="away-score">0</div>
+            <div class="score-element score-right" id="score-right">
                 <div class="team-name" id="away-name">Player 2</div>
             </div>
         </div>

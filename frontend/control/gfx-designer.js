@@ -50,8 +50,14 @@ const defaultSettings = {
         matchScoreColor: '#666666'
     },
     positions: {
-        scoreX: 50,  // Percentage 0-100
-        scoreY: 50,  // Percentage 0-100
+        leftX: 10,   // Percentage 0-100 - Left section X position
+        leftY: 50,   // Percentage 0-100 - Left section Y position
+        centerX: 50, // Percentage 0-100 - Center section X position
+        centerY: 50, // Percentage 0-100 - Center section Y position
+        rightX: 90,  // Percentage 0-100 - Right section X position
+        rightY: 50,  // Percentage 0-100 - Right section Y position
+        scoreX: 50,  // Percentage 0-100 - Legacy support
+        scoreY: 50,  // Percentage 0-100 - Legacy support
         infoX: 50,   // Percentage 0-100
         infoY: 80,   // Percentage 0-100
         absolutePositioning: true  // Enabled by default for positioning to work
@@ -148,7 +154,19 @@ const gfxElements = {
     separatorSizeValue: document.getElementById('separator-size-value'),
     
     // Positions
-    posScoreX: document.getElementById('pos-score-x'),
+    posLeftX: document.getElementById('pos-left-x'),
+    posLeftXValue: document.getElementById('pos-left-x-value'),
+    posLeftY: document.getElementById('pos-left-y'),
+    posLeftYValue: document.getElementById('pos-left-y-value'),
+    posCenterX: document.getElementById('pos-center-x'),
+    posCenterXValue: document.getElementById('pos-center-x-value'),
+    posCenterY: document.getElementById('pos-center-y'),
+    posCenterYValue: document.getElementById('pos-center-y-value'),
+    posRightX: document.getElementById('pos-right-x'),
+    posRightXValue: document.getElementById('pos-right-x-value'),
+    posRightY: document.getElementById('pos-right-y'),
+    posRightYValue: document.getElementById('pos-right-y-value'),
+    posScoreX: document.getElementById('pos-score-x'), // Legacy support
     posScoreXValue: document.getElementById('pos-score-x-value'),
     posScoreY: document.getElementById('pos-score-y'),
     posScoreYValue: document.getElementById('pos-score-y-value'),
@@ -548,15 +566,83 @@ function applySettingsToUI(settings) {
     
     // Positions - convert from number or string to number for sliders
     if (settings.positions) {
-        // Handle scoreX - convert from string keywords or use number
+        // Handle leftX
+        const leftX = typeof settings.positions.leftX === 'number' ? settings.positions.leftX :
+                     (typeof settings.positions.leftX === 'string' && settings.positions.leftX.includes('%') ? 
+                      parseInt(settings.positions.leftX.replace('%', '')) : 10);
+        if (gfxElements.posLeftX) {
+            gfxElements.posLeftX.value = leftX;
+            if (gfxElements.posLeftXValue) {
+                gfxElements.posLeftXValue.textContent = leftX + '%';
+            }
+        }
+        
+        // Handle leftY
+        const leftY = typeof settings.positions.leftY === 'number' ? settings.positions.leftY :
+                     (typeof settings.positions.leftY === 'string' && settings.positions.leftY.includes('%') ? 
+                      parseInt(settings.positions.leftY.replace('%', '')) : 50);
+        if (gfxElements.posLeftY) {
+            gfxElements.posLeftY.value = leftY;
+            if (gfxElements.posLeftYValue) {
+                gfxElements.posLeftYValue.textContent = leftY + '%';
+            }
+        }
+        
+        // Handle centerX
+        const centerX = typeof settings.positions.centerX === 'number' ? settings.positions.centerX :
+                       (typeof settings.positions.centerX === 'string' && settings.positions.centerX.includes('%') ? 
+                        parseInt(settings.positions.centerX.replace('%', '')) : 50);
+        if (gfxElements.posCenterX) {
+            gfxElements.posCenterX.value = centerX;
+            if (gfxElements.posCenterXValue) {
+                gfxElements.posCenterXValue.textContent = centerX + '%';
+            }
+        }
+        
+        // Handle centerY
+        const centerY = typeof settings.positions.centerY === 'number' ? settings.positions.centerY :
+                       (typeof settings.positions.centerY === 'string' && settings.positions.centerY.includes('%') ? 
+                        parseInt(settings.positions.centerY.replace('%', '')) : 50);
+        if (gfxElements.posCenterY) {
+            gfxElements.posCenterY.value = centerY;
+            if (gfxElements.posCenterYValue) {
+                gfxElements.posCenterYValue.textContent = centerY + '%';
+            }
+        }
+        
+        // Handle rightX
+        const rightX = typeof settings.positions.rightX === 'number' ? settings.positions.rightX :
+                      (typeof settings.positions.rightX === 'string' && settings.positions.rightX.includes('%') ? 
+                       parseInt(settings.positions.rightX.replace('%', '')) : 90);
+        if (gfxElements.posRightX) {
+            gfxElements.posRightX.value = rightX;
+            if (gfxElements.posRightXValue) {
+                gfxElements.posRightXValue.textContent = rightX + '%';
+            }
+        }
+        
+        // Handle rightY
+        const rightY = typeof settings.positions.rightY === 'number' ? settings.positions.rightY :
+                      (typeof settings.positions.rightY === 'string' && settings.positions.rightY.includes('%') ? 
+                       parseInt(settings.positions.rightY.replace('%', '')) : 50);
+        if (gfxElements.posRightY) {
+            gfxElements.posRightY.value = rightY;
+            if (gfxElements.posRightYValue) {
+                gfxElements.posRightYValue.textContent = rightY + '%';
+            }
+        }
+        
+        // Legacy scoreX/Y support (fallback if new positions not set)
         const scoreX = typeof settings.positions.scoreX === 'number' ? settings.positions.scoreX :
                       (settings.positions.scoreX === 'center' ? 50 : 
                        (settings.positions.scoreX === 'left' ? 0 : 
                         (typeof settings.positions.scoreX === 'string' && settings.positions.scoreX.includes('%') ? 
                          parseInt(settings.positions.scoreX.replace('%', '')) : 50)));
-        gfxElements.posScoreX.value = scoreX;
-        if (gfxElements.posScoreXValue) {
-            gfxElements.posScoreXValue.textContent = scoreX + '%';
+        if (gfxElements.posScoreX) {
+            gfxElements.posScoreX.value = scoreX;
+            if (gfxElements.posScoreXValue) {
+                gfxElements.posScoreXValue.textContent = scoreX + '%';
+            }
         }
         
         // Handle scoreY
@@ -566,9 +652,11 @@ function applySettingsToUI(settings) {
                         (settings.positions.scoreY === 'bottom' ? 100 : 
                          (typeof settings.positions.scoreY === 'string' && settings.positions.scoreY.includes('%') ? 
                           parseInt(settings.positions.scoreY.replace('%', '')) : 50))));
-        gfxElements.posScoreY.value = scoreY;
-        if (gfxElements.posScoreYValue) {
-            gfxElements.posScoreYValue.textContent = scoreY + '%';
+        if (gfxElements.posScoreY) {
+            gfxElements.posScoreY.value = scoreY;
+            if (gfxElements.posScoreYValue) {
+                gfxElements.posScoreYValue.textContent = scoreY + '%';
+            }
         }
         
         // Handle infoX
@@ -577,9 +665,11 @@ function applySettingsToUI(settings) {
                       (settings.positions.infoX === 'left' ? 0 : 
                        (typeof settings.positions.infoX === 'string' && settings.positions.infoX.includes('%') ? 
                         parseInt(settings.positions.infoX.replace('%', '')) : 50)));
-        gfxElements.posInfoX.value = infoX;
-        if (gfxElements.posInfoXValue) {
-            gfxElements.posInfoXValue.textContent = infoX + '%';
+        if (gfxElements.posInfoX) {
+            gfxElements.posInfoX.value = infoX;
+            if (gfxElements.posInfoXValue) {
+                gfxElements.posInfoXValue.textContent = infoX + '%';
+            }
         }
         
         // Handle infoY - convert 'auto' to a number or use number
@@ -589,9 +679,11 @@ function applySettingsToUI(settings) {
                        (settings.positions.infoY === 'bottom' ? 100 : 
                         (typeof settings.positions.infoY === 'string' && settings.positions.infoY.includes('%') ? 
                          parseInt(settings.positions.infoY.replace('%', '')) : 80))));
-        gfxElements.posInfoY.value = infoY;
-        if (gfxElements.posInfoYValue) {
-            gfxElements.posInfoYValue.textContent = infoY + '%';
+        if (gfxElements.posInfoY) {
+            gfxElements.posInfoY.value = infoY;
+            if (gfxElements.posInfoYValue) {
+                gfxElements.posInfoYValue.textContent = infoY + '%';
+            }
         }
         
         gfxElements.enableAbsolutePositioning.checked = settings.positions.absolutePositioning !== false; // Default to true
@@ -900,8 +992,27 @@ function initializeEventListeners() {
     setupColorSync(gfxElements.bannerScoreColor, gfxElements.bannerScoreColorText, 'banner.scoreColor');
     setupColorSync(gfxElements.bannerMatchScoreColor, gfxElements.bannerMatchScoreColorText, 'banner.matchScoreColor');
     
-    // Positions
-    // Position controls - use range inputs with percentage display
+    // Positions - Individual section controls
+    if (gfxElements.posLeftX && gfxElements.posLeftXValue) {
+        setupRangeInput(gfxElements.posLeftX, gfxElements.posLeftXValue, 'positions.leftX', '%');
+    }
+    if (gfxElements.posLeftY && gfxElements.posLeftYValue) {
+        setupRangeInput(gfxElements.posLeftY, gfxElements.posLeftYValue, 'positions.leftY', '%');
+    }
+    if (gfxElements.posCenterX && gfxElements.posCenterXValue) {
+        setupRangeInput(gfxElements.posCenterX, gfxElements.posCenterXValue, 'positions.centerX', '%');
+    }
+    if (gfxElements.posCenterY && gfxElements.posCenterYValue) {
+        setupRangeInput(gfxElements.posCenterY, gfxElements.posCenterYValue, 'positions.centerY', '%');
+    }
+    if (gfxElements.posRightX && gfxElements.posRightXValue) {
+        setupRangeInput(gfxElements.posRightX, gfxElements.posRightXValue, 'positions.rightX', '%');
+    }
+    if (gfxElements.posRightY && gfxElements.posRightYValue) {
+        setupRangeInput(gfxElements.posRightY, gfxElements.posRightYValue, 'positions.rightY', '%');
+    }
+    
+    // Legacy position controls (kept for backward compatibility)
     if (gfxElements.posScoreX && gfxElements.posScoreXValue) {
         setupRangeInput(gfxElements.posScoreX, gfxElements.posScoreXValue, 'positions.scoreX', '%');
     }

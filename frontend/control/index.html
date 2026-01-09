@@ -427,21 +427,50 @@
 
                 <!-- Position Settings -->
                 <div class="gfx-section">
-                    <h3>Element Positions (Move Text/Scores)</h3>
+                    <h3>Element Positions (Move Text/Scores Independently)</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control-group">
-                            <h4>Score Banner/Section Position</h4>
+                            <h4>Left Section (Player Name)</h4>
                             <div class="position-controls">
                                 <div class="gfx-control">
-                                    <label for="pos-score-x">X Position (%):</label>
-                                    <input type="range" id="pos-score-x" min="0" max="100" value="50" class="gfx-range" />
-                                    <span id="pos-score-x-value" class="range-value">50%</span>
+                                    <label for="pos-left-x">X Position (%):</label>
+                                    <input type="range" id="pos-left-x" min="0" max="100" value="10" class="gfx-range" />
+                                    <span id="pos-left-x-value" class="range-value">10%</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="pos-score-y">Y Position (%):</label>
-                                    <input type="range" id="pos-score-y" min="0" max="100" value="50" class="gfx-range" />
-                                    <span id="pos-score-y-value" class="range-value">50%</span>
-                                    <small>Lower values = move up, Higher values = move down</small>
+                                    <label for="pos-left-y">Y Position (%):</label>
+                                    <input type="range" id="pos-left-y" min="0" max="100" value="50" class="gfx-range" />
+                                    <span id="pos-left-y-value" class="range-value">50%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gfx-control-group">
+                            <h4>Center Section (Scores)</h4>
+                            <div class="position-controls">
+                                <div class="gfx-control">
+                                    <label for="pos-center-x">X Position (%):</label>
+                                    <input type="range" id="pos-center-x" min="0" max="100" value="50" class="gfx-range" />
+                                    <span id="pos-center-x-value" class="range-value">50%</span>
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="pos-center-y">Y Position (%):</label>
+                                    <input type="range" id="pos-center-y" min="0" max="100" value="50" class="gfx-range" />
+                                    <span id="pos-center-y-value" class="range-value">50%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gfx-control-group">
+                            <h4>Right Section (Player Name)</h4>
+                            <div class="position-controls">
+                                <div class="gfx-control">
+                                    <label for="pos-right-x">X Position (%):</label>
+                                    <input type="range" id="pos-right-x" min="0" max="100" value="90" class="gfx-range" />
+                                    <span id="pos-right-x-value" class="range-value">90%</span>
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="pos-right-y">Y Position (%):</label>
+                                    <input type="range" id="pos-right-y" min="0" max="100" value="50" class="gfx-range" />
+                                    <span id="pos-right-y-value" class="range-value">50%</span>
                                 </div>
                             </div>
                         </div>

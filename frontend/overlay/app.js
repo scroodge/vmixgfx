@@ -182,7 +182,41 @@ function applyGFXSettings(settings) {
                 raw: settings.positions 
             });
             
-            // Apply to score section (vertical layout)
+            // Apply individual positioning to horizontal layout elements
+            const leftElement = document.getElementById('score-left');
+            const centerElement = document.getElementById('score-center');
+            const rightElement = document.getElementById('score-right');
+            
+            // Get individual positions or fallback to general positions
+            const leftX = typeof settings.positions.leftX === 'number' ? settings.positions.leftX + '%' :
+                         (typeof settings.positions.leftX === 'string' ? settings.positions.leftX : '10%');
+            const leftY = typeof settings.positions.leftY === 'number' ? settings.positions.leftY + '%' :
+                         (typeof settings.positions.leftY === 'string' ? settings.positions.leftY : scoreY);
+            
+            const centerX = typeof settings.positions.centerX === 'number' ? settings.positions.centerX + '%' :
+                           (typeof settings.positions.centerX === 'string' ? settings.positions.centerX : scoreX);
+            const centerY = typeof settings.positions.centerY === 'number' ? settings.positions.centerY + '%' :
+                           (typeof settings.positions.centerY === 'string' ? settings.positions.centerY : scoreY);
+            
+            const rightX = typeof settings.positions.rightX === 'number' ? settings.positions.rightX + '%' :
+                          (typeof settings.positions.rightX === 'string' ? settings.positions.rightX : '90%');
+            const rightY = typeof settings.positions.rightY === 'number' ? settings.positions.rightY + '%' :
+                          (typeof settings.positions.rightY === 'string' ? settings.positions.rightY : scoreY);
+            
+            if (leftElement) {
+                root.style.setProperty('--pos-left-x', leftX);
+                root.style.setProperty('--pos-left-y', leftY);
+            }
+            if (centerElement) {
+                root.style.setProperty('--pos-center-x', centerX);
+                root.style.setProperty('--pos-center-y', centerY);
+            }
+            if (rightElement) {
+                root.style.setProperty('--pos-right-x', rightX);
+                root.style.setProperty('--pos-right-y', rightY);
+            }
+            
+            // Also apply to score section as fallback (vertical layout legacy)
             if (scoreSection) {
                 applyPosition(scoreSection, scoreX, scoreY);
             }
@@ -286,29 +320,22 @@ function applyGFXSettings(settings) {
                     posY: posY
                 });
                 
-                // When background image is uploaded, disable generated banner colors
-                // Set a flag to indicate uploaded image exists
+                // When background image is uploaded, set flag
+                // Horizontal layout is always shown (text-only)
                 container.dataset.hasUploadedBackground = 'true';
                 
-                // Disable banner segment backgrounds
+                // Ensure horizontal layout is visible (banner is always hidden)
                 const scoreBanner = document.querySelector('.score-banner');
+                const scoreSection = document.querySelector('.score-section');
+                
                 if (scoreBanner) {
-                    const leftSegment = scoreBanner.querySelector('.banner-left');
-                    const centerSegment = scoreBanner.querySelector('.banner-center');
-                    const rightSegment = scoreBanner.querySelector('.banner-right');
-                    
-                    if (leftSegment) {
-                        leftSegment.style.setProperty('background', 'transparent', 'important');
-                    }
-                    if (centerSegment) {
-                        centerSegment.style.setProperty('background', 'transparent', 'important');
-                    }
-                    if (rightSegment) {
-                        rightSegment.style.setProperty('background', 'transparent', 'important');
-                    }
+                    scoreBanner.style.display = 'none';
+                }
+                if (scoreSection) {
+                    scoreSection.style.display = 'flex';
                 }
             } else {
-                // No uploaded image - clear the flag
+                // No uploaded image - clear the flag and restore normal layout behavior
                 if (container) {
                     container.dataset.hasUploadedBackground = 'false';
                 }
@@ -387,44 +414,46 @@ function applyGFXSettings(settings) {
     
     // Banner styling - apply directly to banner elements
     // BUT: Only apply colors if no uploaded background image exists
+    // When background image exists, banner is hidden completely (handled above)
     if (settings.banner) {
         // Check if uploaded image exists
         const hasUploadedImage = container && container.dataset.hasUploadedBackground === 'true';
         
-        // Always set CSS variables for sizing and text styling
-        const bannerScoreSize = settings.banner.scoreSize || 48;
-        const bannerNameSize = settings.banner.nameSize || 24;
-        root.style.setProperty('--banner-border-radius', (settings.banner.borderRadius || 12) + 'px');
-        root.style.setProperty('--banner-height', (settings.banner.height || 80) + 'px');
-        root.style.setProperty('--banner-padding', (settings.banner.padding || 20) + 'px');
-        root.style.setProperty('--banner-center-width', (settings.banner.centerWidth || 200) + 'px');
-        root.style.setProperty('--banner-name-size', bannerNameSize + 'px');
-        root.style.setProperty('--banner-score-size', bannerScoreSize + 'px');
-        console.log('📝 Banner sizes applied:', { bannerScoreSize, bannerNameSize });
-        root.style.setProperty('--banner-name-color', settings.banner.nameColor || '#ffffff');
-        root.style.setProperty('--banner-score-color', settings.banner.scoreColor || '#000000');
-        root.style.setProperty('--banner-match-score-color', settings.banner.matchScoreColor || '#666666');
-        
-        // Try to apply to banner elements if they exist (re-query to be sure)
-        const currentScoreBanner = document.querySelector('.score-banner');
-        if (currentScoreBanner) {
-            const leftSegment = currentScoreBanner.querySelector('.banner-left');
-            const centerSegment = currentScoreBanner.querySelector('.banner-center');
-            const rightSegment = currentScoreBanner.querySelector('.banner-right');
+        // If background image exists, hide banner and show text-only layout
+        if (hasUploadedImage) {
+            const scoreBanner = document.querySelector('.score-banner');
+            const scoreSection = document.querySelector('.score-section');
             
-            if (hasUploadedImage) {
-                // If uploaded image exists, keep banner segments transparent
-                if (leftSegment) {
-                    leftSegment.style.setProperty('background', 'transparent', 'important');
-                }
-                if (centerSegment) {
-                    centerSegment.style.setProperty('background', 'transparent', 'important');
-                }
-                if (rightSegment) {
-                    rightSegment.style.setProperty('background', 'transparent', 'important');
-                }
-            } else {
-                // Use generated banner colors only if no uploaded image
+            if (scoreBanner) {
+                scoreBanner.style.display = 'none';
+            }
+            if (scoreSection) {
+                scoreSection.style.display = 'flex';
+            }
+        } else {
+            // No background image - apply banner styling normally
+            // Always set CSS variables for sizing and text styling
+            const bannerScoreSize = settings.banner.scoreSize || 48;
+            const bannerNameSize = settings.banner.nameSize || 24;
+            root.style.setProperty('--banner-border-radius', (settings.banner.borderRadius || 12) + 'px');
+            root.style.setProperty('--banner-height', (settings.banner.height || 80) + 'px');
+            root.style.setProperty('--banner-padding', (settings.banner.padding || 20) + 'px');
+            root.style.setProperty('--banner-center-width', (settings.banner.centerWidth || 200) + 'px');
+            root.style.setProperty('--banner-name-size', bannerNameSize + 'px');
+            root.style.setProperty('--banner-score-size', bannerScoreSize + 'px');
+            console.log('📝 Banner sizes applied:', { bannerScoreSize, bannerNameSize });
+            root.style.setProperty('--banner-name-color', settings.banner.nameColor || '#ffffff');
+            root.style.setProperty('--banner-score-color', settings.banner.scoreColor || '#000000');
+            root.style.setProperty('--banner-match-score-color', settings.banner.matchScoreColor || '#666666');
+            
+            // Try to apply to banner elements if they exist (re-query to be sure)
+            const currentScoreBanner = document.querySelector('.score-banner');
+            if (currentScoreBanner) {
+                const leftSegment = currentScoreBanner.querySelector('.banner-left');
+                const centerSegment = currentScoreBanner.querySelector('.banner-center');
+                const rightSegment = currentScoreBanner.querySelector('.banner-right');
+                
+                // Use generated banner colors
                 if (leftSegment) {
                     leftSegment.style.removeProperty('background');
                     const lighter = adjustColorBrightness(settings.banner.leftColor || '#2d5016', 1.2);
@@ -439,16 +468,8 @@ function applyGFXSettings(settings) {
                     const lighter = adjustColorBrightness(settings.banner.rightColor || '#2d5016', 1.2);
                     rightSegment.style.background = `linear-gradient(135deg, ${settings.banner.rightColor || '#2d5016'} 0%, ${lighter} 100%)`;
                 }
-            }
-        } else {
-            // Set CSS variables for gradients (will be used when banner appears)
-            if (hasUploadedImage) {
-                // Transparent when uploaded image exists
-                root.style.setProperty('--banner-left-color', 'transparent');
-                root.style.setProperty('--banner-center-color', 'transparent');
-                root.style.setProperty('--banner-right-color', 'transparent');
             } else {
-                // Use generated banner colors
+                // Set CSS variables for gradients (will be used when banner appears)
                 const lighter = adjustColorBrightness(settings.banner.leftColor || '#2d5016', 1.2);
                 root.style.setProperty('--banner-left-color', `linear-gradient(135deg, ${settings.banner.leftColor || '#2d5016'} 0%, ${lighter} 100%)`);
                 root.style.setProperty('--banner-center-color', settings.banner.centerColor || '#ffffff');
@@ -754,7 +775,8 @@ const elements = {
     bannerAwayName: document.getElementById('banner-away-name'),
     bannerHomeScore: document.getElementById('banner-home-score'),
     bannerAwayScore: document.getElementById('banner-away-score'),
-    bannerMatchScores: document.getElementById('banner-match-scores')
+    bannerMatchScores: document.getElementById('banner-match-scores'),
+    matchScores: document.getElementById('match-scores')
 };
 
 // ============================================================================
@@ -803,43 +825,9 @@ function updateUI(state, eventType = null, changed = null) {
         matchScoreFormat = localStorage.getItem('gfxMatchScoreFormat') || 'player1';
     }
     
-    // Update layout visibility
-    if (layoutStyle === 'banner') {
-        if (elements.scoreSection) elements.scoreSection.style.display = 'none';
-        if (elements.scoreBanner) {
-            elements.scoreBanner.style.display = 'flex';
-            // Re-apply banner styles when banner becomes visible
-            const settingsStr = localStorage.getItem('gfxSettings');
-            if (settingsStr) {
-                try {
-                    const settings = JSON.parse(settingsStr);
-                    if (settings.banner) {
-                        // Re-apply banner background styles
-                        const leftSegment = elements.scoreBanner.querySelector('.banner-left');
-                        const centerSegment = elements.scoreBanner.querySelector('.banner-center');
-                        const rightSegment = elements.scoreBanner.querySelector('.banner-right');
-                        
-                        if (leftSegment && settings.banner.leftColor) {
-                            const lighter = adjustColorBrightness(settings.banner.leftColor, 1.2);
-                            leftSegment.style.background = `linear-gradient(135deg, ${settings.banner.leftColor} 0%, ${lighter} 100%)`;
-                        }
-                        if (centerSegment && settings.banner.centerColor) {
-                            centerSegment.style.background = settings.banner.centerColor;
-                        }
-                        if (rightSegment && settings.banner.rightColor) {
-                            const lighter = adjustColorBrightness(settings.banner.rightColor, 1.2);
-                            rightSegment.style.background = `linear-gradient(135deg, ${settings.banner.rightColor} 0%, ${lighter} 100%)`;
-                        }
-                    }
-                } catch (e) {
-                    // Ignore errors
-                }
-            }
-        }
-    } else {
-        if (elements.scoreSection) elements.scoreSection.style.display = 'flex';
-        if (elements.scoreBanner) elements.scoreBanner.style.display = 'none';
-    }
+    // Always show horizontal layout (text-only)
+    if (elements.scoreSection) elements.scoreSection.style.display = 'flex';
+    if (elements.scoreBanner) elements.scoreBanner.style.display = 'none';
     
     // Update team names
     const homeName = state.homeName || 'Player 1';
@@ -873,23 +861,51 @@ function updateUI(state, eventType = null, changed = null) {
         if (elements.bannerAwayScore) elements.bannerAwayScore.textContent = state.awayScore || 0;
     }
     
-    // Update match scores in banner format based on selected format
+    // Update match scores in center section based on selected format
     // Formats: player1 = "(5)", player2 = "(3)", both = "(5-3)", total = "(8)"
+    const matchScoresElement = document.getElementById('match-scores');
+    if (matchScoresElement) {
+        if (showMatchScores) {
+            let matchScoreText = '';
+            
+            if (matchScoreFormat === 'player1') {
+                // Show Player 1's match score: "1 (5) 1"
+                matchScoreText = `(${homeMatchScore})`;
+            } else if (matchScoreFormat === 'player2') {
+                // Show Player 2's match score: "1 (3) 1"
+                matchScoreText = `(${awayMatchScore})`;
+            } else if (matchScoreFormat === 'both') {
+                // Show both: "1 (5-3) 1"
+                matchScoreText = `(${homeMatchScore}-${awayMatchScore})`;
+            } else if (matchScoreFormat === 'total') {
+                // Show total: "1 (8) 1"
+                const total = homeMatchScore + awayMatchScore;
+                matchScoreText = `(${total})`;
+            }
+            
+            if (homeMatchScore > 0 || awayMatchScore > 0) {
+                matchScoresElement.textContent = matchScoreText;
+                matchScoresElement.style.display = 'inline';
+            } else {
+                matchScoresElement.style.display = 'none';
+            }
+        } else {
+            matchScoresElement.style.display = 'none';
+        }
+    }
+    
+    // Also update banner match scores for compatibility
     if (elements.bannerMatchScores) {
         if (showMatchScores) {
             let matchScoreText = '';
             
             if (matchScoreFormat === 'player1') {
-                // Show Player 1's match score: "3 (5) 2"
                 matchScoreText = `(${homeMatchScore})`;
             } else if (matchScoreFormat === 'player2') {
-                // Show Player 2's match score: "3 (3) 2"
                 matchScoreText = `(${awayMatchScore})`;
             } else if (matchScoreFormat === 'both') {
-                // Show both: "3 (5-3) 2"
                 matchScoreText = `(${homeMatchScore}-${awayMatchScore})`;
             } else if (matchScoreFormat === 'total') {
-                // Show total games played: "3 (8) 2"
                 const total = homeMatchScore + awayMatchScore;
                 matchScoreText = `(${total})`;
             }
