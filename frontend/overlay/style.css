@@ -660,26 +660,26 @@ body {
 /* Responsive adjustments for different screen sizes */
 @media (max-width: 1920px) {
     .team-name {
-        font-size: 40px;
+        font-size: var(--font-size-player-name, 40px);
     }
     
     .team-score {
-        font-size: 100px;
+        font-size: var(--font-size-score, 100px);
     }
     
     .score-separator {
-        font-size: 70px;
+        font-size: calc(var(--font-size-score, 100px) * 0.6);
     }
 }
 
 @media (max-width: 1280px) {
     .team-name {
-        font-size: 32px;
+        font-size: calc(var(--font-size-player-name, 48px) * 0.67);
         min-width: 150px;
     }
     
     .team-score {
-        font-size: 80px;
+        font-size: calc(var(--font-size-score, 120px) * 0.67);
         min-width: 120px;
     }
     

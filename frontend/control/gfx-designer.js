@@ -405,6 +405,29 @@ async function saveSettingsToAPI() {
             console.warn('⚠️ Layout settings were missing, restored from defaults');
         }
         
+        // Ensure banner settings are included
+        if (!currentSettings.banner) {
+            currentSettings.banner = defaultSettings.banner;
+            console.warn('⚠️ Banner settings were missing, restored from defaults');
+        }
+        
+        // Ensure all other sections exist
+        if (!currentSettings.colors) {
+            currentSettings.colors = defaultSettings.colors;
+        }
+        if (!currentSettings.effects) {
+            currentSettings.effects = defaultSettings.effects;
+        }
+        if (!currentSettings.positions) {
+            currentSettings.positions = defaultSettings.positions;
+        }
+        if (!currentSettings.backgrounds) {
+            currentSettings.backgrounds = defaultSettings.backgrounds;
+        }
+        if (!currentSettings.animations) {
+            currentSettings.animations = defaultSettings.animations;
+        }
+        
         const response = await fetch(`/api/match/${matchId}/gfx-settings`, {
             method: 'POST',
             headers: {
@@ -417,8 +440,13 @@ async function saveSettingsToAPI() {
             console.log('✅ GFX settings saved to API', {
                 hasTypography: !!currentSettings.typography,
                 hasLayout: !!currentSettings.layout,
-                typography: currentSettings.typography,
-                layout: currentSettings.layout
+                hasBanner: !!currentSettings.banner,
+                hasColors: !!currentSettings.colors,
+                hasEffects: !!currentSettings.effects,
+                hasPositions: !!currentSettings.positions,
+                hasBackgrounds: !!currentSettings.backgrounds,
+                hasAnimations: !!currentSettings.animations,
+                bannerKeys: currentSettings.banner ? Object.keys(currentSettings.banner) : []
             });
         } else {
             console.error('Failed to save GFX settings to API');
