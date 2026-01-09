@@ -594,7 +594,11 @@ if (isPreview) {
             localStorage.setItem('gfxSettings', JSON.stringify(event.data.settings));
         } else if (event.data && event.data.type === 'visibilityUpdate') {
             // Handle visibility updates (preview mode)
-            updateVisibility(event.data.showGame, event.data.showTimer);
+            updateVisibility(
+                event.data.showGame, 
+                event.data.showTimer,
+                event.data.matchScoreNextTimer || false
+            );
         }
     });
 
@@ -642,12 +646,14 @@ if (window.location.search.includes('preview=true')) {
         // Check visibility settings (preview mode only)
         const showGame = localStorage.getItem('showGameDisplay');
         const showTimer = localStorage.getItem('showTimerDisplay');
-        const visibilityHash = (showGame || 'true') + '|' + (showTimer || 'true');
+        const showMatchScoreNextTimer = localStorage.getItem('showMatchScoreNextTimer');
+        const visibilityHash = (showGame || 'true') + '|' + (showTimer || 'true') + '|' + (showMatchScoreNextTimer || 'false');
         if (visibilityHash !== lastVisibilityHash) {
             lastVisibilityHash = visibilityHash;
             updateVisibility(
                 showGame === null ? true : showGame === 'true',
-                showTimer === null ? true : showTimer === 'true'
+                showTimer === null ? true : showTimer === 'true',
+                showMatchScoreNextTimer === 'true'
             );
         }
     }, 200); // Check every 200ms for changes (preview mode only)
@@ -734,12 +740,18 @@ if (window.location.search.includes('preview=true')) {
 }
 
 // Function to update visibility of game and timer displays
-function updateVisibility(showGame, showTimer) {
+function updateVisibility(showGame, showTimer, showMatchScoreNextTimer = false) {
     if (elements.periodDisplay) {
         elements.periodDisplay.style.display = showGame ? 'flex' : 'none';
     }
     if (elements.timerDisplay) {
         elements.timerDisplay.style.display = showTimer ? 'flex' : 'none';
+    }
+    
+    // Update match score next to timer visibility
+    if (elements.matchScoreNextTimer) {
+        // Only show if setting is enabled AND timer is visible
+        elements.matchScoreNextTimer.style.display = (showMatchScoreNextTimer && showTimer) ? 'inline' : 'none';
     }
     
     // Hide entire info section if both are hidden
@@ -777,6 +789,7 @@ const elements = {
     infoSection: document.querySelector('.info-section'),
     periodDisplay: document.querySelector('.period-display'),
     timerDisplay: document.querySelector('.timer-display'),
+    matchScoreNextTimer: document.getElementById('match-score-next-timer'),
     // Banner layout elements
     scoreSection: document.querySelector('.score-section'),
     scoreBanner: document.querySelector('.score-banner'),
@@ -936,6 +949,32 @@ function updateUI(state, eventType = null, changed = null) {
     // Update timer
     elements.timerValue.textContent = formatTimer(state.timerSecondsRemaining || 0);
     
+    // Update match score next to timer (total games played)
+    if (elements.matchScoreNextTimer) {
+        // Get setting for showing match score next to timer
+        let showMatchScoreNextTimer = false;
+        if (window.gfxSettings && window.gfxSettings.visibility) {
+            showMatchScoreNextTimer = window.gfxSettings.visibility.showMatchScoreNextTimer === true;
+        } else {
+            const isPreview = window.location.search.includes('preview=true');
+            if (isPreview) {
+                showMatchScoreNextTimer = localStorage.getItem('showMatchScoreNextTimer') === 'true';
+            }
+        }
+        
+        // Use homeMatchScore as total games played
+        const totalGames = homeMatchScore || 0;
+        
+        if (showMatchScoreNextTimer && totalGames > 0) {
+            // Format: show total games played: (8)
+            const matchScoreText = `(${totalGames})`;
+            elements.matchScoreNextTimer.textContent = matchScoreText;
+            elements.matchScoreNextTimer.style.display = 'inline';
+        } else {
+            elements.matchScoreNextTimer.style.display = 'none';
+        }
+    }
+    
     // Handle setup/reset events with fade-in
     if (eventType === 'setup' || eventType === 'reset') {
         elements.container.classList.add('fade-in');
@@ -1088,7 +1127,8 @@ function connectWebSocket() {
                     if (data.settings.visibility) {
                         updateVisibility(
                             data.settings.visibility.showGame !== false,
-                            data.settings.visibility.showTimer !== false
+                            data.settings.visibility.showTimer !== false,
+                            data.settings.visibility.showMatchScoreNextTimer === true
                         );
                     }
                     return; // Don't process as state update
@@ -1200,7 +1240,8 @@ async function loadGFXSettingsFromAPI() {
                 if (settings.visibility) {
                     updateVisibility(
                         settings.visibility.showGame !== false,
-                        settings.visibility.showTimer !== false
+                        settings.visibility.showTimer !== false,
+                        settings.visibility.showMatchScoreNextTimer === true
                     );
                 }
                 console.log('GFX settings loaded from API and applied');
@@ -1264,7 +1305,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (settings.visibility) {
                             updateVisibility(
                                 settings.visibility.showGame !== false,
-                                settings.visibility.showTimer !== false
+                                settings.visibility.showTimer !== false,
+                                settings.visibility.showMatchScoreNextTimer === true
                             );
                         }
                     } catch (e) {
@@ -1274,7 +1316,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             elements.scoreSection.style.display = 'flex';
                             elements.scoreBanner.style.display = 'none';
                         }
-                        updateVisibility(true, true);
+                        updateVisibility(true, true, false);
                     }
                 } else {
                     // Preview mode: no settings found
@@ -1282,7 +1324,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         elements.scoreSection.style.display = 'flex';
                         elements.scoreBanner.style.display = 'none';
                     }
-                    updateVisibility(true, true);
+                    updateVisibility(true, true, false);
                 }
             } else {
                 // vMix mode: no localStorage fallback - use defaults
@@ -1291,7 +1333,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     elements.scoreSection.style.display = 'flex';
                     elements.scoreBanner.style.display = 'none';
                 }
-                updateVisibility(true, true);
+                updateVisibility(true, true, false);
             }
         } else {
             // Settings loaded from API - layout and visibility already applied in loadGFXSettingsFromAPI

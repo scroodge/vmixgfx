@@ -31,8 +31,6 @@ const elements = {
     awayTeamNameDisplay: document.getElementById('away-team-name-display'),
     homeScoreDisplay: document.getElementById('home-score-display'),
     awayScoreDisplay: document.getElementById('away-score-display'),
-    homeMatchScoreDisplay: document.getElementById('home-match-score-display'),
-    awayMatchScoreDisplay: document.getElementById('away-match-score-display'),
     
     // Score Buttons
     homePlus: document.getElementById('home-plus'),
@@ -42,11 +40,10 @@ const elements = {
     awayMinus: document.getElementById('away-minus'),
     awayPlusBall: document.getElementById('away-plus-ball'),
     
-    // Match Score Buttons
-    homeMatchPlus: document.getElementById('home-match-plus'),
-    homeMatchMinus: document.getElementById('home-match-minus'),
-    awayMatchPlus: document.getElementById('away-match-plus'),
-    awayMatchMinus: document.getElementById('away-match-minus'),
+    // Total Games Buttons (using homeMatchScore as total games)
+    totalGamesPlus: document.getElementById('total-games-plus'),
+    totalGamesMinus: document.getElementById('total-games-minus'),
+    totalGamesDisplay: document.getElementById('total-games-display'),
     
     // Period
     periodDisplay: document.getElementById('period-display'),
@@ -65,6 +62,7 @@ const elements = {
     // Visibility Toggles
     showGameDisplay: document.getElementById('show-game-display'),
     showTimerDisplay: document.getElementById('show-timer-display'),
+    showMatchScoreNextTimer: document.getElementById('show-match-score-next-timer'),
     
     // Reset
     resetBtn: document.getElementById('reset-btn')
@@ -130,19 +128,23 @@ function updateUI(state) {
     elements.homeTeamNameDisplay.textContent = state.homeName || 'Player 1';
     elements.awayTeamNameDisplay.textContent = state.awayName || 'Player 2';
     
+    
     // Update scores
     elements.homeScoreDisplay.textContent = state.homeScore || 0;
     elements.awayScoreDisplay.textContent = state.awayScore || 0;
     
-    // Update match scores
-    elements.homeMatchScoreDisplay.textContent = state.homeMatchScore || 0;
-    elements.awayMatchScoreDisplay.textContent = state.awayMatchScore || 0;
+    // Update total games (using homeMatchScore as total games count)
+    const totalGames = state.homeMatchScore || 0;
+    if (elements.totalGamesDisplay) {
+        elements.totalGamesDisplay.textContent = totalGames;
+    }
     
     // Enable/disable minus buttons based on score
     elements.homeMinus.disabled = (state.homeScore || 0) <= 0;
     elements.awayMinus.disabled = (state.awayScore || 0) <= 0;
-    elements.homeMatchMinus.disabled = (state.homeMatchScore || 0) <= 0;
-    elements.awayMatchMinus.disabled = (state.awayMatchScore || 0) <= 0;
+    if (elements.totalGamesMinus) {
+        elements.totalGamesMinus.disabled = totalGames <= 0;
+    }
     
     // Update period
     elements.periodDisplay.textContent = state.period || 1;
@@ -339,17 +341,12 @@ elements.awayMinus.addEventListener('click', () => {
 });
 elements.awayPlusBall.addEventListener('click', () => apiCall('/score', 'POST', { team: 'away', delta: 1 })); // +Ball is same as +1 for now
 
-// Match score buttons
-elements.homeMatchPlus.addEventListener('click', () => apiCall('/match-score', 'POST', { team: 'home', delta: 1 }));
-elements.homeMatchMinus.addEventListener('click', () => {
-    if ((currentState?.homeMatchScore || 0) > 0) {
+// Total games buttons (using homeMatchScore as total games)
+elements.totalGamesPlus.addEventListener('click', () => apiCall('/match-score', 'POST', { team: 'home', delta: 1 }));
+elements.totalGamesMinus.addEventListener('click', () => {
+    const totalGames = (currentState?.homeMatchScore || 0);
+    if (totalGames > 0) {
         apiCall('/match-score', 'POST', { team: 'home', delta: -1 });
-    }
-});
-elements.awayMatchPlus.addEventListener('click', () => apiCall('/match-score', 'POST', { team: 'away', delta: 1 }));
-elements.awayMatchMinus.addEventListener('click', () => {
-    if ((currentState?.awayMatchScore || 0) > 0) {
-        apiCall('/match-score', 'POST', { team: 'away', delta: -1 });
     }
 });
 
@@ -400,6 +397,22 @@ elements.showTimerDisplay.addEventListener('change', (e) => {
     updateOverlayVisibility();
 });
 
+elements.showMatchScoreNextTimer.addEventListener('change', (e) => {
+    localStorage.setItem('showMatchScoreNextTimer', e.target.checked.toString());
+    // Save visibility to API
+    saveVisibilityToAPI();
+    // Update overlay via broadcast
+    window.dispatchEvent(new CustomEvent('overlayVisibilityChanged', { 
+        detail: { 
+            game: elements.showGameDisplay.checked, 
+            timer: elements.showTimerDisplay.checked,
+            matchScoreNextTimer: e.target.checked
+        } 
+    }));
+    // Update preview iframe
+    updateOverlayVisibility();
+});
+
 // Save visibility settings to API
 async function saveVisibilityToAPI() {
     try {
@@ -422,6 +435,7 @@ async function saveVisibilityToAPI() {
         }
         settings.visibility.showGame = elements.showGameDisplay.checked;
         settings.visibility.showTimer = elements.showTimerDisplay.checked;
+        settings.visibility.showMatchScoreNextTimer = elements.showMatchScoreNextTimer.checked;
         
         // Save to API
         const saveResponse = await fetch(`/api/match/${matchId}/gfx-settings`, {
@@ -444,6 +458,7 @@ async function saveVisibilityToAPI() {
 function updateOverlayVisibility() {
     const showGame = elements.showGameDisplay.checked;
     const showTimer = elements.showTimerDisplay.checked;
+    const showMatchScoreNextTimer = elements.showMatchScoreNextTimer.checked;
     
     // Update preview iframe
     const previewFrame = document.getElementById('gfx-preview');
@@ -452,7 +467,8 @@ function updateOverlayVisibility() {
             previewFrame.contentWindow.postMessage({
                 type: 'visibilityUpdate',
                 showGame: showGame,
-                showTimer: showTimer
+                showTimer: showTimer,
+                matchScoreNextTimer: showMatchScoreNextTimer
             }, '*');
         } catch (e) {
             // Ignore cross-origin errors
@@ -474,10 +490,12 @@ async function loadVisibilitySettings() {
                 console.log('Loaded visibility settings from API');
                 elements.showGameDisplay.checked = settings.visibility.showGame !== false;
                 elements.showTimerDisplay.checked = settings.visibility.showTimer !== false;
+                elements.showMatchScoreNextTimer.checked = settings.visibility.showMatchScoreNextTimer === true;
                 
                 // Sync to localStorage for local use
                 localStorage.setItem('showGameDisplay', elements.showGameDisplay.checked.toString());
                 localStorage.setItem('showTimerDisplay', elements.showTimerDisplay.checked.toString());
+                localStorage.setItem('showMatchScoreNextTimer', elements.showMatchScoreNextTimer.checked.toString());
                 
                 return; // Successfully loaded from API
             }
@@ -489,12 +507,16 @@ async function loadVisibilitySettings() {
     // Fallback to localStorage
     const showGame = localStorage.getItem('showGameDisplay');
     const showTimer = localStorage.getItem('showTimerDisplay');
+    const showMatchScoreNextTimer = localStorage.getItem('showMatchScoreNextTimer');
     
     if (showGame !== null) {
         elements.showGameDisplay.checked = showGame === 'true';
     }
     if (showTimer !== null) {
         elements.showTimerDisplay.checked = showTimer === 'true';
+    }
+    if (showMatchScoreNextTimer !== null) {
+        elements.showMatchScoreNextTimer.checked = showMatchScoreNextTimer === 'true';
     }
     
     // Sync current state to API

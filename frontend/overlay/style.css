@@ -857,6 +857,18 @@ body {
     font-size: calc(var(--font-size-game-timer) * 1.14);
 }
 
+.match-score-next-timer {
+    font-size: calc(var(--font-size-game-timer) * 0.7);
+    font-weight: var(--font-weight);
+    color: var(--color-game-timer);
+    text-shadow: 
+        2px 2px var(--text-shadow-blur) rgba(0, 0, 0, var(--text-shadow-opacity)),
+        0 0 10px rgba(0, 0, 0, calc(var(--text-shadow-opacity) * 0.6));
+    margin-left: 8px;
+    opacity: 0.85;
+    vertical-align: baseline;
+}
+
 /* Fade in animation for setup/reset */
 .overlay-container.fade-in {
     animation: fadeIn 0.5s ease-in;

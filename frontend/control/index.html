@@ -72,14 +72,6 @@
                             <button id="home-plus" class="btn btn-score btn-plus">+1</button>
                             <button id="home-plus-ball" class="btn btn-score btn-plus-ball">+Ball</button>
                         </div>
-                        <div class="match-score-display" style="margin-top: 15px;">
-                            <span class="score-label" data-i18n="matchScore">Match Score (Games Won):</span>
-                            <span id="home-match-score-display" class="score-value" style="font-size: 32px;">0</span>
-                        </div>
-                        <div class="score-buttons">
-                            <button id="home-match-minus" class="btn btn-small btn-minus">-1</button>
-                            <button id="home-match-plus" class="btn btn-small btn-plus">+1</button>
-                        </div>
                     </div>
 
                     <div class="team-control away-team">
@@ -93,13 +85,17 @@
                             <button id="away-plus" class="btn btn-score btn-plus">+1</button>
                             <button id="away-plus-ball" class="btn btn-score btn-plus-ball">+Ball</button>
                         </div>
-                        <div class="match-score-display" style="margin-top: 15px;">
-                            <span class="score-label" data-i18n="matchScore">Match Score (Games Won):</span>
-                            <span id="away-match-score-display" class="score-value" style="font-size: 32px;">0</span>
-                        </div>
+                    </div>
+                </div>
+                
+                <!-- Match Score Controls (Total Games) -->
+                <div class="match-score-controls" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+                    <h3 style="margin-bottom: 15px; font-size: 18px;" data-i18n="totalGamesPlayed">Total Games Played:</h3>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                        <div style="font-size: 48px; font-weight: bold;" id="total-games-display">0</div>
                         <div class="score-buttons">
-                            <button id="away-match-minus" class="btn btn-small btn-minus">-1</button>
-                            <button id="away-match-plus" class="btn btn-small btn-plus">+1</button>
+                            <button id="total-games-minus" class="btn btn-small btn-minus">-1</button>
+                            <button id="total-games-plus" class="btn btn-small btn-plus">+1</button>
                         </div>
                     </div>
                 </div>
@@ -121,6 +117,12 @@
                         <label>
                             <input type="checkbox" id="show-timer-display" checked />
                             <span data-i18n="showTimer">Show Timer in Overlay</span>
+                        </label>
+                    </div>
+                    <div class="visibility-toggle">
+                        <label>
+                            <input type="checkbox" id="show-match-score-next-timer" />
+                            <span data-i18n="showMatchScoreNextTimer">Show Match Score Next to Timer</span>
                         </label>
                     </div>
                 </div>
