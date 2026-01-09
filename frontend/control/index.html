@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vMix Billiard Score Control</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>vMix Russian Billiard Score Control</h1>
+            <div class="status-bar">
+                <div id="connection-status" class="status-indicator disconnected">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Disconnected</span>
+                </div>
+                <div class="match-id-display">
+                    Game ID: <input type="text" id="match-id-input" value="1" />
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Setup Section -->
+            <section class="panel setup-panel">
+                <h2>Game Setup</h2>
+                <div class="form-group">
+                    <label for="home-name">Player 1 Name:</label>
+                    <input type="text" id="home-name" placeholder="Player 1" />
+                </div>
+                <div class="form-group">
+                    <label for="away-name">Player 2 Name:</label>
+                    <input type="text" id="away-name" placeholder="Player 2" />
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="period-input">Game:</label>
+                        <input type="number" id="period-input" min="1" max="20" value="1" />
+                    </div>
+                    <div class="form-group">
+                        <label for="timer-minutes">Timer (MM):</label>
+                        <input type="number" id="timer-minutes" min="0" max="99" value="0" />
+                    </div>
+                    <div class="form-group">
+                        <label for="timer-seconds">Timer (SS):</label>
+                        <input type="number" id="timer-seconds" min="0" max="59" value="0" />
+                    </div>
+                </div>
+                <button id="setup-btn" class="btn btn-primary">Apply Setup</button>
+            </section>
+
+            <!-- Score Control Section -->
+            <section class="panel score-panel">
+                <h2>Score Control</h2>
+                <div class="score-controls">
+                    <div class="team-control home-team">
+                        <h3 id="home-team-name-display">Player 1</h3>
+                        <div class="score-display">
+                            <span class="score-label">Score:</span>
+                            <span id="home-score-display" class="score-value">0</span>
+                        </div>
+                        <div class="score-buttons">
+                            <button id="home-minus" class="btn btn-score btn-minus">-1</button>
+                            <button id="home-plus" class="btn btn-score btn-plus">+1</button>
+                            <button id="home-plus-ball" class="btn btn-score btn-plus-ball">+Ball</button>
+                        </div>
+                    </div>
+
+                    <div class="team-control away-team">
+                        <h3 id="away-team-name-display">Player 2</h3>
+                        <div class="score-display">
+                            <span class="score-label">Score:</span>
+                            <span id="away-score-display" class="score-value">0</span>
+                        </div>
+                        <div class="score-buttons">
+                            <button id="away-minus" class="btn btn-score btn-minus">-1</button>
+                            <button id="away-plus" class="btn btn-score btn-plus">+1</button>
+                            <button id="away-plus-ball" class="btn btn-score btn-plus-ball">+Ball</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Game & Timer Control Section -->
+            <section class="panel period-timer-panel">
+                <h2>Game & Timer</h2>
+                <div class="period-controls">
+                    <div class="period-display">
+                        <span class="label">Current Game:</span>
+                        <span id="period-display" class="value">1</span>
+                    </div>
+                    <div class="period-buttons">
+                        <button id="period-minus" class="btn btn-period">-</button>
+                        <button id="period-plus" class="btn btn-period">+</button>
+                    </div>
+                </div>
+
+                <div class="timer-controls">
+                    <div class="timer-display">
+                        <span class="label">Timer:</span>
+                        <span id="timer-display" class="value">00:00</span>
+                        <span id="timer-status" class="timer-status stopped">●</span>
+                    </div>
+                    <div class="timer-buttons">
+                        <button id="timer-start" class="btn btn-timer btn-start">Start</button>
+                        <button id="timer-stop" class="btn btn-timer btn-stop">Stop</button>
+                    </div>
+                    <div class="timer-set">
+                        <input type="number" id="set-timer-minutes" placeholder="MM" min="0" max="99" />
+                        <span>:</span>
+                        <input type="number" id="set-timer-seconds" placeholder="SS" min="0" max="59" />
+                        <button id="timer-set-btn" class="btn btn-small">Set</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reset Section -->
+            <section class="panel reset-panel">
+                <h2>Reset</h2>
+                <button id="reset-btn" class="btn btn-danger">Reset Game</button>
+            </section>
+
+            <!-- GFX Designer Section -->
+            <section class="panel gfx-panel">
+                <h2>GFX Designer</h2>
+                
+                <!-- Preview -->
+                <div class="gfx-preview-container">
+                    <div class="gfx-preview-label">Live Preview:</div>
+                    <iframe id="gfx-preview" src="/overlay?matchId=1&preview=true" class="gfx-preview-frame"></iframe>
+                </div>
+
+                <!-- Color Settings -->
+                <div class="gfx-section">
+                    <h3>Colors</h3>
+                    <div class="gfx-controls">
+                        <div class="gfx-control">
+                            <label for="color-player1">Player 1 Name Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="color-player1" value="#ffffff" />
+                                <input type="text" id="color-player1-text" value="#ffffff" class="color-text-input" />
+                            </div>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="color-player1-score">Player 1 Score Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="color-player1-score" value="#ffffff" />
+                                <input type="text" id="color-player1-score-text" value="#ffffff" class="color-text-input" />
+                            </div>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="color-player2">Player 2 Name Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="color-player2" value="#ffffff" />
+                                <input type="text" id="color-player2-text" value="#ffffff" class="color-text-input" />
+                            </div>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="color-player2-score">Player 2 Score Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="color-player2-score" value="#ffffff" />
+                                <input type="text" id="color-player2-score-text" value="#ffffff" class="color-text-input" />
+                            </div>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="color-separator">Separator Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="color-separator" value="#ffffff" />
+                                <input type="text" id="color-separator-text" value="#ffffff" class="color-text-input" />
+                            </div>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="color-game-timer">Game/Timer Text Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="color-game-timer" value="#ffffff" />
+                                <input type="text" id="color-game-timer-text" value="#ffffff" class="color-text-input" />
+                            </div>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="color-glow">Score Change Glow Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="color-glow" value="#ffd700" />
+                                <input type="text" id="color-glow-text" value="#ffd700" class="color-text-input" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typography Settings -->
+                <div class="gfx-section">
+                    <h3>Typography</h3>
+                    <div class="gfx-controls">
+                        <div class="gfx-control">
+                            <label for="font-family">Font Family:</label>
+                            <select id="font-family" class="gfx-select">
+                                <option value="'Arial Black', 'Arial Bold', Arial, sans-serif">Arial Black (Default)</option>
+                                <option value="Impact, Charcoal, sans-serif">Impact</option>
+                                <option value="'Trebuchet MS', Helvetica, sans-serif">Trebuchet MS</option>
+                                <option value="Verdana, Geneva, sans-serif">Verdana</option>
+                                <option value="'Times New Roman', Times, serif">Times New Roman</option>
+                                <option value="Georgia, serif">Georgia</option>
+                                <option value="'Courier New', Courier, monospace">Courier New</option>
+                                <option value="'Helvetica Neue', Helvetica, Arial, sans-serif">Helvetica Neue</option>
+                            </select>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="font-size-player-name">Player Name Size (px):</label>
+                            <input type="range" id="font-size-player-name" min="24" max="96" value="48" class="gfx-range" />
+                            <span id="font-size-player-name-value" class="range-value">48px</span>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="font-size-score">Score Size (px):</label>
+                            <input type="range" id="font-size-score" min="60" max="200" value="120" class="gfx-range" />
+                            <span id="font-size-score-value" class="range-value">120px</span>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="font-size-game-timer">Game/Timer Size (px):</label>
+                            <input type="range" id="font-size-game-timer" min="20" max="72" value="42" class="gfx-range" />
+                            <span id="font-size-game-timer-value" class="range-value">42px</span>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="font-weight">Font Weight:</label>
+                            <select id="font-weight" class="gfx-select">
+                                <option value="300">Light (300)</option>
+                                <option value="400">Normal (400)</option>
+                                <option value="500">Medium (500)</option>
+                                <option value="600">Semi-Bold (600)</option>
+                                <option value="700">Bold (700)</option>
+                                <option value="800">Extra Bold (800)</option>
+                                <option value="900" selected>Black (900)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Effects Settings -->
+                <div class="gfx-section">
+                    <h3>Effects</h3>
+                    <div class="gfx-controls">
+                        <div class="gfx-control">
+                            <label for="text-shadow-blur">Text Shadow Blur (px):</label>
+                            <input type="range" id="text-shadow-blur" min="0" max="20" value="4" class="gfx-range" />
+                            <span id="text-shadow-blur-value" class="range-value">4px</span>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="text-shadow-opacity">Text Shadow Opacity:</label>
+                            <input type="range" id="text-shadow-opacity" min="0" max="100" value="80" class="gfx-range" />
+                            <span id="text-shadow-opacity-value" class="range-value">80%</span>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="letter-spacing">Letter Spacing (px):</label>
+                            <input type="range" id="letter-spacing" min="0" max="10" value="2" class="gfx-range" />
+                            <span id="letter-spacing-value" class="range-value">2px</span>
+                        </div>
+                        <div class="gfx-control">
+                            <label>
+                                <input type="checkbox" id="enable-glow" checked />
+                                Enable Score Change Glow Animation
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layout Settings -->
+                <div class="gfx-section">
+                    <h3>Layout</h3>
+                    <div class="gfx-controls">
+                        <div class="gfx-control">
+                            <label for="spacing-scores">Score Spacing (px):</label>
+                            <input type="range" id="spacing-scores" min="20" max="100" value="40" class="gfx-range" />
+                            <span id="spacing-scores-value" class="range-value">40px</span>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="spacing-info">Info Section Spacing (px):</label>
+                            <input type="range" id="spacing-info" min="10" max="60" value="30" class="gfx-range" />
+                            <span id="spacing-info-value" class="range-value">30px</span>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="separator-size">Separator Size (px):</label>
+                            <input type="range" id="separator-size" min="40" max="120" value="80" class="gfx-range" />
+                            <span id="separator-size-value" class="range-value">80px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Presets -->
+                <div class="gfx-section">
+                    <h3>Presets</h3>
+                    <div class="gfx-controls">
+                        <div class="gfx-control">
+                            <button id="gfx-preset-default" class="btn btn-small">Default</button>
+                            <button id="gfx-preset-bold" class="btn btn-small">Bold</button>
+                            <button id="gfx-preset-elegant" class="btn btn-small">Elegant</button>
+                            <button id="gfx-preset-minimal" class="btn btn-small">Minimal</button>
+                        </div>
+                        <div class="gfx-control">
+                            <button id="gfx-export" class="btn btn-primary">Export Settings</button>
+                            <button id="gfx-import" class="btn btn-primary">Import Settings</button>
+                            <input type="file" id="gfx-import-file" accept=".json" style="display: none;" />
+                        </div>
+                        <div class="gfx-control">
+                            <button id="gfx-apply" class="btn btn-primary">Apply to Overlay</button>
+                            <button id="gfx-reset" class="btn btn-small">Reset Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="gfx-designer.js"></script>
+</body>
+</html>

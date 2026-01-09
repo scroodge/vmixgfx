@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vMix Billiard Score Overlay</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="overlay-container">
+        <div class="score-section">
+            <div class="team home-team">
+                <div class="team-name" id="home-name">Player 1</div>
+                <div class="team-score" id="home-score">0</div>
+            </div>
+            
+            <div class="score-separator">|</div>
+            
+            <div class="team away-team">
+                <div class="team-score" id="away-score">0</div>
+                <div class="team-name" id="away-name">Player 2</div>
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <div class="period-display">
+                <span class="label">Game</span>
+                <span class="value" id="period-value">1</span>
+            </div>
+            <div class="timer-display">
+                <span class="value" id="timer-value">00:00</span>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

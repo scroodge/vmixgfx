@@ -1,0 +1,312 @@
+/* vMix Billiard Score Overlay Styles - Transparent Background for vMix Browser Input */
+
+:root {
+    /* Colors - Default values */
+    --color-player1: #ffffff;
+    --color-player1-score: #ffffff;
+    --color-player2: #ffffff;
+    --color-player2-score: #ffffff;
+    --color-separator: #ffffff;
+    --color-game-timer: #ffffff;
+    --color-glow: #ffd700;
+    
+    /* Typography */
+    --font-family: 'Arial Black', 'Arial Bold', Arial, sans-serif;
+    --font-size-player-name: 48px;
+    --font-size-score: 120px;
+    --font-size-game-timer: 42px;
+    --font-weight: 900;
+    
+    /* Effects */
+    --text-shadow-blur: 4px;
+    --text-shadow-opacity: 0.8;
+    --letter-spacing: 2px;
+    
+    /* Layout */
+    --spacing-scores: 40px;
+    --spacing-info: 30px;
+    --separator-size: 80px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+}
+
+body {
+    font-family: var(--font-family);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+.overlay-container {
+    width: 100%;
+    max-width: 1920px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-info);
+}
+
+/* Score Section */
+.score-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-scores);
+    width: 100%;
+}
+
+.team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.home-team {
+    align-items: flex-end;
+}
+
+.away-team {
+    align-items: flex-start;
+}
+
+.team-name {
+    font-size: var(--font-size-player-name);
+    font-weight: var(--font-weight);
+    color: var(--color-player1);
+    text-shadow: 
+        2px 2px var(--text-shadow-blur) rgba(0, 0, 0, var(--text-shadow-opacity)),
+        0 0 10px rgba(0, 0, 0, calc(var(--text-shadow-opacity) * 0.6));
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing);
+    white-space: nowrap;
+    min-width: 200px;
+    text-align: center;
+}
+
+.home-team .team-name {
+    text-align: right;
+    color: var(--color-player1);
+}
+
+.away-team .team-name {
+    text-align: left;
+    color: var(--color-player2);
+}
+
+.team-score {
+    font-size: var(--font-size-score);
+    font-weight: var(--font-weight);
+    color: var(--color-player1-score);
+    text-shadow: 
+        3px 3px calc(var(--text-shadow-blur) * 1.5) rgba(0, 0, 0, var(--text-shadow-opacity)),
+        0 0 20px rgba(0, 0, 0, calc(var(--text-shadow-opacity) * 0.75));
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    transition: transform 0.2s ease;
+    min-width: 150px;
+    text-align: center;
+}
+
+.home-team .team-score {
+    color: var(--color-player1-score);
+}
+
+.away-team .team-score {
+    color: var(--color-player2-score);
+}
+
+/* Score Change Animation */
+.team-score.score-changed {
+    animation: scoreBump 0.5s ease-out;
+}
+
+@keyframes scoreBump {
+    0% {
+        transform: scale(1);
+        text-shadow: 
+            3px 3px calc(var(--text-shadow-blur) * 1.5) rgba(0, 0, 0, var(--text-shadow-opacity)),
+            0 0 20px rgba(0, 0, 0, calc(var(--text-shadow-opacity) * 0.75));
+    }
+    50% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1);
+        text-shadow: 
+            3px 3px calc(var(--text-shadow-blur) * 1.5) rgba(0, 0, 0, var(--text-shadow-opacity)),
+            0 0 20px rgba(0, 0, 0, calc(var(--text-shadow-opacity) * 0.75));
+    }
+}
+
+.team-score.score-changed.glow-enabled {
+    animation: scoreBumpGlow 0.5s ease-out;
+}
+
+@keyframes scoreBumpGlow {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Apply glow effect during animation peak */
+.team-score.score-changed.glow-enabled {
+    position: relative;
+}
+
+/* Use box-shadow for glow since text-shadow doesn't animate well */
+.team-score.score-changed.glow-enabled::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 10px;
+    opacity: 0;
+    box-shadow: 0 0 30px var(--color-glow), 0 0 50px var(--color-glow);
+    pointer-events: none;
+    animation: glowPulse 0.5s ease-out;
+    z-index: -1;
+}
+
+@keyframes glowPulse {
+    0%, 100% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.score-separator {
+    font-size: var(--separator-size);
+    font-weight: 300;
+    color: var(--color-separator);
+    text-shadow: 
+        2px 2px var(--text-shadow-blur) rgba(0, 0, 0, var(--text-shadow-opacity)),
+        0 0 10px rgba(0, 0, 0, calc(var(--text-shadow-opacity) * 0.6));
+    opacity: 0.7;
+    padding: 0 20px;
+}
+
+/* Info Section (Period + Timer) */
+.info-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-info);
+    margin-top: 20px;
+}
+
+.period-display,
+.timer-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.period-display .label {
+    font-size: calc(var(--font-size-game-timer) * 0.57);
+    font-weight: bold;
+    color: var(--color-game-timer);
+    text-shadow: 
+        2px 2px var(--text-shadow-blur) rgba(0, 0, 0, var(--text-shadow-opacity)),
+        0 0 10px rgba(0, 0, 0, calc(var(--text-shadow-opacity) * 0.6));
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.9;
+}
+
+.period-display .value,
+.timer-display .value {
+    font-size: var(--font-size-game-timer);
+    font-weight: var(--font-weight);
+    color: var(--color-game-timer);
+    text-shadow: 
+        2px 2px var(--text-shadow-blur) rgba(0, 0, 0, var(--text-shadow-opacity)),
+        0 0 15px rgba(0, 0, 0, calc(var(--text-shadow-opacity) * 0.75));
+    font-variant-numeric: tabular-nums;
+    min-width: 80px;
+    text-align: center;
+    letter-spacing: var(--letter-spacing);
+}
+
+.timer-display .value {
+    font-size: calc(var(--font-size-game-timer) * 1.14);
+}
+
+/* Fade in animation for setup/reset */
+.overlay-container.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments for different screen sizes */
+@media (max-width: 1920px) {
+    .team-name {
+        font-size: 40px;
+    }
+    
+    .team-score {
+        font-size: 100px;
+    }
+    
+    .score-separator {
+        font-size: 70px;
+    }
+}
+
+@media (max-width: 1280px) {
+    .team-name {
+        font-size: 32px;
+        min-width: 150px;
+    }
+    
+    .team-score {
+        font-size: 80px;
+        min-width: 120px;
+    }
+    
+    .score-separator {
+        font-size: 60px;
+    }
+    
+    .period-display .label {
+        font-size: 20px;
+    }
+    
+    .period-display .value,
+    .timer-display .value {
+        font-size: 36px;
+    }
+}
