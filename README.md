@@ -380,6 +380,43 @@ curl -X POST http://localhost:8000/api/match/1/score \
   -d '{"team":"home","delta":1}'
 ```
 
+## Building Windows Executable
+
+You can build a single Windows executable file (.exe) that contains all services. This allows you to run everything with just one file - no Python installation needed on the target machine.
+
+### Quick Build
+
+1. **Run the build script** from the project root:
+   ```cmd
+   build_windows.bat
+   ```
+   Or use PowerShell:
+   ```powershell
+   .\build_windows.ps1
+   ```
+
+2. **Wait for build to complete** (5-10 minutes on first run)
+
+3. **Find the executable** at: `backend\dist\vmix_score_control.exe`
+
+4. **Copy and run** the .exe file on any Windows machine (no Python needed!)
+
+### Using the Executable
+
+- **Double-click** `vmix_score_control.exe` to start all services
+- **Control Panel**: http://localhost:8000/control
+- **Overlay**: http://localhost:8000/overlay?matchId=1
+- The server runs on port 8000 and is accessible on your local network
+
+### Detailed Build Instructions
+
+For complete build instructions, troubleshooting, and customization options, see [BUILD.md](BUILD.md).
+
+**Requirements for Building:**
+- Windows 10/11
+- Python 3.8+ installed (only needed for building, not for running the .exe)
+- Internet connection (for downloading dependencies)
+
 ## License
 
 This project is provided as-is for broadcast use.

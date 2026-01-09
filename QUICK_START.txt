@@ -1,0 +1,60 @@
+vMix Score Control - Quick Start Guide
+=======================================
+
+INSTALLATION:
+-------------
+1. Extract vmix_score_control.exe to any folder
+2. Double-click vmix_score_control.exe to start
+3. A console window will appear showing server status
+
+USAGE:
+------
+Once the server is running:
+
+Control Panel (for managing scores):
+  http://localhost:8000/control
+
+Overlay (for vMix Browser Input):
+  http://localhost:8000/overlay?matchId=1
+
+NETWORK ACCESS:
+---------------
+The server can be accessed from other devices on your network:
+  http://YOUR_IP_ADDRESS:8000/control
+
+Example:
+  If your computer's IP is 192.168.1.100, access:
+  http://192.168.1.100:8000/control
+
+vMIX CONFIGURATION:
+-------------------
+1. Open vMix and click "Add Input"
+2. Select "Browser" as input type
+3. Set URL to: http://localhost:8000/overlay?matchId=1
+   (Or use your computer's IP for network access)
+4. Set Width: 1920, Height: 1080
+5. Enable "Transparent Background"
+6. Set Update Rate: 60 FPS (recommended)
+
+STOPPING THE SERVER:
+--------------------
+- Click the X button on the console window, or
+- Press Ctrl+C in the console window
+
+TROUBLESHOOTING:
+----------------
+Port 8000 already in use:
+  - Close any other instances of the application
+  - Or restart your computer
+
+Can't access from network:
+  - Windows Firewall may prompt for permission (click Allow)
+  - Make sure other devices are on the same network
+  - Check your computer's IP address in network settings
+
+vMix shows blank overlay:
+  - Make sure the server is running (check console window)
+  - Try accessing the URL directly in a browser first
+  - Check that "Transparent Background" is enabled in vMix
+
+For more information, see BUILD.md or README.md

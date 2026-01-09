@@ -556,6 +556,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Listen for language changes
     window.addEventListener('languageChanged', () => {
         updateConnectionStatus(ws && ws.readyState === WebSocket.OPEN);
+        // Update all texts including select options
+        if (typeof updateAllTexts === 'function') {
+            updateAllTexts();
+        }
     });
     
     // Load visibility settings (async, from API first)

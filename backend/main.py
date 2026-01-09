@@ -6,6 +6,8 @@ Provides REST API and WebSocket endpoints for real-time score management.
 import asyncio
 import json
 import time
+import sys
+import os
 from pathlib import Path
 from collections import defaultdict
 from typing import Dict, Set, Optional
@@ -86,15 +88,51 @@ app.add_middleware(
 )
 
 # Static file serving - resolve paths relative to this file's parent directory
-BASE_DIR = Path(__file__).resolve().parent.parent
+# Handle PyInstaller bundle mode
+if getattr(sys, 'frozen', False):
+    # Running as PyInstaller bundle - files are extracted to sys._MEIPASS
+    BASE_DIR = Path(sys._MEIPASS)
+else:
+    # Running in development mode
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
 FRONTEND_DIR = BASE_DIR / "frontend"
 CONTROL_DIR = BASE_DIR / "frontend" / "control"
 OVERLAY_DIR = BASE_DIR / "frontend" / "overlay"
 
+# Verify directories exist and log paths for debugging
+if not FRONTEND_DIR.exists():
+    print(f"WARNING: Frontend directory not found at: {FRONTEND_DIR}")
+    print(f"BASE_DIR: {BASE_DIR}")
+    print(f"sys._MEIPASS: {getattr(sys, '_MEIPASS', 'N/A')}")
+    print(f"__file__: {__file__}")
+    # Try alternative path structure (if files are in different location)
+    if (BASE_DIR / "control").exists():
+        FRONTEND_DIR = BASE_DIR
+        CONTROL_DIR = BASE_DIR / "control"
+        OVERLAY_DIR = BASE_DIR / "overlay"
+    else:
+        print("ERROR: Frontend files not found. Cannot start server.")
+        raise FileNotFoundError(f"Frontend directory not found at: {FRONTEND_DIR}")
+else:
+    print(f"Frontend directory found at: {FRONTEND_DIR}")
+
 # Mount frontend directory for shared files like translations.js
-app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR), html=False), name="frontend")
-app.mount("/control", StaticFiles(directory=str(CONTROL_DIR), html=True), name="control")
-app.mount("/overlay", StaticFiles(directory=str(OVERLAY_DIR), html=True), name="overlay")
+# Verify directories exist before mounting
+if FRONTEND_DIR.exists():
+    app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR), html=False), name="frontend")
+else:
+    print(f"ERROR: Frontend directory does not exist: {FRONTEND_DIR}")
+
+if CONTROL_DIR.exists():
+    app.mount("/control", StaticFiles(directory=str(CONTROL_DIR), html=True), name="control")
+else:
+    print(f"ERROR: Control directory does not exist: {CONTROL_DIR}")
+
+if OVERLAY_DIR.exists():
+    app.mount("/overlay", StaticFiles(directory=str(OVERLAY_DIR), html=True), name="overlay")
+else:
+    print(f"ERROR: Overlay directory does not exist: {OVERLAY_DIR}")
 
 # ============================================================================
 # State Management
@@ -521,9 +559,21 @@ async def root(request: Request):
 @app.on_event("startup")
 async def startup_event():
     """Initialize on startup"""
-    print("vMix Russian Billiard Score Control Server started")
-    print("Control Panel: http://localhost:8000/control")
-    print("Overlay: http://localhost:8000/overlay")
+    print("=" * 60)
+    print("vMix Russian Billiard Score Control Server")
+    print("=" * 60)
+    print(f"Server started successfully on http://0.0.0.0:8000")
+    print("")
+    print("Access the application:")
+    print("  Control Panel: http://localhost:8000/control")
+    print("  Overlay:       http://localhost:8000/overlay?matchId=1")
+    print("")
+    print("Network Access:")
+    print("  You can access this server from other devices on your network")
+    print("  using your computer's IP address (e.g., http://192.168.1.100:8000)")
+    print("")
+    print("Press Ctrl+C to stop the server")
+    print("=" * 60)
 
 if __name__ == "__main__":
     import uvicorn
