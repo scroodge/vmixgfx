@@ -1,4 +1,5 @@
 vMix Score Control - Quick Start Guide
+Version: 0.1a (Alpha)
 =======================================
 
 INSTALLATION:
@@ -64,6 +65,7 @@ For more information, see BUILD.md or README.md
 ===============================================
 
 vMix Score Control - Хуткі даведнік па старце
+Версія: 0.1a (Альфа)
 ===============================================
 
 УСТАНОЎКА:

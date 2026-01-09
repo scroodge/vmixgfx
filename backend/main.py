@@ -543,7 +543,7 @@ async def root(request: Request):
     # Otherwise, return API information
     return {
         "service": "vMix Russian Billiard Score Control",
-        "version": "1.0.0",
+        "version": "0.1a",
         "endpoints": {
             "control": "/control",
             "overlay": "/overlay",

@@ -1,4 +1,6 @@
-# vMix Russian Billiard Score Control MVP
+# vMix Russian Billiard Score Control
+
+**Version: 0.1a (Alpha)**
 
 A complete real-time billiard score control system for vMix broadcasting. Designed specifically for Russian billiard games. Features a FastAPI backend with WebSocket support, a control panel for operators, and an animated overlay display optimized for vMix Browser Input.
 
@@ -25,17 +27,26 @@ A complete real-time billiard score control system for vMix broadcasting. Design
 /
 ├── backend/
 │   ├── main.py              # FastAPI application with REST & WebSocket endpoints
-│   └── requirements.txt     # Python dependencies
+│   ├── requirements.txt     # Python dependencies
+│   ├── vmix_score_control.spec  # PyInstaller spec file
+│   └── README.md            # Backend documentation
 ├── frontend/
 │   ├── control/             # Control Panel
 │   │   ├── index.html
 │   │   ├── style.css
+│   │   ├── app.js
+│   │   └── gfx-designer.js
+│   ├── overlay/             # vMix Overlay Display
+│   │   ├── index.html
+│   │   ├── style.css
 │   │   └── app.js
-│   └── overlay/             # vMix Overlay Display
-│       ├── index.html
-│       ├── style.css
-│       └── app.js
-└── README.md
+│   ├── translations.js      # Translations file
+│   └── README.md            # Frontend documentation
+├── build_windows.bat        # Windows build script (batch)
+├── build_windows.ps1        # Windows build script (PowerShell)
+├── BUILD.md                 # Build instructions
+├── QUICK_START.txt          # Quick start guide
+└── README.md                # Main documentation
 ```
 
 ## Installation & Setup
@@ -436,6 +447,8 @@ For issues or questions, check:
 
 # Беларуская мова (Belarusian) / Беларуская мова
 
+**Версія: 0.1a (Альфа)**
+
 ## Апісанне
 
 Поўная сістэма кіравання лікам у рэальным часе для трансляцыі праз vMix. Распрацавана спецыяльна для рускага більярда. Уключае FastAPI бэкэнд з падтрымкай WebSocket, панэль кіравання для аператараў і аніміраваны оверлей, аптымізаваны для vMix Browser Input.
@@ -463,17 +476,26 @@ For issues or questions, check:
 /
 ├── backend/
 │   ├── main.py              # FastAPI дадатак з REST і WebSocket эндпоінтамі
-│   └── requirements.txt     # Python залежнасці
+│   ├── requirements.txt     # Python залежнасці
+│   ├── vmix_score_control.spec  # PyInstaller spec файл
+│   └── README.md            # Дакументацыя бэкэнда
 ├── frontend/
 │   ├── control/             # Панэль кіравання
 │   │   ├── index.html
 │   │   ├── style.css
+│   │   ├── app.js
+│   │   └── gfx-designer.js
+│   ├── overlay/             # vMix Оверлей дысплей
+│   │   ├── index.html
+│   │   ├── style.css
 │   │   └── app.js
-│   └── overlay/             # vMix Оверлей дысплей
-│       ├── index.html
-│       ├── style.css
-│       └── app.js
-└── README.md
+│   ├── translations.js      # Файл перакладаў
+│   └── README.md            # Дакументацыя фронтэнда
+├── build_windows.bat        # Скрыпт зборкі Windows (batch)
+├── build_windows.ps1        # Скрыпт зборкі Windows (PowerShell)
+├── BUILD.md                 # Інструкцыі па зборцы
+├── QUICK_START.txt          # Хуткі даведнік па старце
+└── README.md                # Галоўная дакументацыя
 ```
 
 ## Устаноўка і налада

@@ -1,5 +1,7 @@
 # Building Windows Executable
 
+**Version: 0.1a (Alpha)**
+
 This guide explains how to build a single Windows executable file (.exe) that contains all services (backend server and frontend files). Users can simply double-click the .exe file to start everything.
 
 ## Prerequisites
@@ -248,6 +250,8 @@ For issues or questions:
 ---
 
 # Беларуская мова (Belarusian) / Беларуская мова
+
+**Версія: 0.1a (Альфа)**
 
 ## Стварэнне выканальнага файла для Windows
 

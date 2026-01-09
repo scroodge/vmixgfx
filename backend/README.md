@@ -1,5 +1,7 @@
 # Backend - vMix Russian Billiard Score Control API
 
+**Version: 0.1a (Alpha)**
+
 FastAPI backend server providing REST API and WebSocket endpoints for real-time Russian billiard score management.
 
 ## Features
@@ -217,6 +219,8 @@ For production use:
 ---
 
 # Беларуская мова (Belarusian) / Беларуская мова
+
+**Версія: 0.1a (Альфа)**
 
 ## Бэкэнд - vMix Russian Billiard Score Control API
 

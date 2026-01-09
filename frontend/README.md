@@ -1,5 +1,7 @@
 # Frontend - vMix Russian Billiard Score Control
 
+**Version: 0.1a (Alpha)**
+
 Frontend components for the vMix Russian Billiard Score Control system. Contains the control panel for operators and the overlay display for vMix Browser Input.
 
 ## Structure
@@ -9,11 +11,14 @@ frontend/
 ├── control/          # Control Panel (operator interface)
 │   ├── index.html
 │   ├── style.css
+│   ├── app.js
+│   └── gfx-designer.js
+├── overlay/          # vMix Overlay (score display)
+│   ├── index.html
+│   ├── style.css
 │   └── app.js
-└── overlay/          # vMix Overlay (score display)
-    ├── index.html
-    ├── style.css
-    └── app.js
+├── translations.js   # Translations file
+└── README.md         # Frontend documentation
 ```
 
 ## Control Panel (`control/`)
@@ -244,6 +249,7 @@ Extend JavaScript:
 - `index.html`: Main HTML structure, form elements, buttons
 - `style.css`: Responsive design, button styles, layout
 - `app.js`: WebSocket client, REST API calls, state management, event handlers
+- `gfx-designer.js`: Graphics designer functionality for customizing overlay appearance
 
 ### Overlay Files
 
@@ -259,6 +265,8 @@ Extend JavaScript:
 
 # Беларуская мова (Belarusian) / Беларуская мова
 
+**Версія: 0.1a (Альфа)**
+
 ## Фронтэнд - vMix Russian Billiard Score Control
 
 Фронтэнд кампаненты для сістэмы кіравання лікам рускага більярда vMix. Змяшчае панэль кіравання для аператараў і оверлей дысплей для vMix Browser Input.
@@ -270,11 +278,14 @@ frontend/
 ├── control/          # Панэль кіравання (інтэрфейс аператара)
 │   ├── index.html
 │   ├── style.css
+│   ├── app.js
+│   └── gfx-designer.js
+├── overlay/          # vMix Оверлей (дысплей ліку)
+│   ├── index.html
+│   ├── style.css
 │   └── app.js
-└── overlay/          # vMix Оверлей (дысплей ліку)
-    ├── index.html
-    ├── style.css
-    └── app.js
+├── translations.js   # Файл перакладаў
+└── README.md         # Дакументацыя фронтэнда
 ```
 
 ## Панэль кіравання (`control/`)
@@ -505,6 +516,7 @@ HomeName | HomeScore | AwayScore | AwayName
 - `index.html`: Галоўная структура HTML, элементы формы, кнопкі
 - `style.css`: Адаптыўны дызайн, стылі кнопак, макет
 - `app.js`: WebSocket кліент, REST API запыты, кіраванне станам, апрацоўшчыкі падзей
+- `gfx-designer.js`: Функцыянальнасць дызайнера графікі для налады знешняга выгляду оверлея
 
 ### Файлы оверлея
 
