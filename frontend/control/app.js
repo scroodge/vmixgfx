@@ -31,6 +31,8 @@ const elements = {
     awayTeamNameDisplay: document.getElementById('away-team-name-display'),
     homeScoreDisplay: document.getElementById('home-score-display'),
     awayScoreDisplay: document.getElementById('away-score-display'),
+    homeMatchScoreDisplay: document.getElementById('home-match-score-display'),
+    awayMatchScoreDisplay: document.getElementById('away-match-score-display'),
     
     // Score Buttons
     homePlus: document.getElementById('home-plus'),
@@ -39,6 +41,12 @@ const elements = {
     awayPlus: document.getElementById('away-plus'),
     awayMinus: document.getElementById('away-minus'),
     awayPlusBall: document.getElementById('away-plus-ball'),
+    
+    // Match Score Buttons
+    homeMatchPlus: document.getElementById('home-match-plus'),
+    homeMatchMinus: document.getElementById('home-match-minus'),
+    awayMatchPlus: document.getElementById('away-match-plus'),
+    awayMatchMinus: document.getElementById('away-match-minus'),
     
     // Period
     periodDisplay: document.getElementById('period-display'),
@@ -53,6 +61,10 @@ const elements = {
     setTimerMinutes: document.getElementById('set-timer-minutes'),
     setTimerSeconds: document.getElementById('set-timer-seconds'),
     timerSetBtn: document.getElementById('timer-set-btn'),
+    
+    // Visibility Toggles
+    showGameDisplay: document.getElementById('show-game-display'),
+    showTimerDisplay: document.getElementById('show-timer-display'),
     
     // Reset
     resetBtn: document.getElementById('reset-btn')
@@ -122,9 +134,15 @@ function updateUI(state) {
     elements.homeScoreDisplay.textContent = state.homeScore || 0;
     elements.awayScoreDisplay.textContent = state.awayScore || 0;
     
+    // Update match scores
+    elements.homeMatchScoreDisplay.textContent = state.homeMatchScore || 0;
+    elements.awayMatchScoreDisplay.textContent = state.awayMatchScore || 0;
+    
     // Enable/disable minus buttons based on score
     elements.homeMinus.disabled = (state.homeScore || 0) <= 0;
     elements.awayMinus.disabled = (state.awayScore || 0) <= 0;
+    elements.homeMatchMinus.disabled = (state.homeMatchScore || 0) <= 0;
+    elements.awayMatchMinus.disabled = (state.awayMatchScore || 0) <= 0;
     
     // Update period
     elements.periodDisplay.textContent = state.period || 1;
@@ -279,6 +297,12 @@ elements.matchIdInput.addEventListener('change', () => {
     }
     connectWebSocket();
     fetchState();
+    
+    // Update preview iframe URL
+    const previewFrame = document.getElementById('gfx-preview');
+    if (previewFrame) {
+        previewFrame.src = `/overlay?matchId=${matchId}&preview=true`;
+    }
 });
 
 // Setup
@@ -315,6 +339,20 @@ elements.awayMinus.addEventListener('click', () => {
 });
 elements.awayPlusBall.addEventListener('click', () => apiCall('/score', 'POST', { team: 'away', delta: 1 })); // +Ball is same as +1 for now
 
+// Match score buttons
+elements.homeMatchPlus.addEventListener('click', () => apiCall('/match-score', 'POST', { team: 'home', delta: 1 }));
+elements.homeMatchMinus.addEventListener('click', () => {
+    if ((currentState?.homeMatchScore || 0) > 0) {
+        apiCall('/match-score', 'POST', { team: 'home', delta: -1 });
+    }
+});
+elements.awayMatchPlus.addEventListener('click', () => apiCall('/match-score', 'POST', { team: 'away', delta: 1 }));
+elements.awayMatchMinus.addEventListener('click', () => {
+    if ((currentState?.awayMatchScore || 0) > 0) {
+        apiCall('/match-score', 'POST', { team: 'away', delta: -1 });
+    }
+});
+
 // Period buttons
 elements.periodPlus.addEventListener('click', async () => {
     const currentPeriod = currentState?.period || 1;
@@ -337,6 +375,60 @@ elements.timerSetBtn.addEventListener('click', async () => {
     await apiCall('/timer/set', 'POST', { seconds: totalSeconds });
 });
 
+// Visibility Toggles
+elements.showGameDisplay.addEventListener('change', (e) => {
+    localStorage.setItem('showGameDisplay', e.target.checked.toString());
+    // Update overlay via broadcast
+    window.dispatchEvent(new CustomEvent('overlayVisibilityChanged', { 
+        detail: { game: e.target.checked, timer: elements.showTimerDisplay.checked } 
+    }));
+    // Update preview iframe
+    updateOverlayVisibility();
+});
+
+elements.showTimerDisplay.addEventListener('change', (e) => {
+    localStorage.setItem('showTimerDisplay', e.target.checked.toString());
+    // Update overlay via broadcast
+    window.dispatchEvent(new CustomEvent('overlayVisibilityChanged', { 
+        detail: { game: elements.showGameDisplay.checked, timer: e.target.checked } 
+    }));
+    // Update preview iframe
+    updateOverlayVisibility();
+});
+
+// Function to update overlay visibility
+function updateOverlayVisibility() {
+    const showGame = elements.showGameDisplay.checked;
+    const showTimer = elements.showTimerDisplay.checked;
+    
+    // Update preview iframe
+    const previewFrame = document.getElementById('gfx-preview');
+    if (previewFrame && previewFrame.contentWindow) {
+        try {
+            previewFrame.contentWindow.postMessage({
+                type: 'visibilityUpdate',
+                showGame: showGame,
+                showTimer: showTimer
+            }, '*');
+        } catch (e) {
+            // Ignore cross-origin errors
+        }
+    }
+}
+
+// Load visibility settings on init
+function loadVisibilitySettings() {
+    const showGame = localStorage.getItem('showGameDisplay');
+    const showTimer = localStorage.getItem('showTimerDisplay');
+    
+    if (showGame !== null) {
+        elements.showGameDisplay.checked = showGame === 'true';
+    }
+    if (showTimer !== null) {
+        elements.showTimerDisplay.checked = showTimer === 'true';
+    }
+}
+
 // Reset
 elements.resetBtn.addEventListener('click', async () => {
     if (confirm('Are you sure you want to reset the game? This will reset scores, game number, and timer.')) {
@@ -357,6 +449,9 @@ elements.resetBtn.addEventListener('click', async () => {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     matchId = elements.matchIdInput.value || '1';
+    
+    // Load visibility settings
+    loadVisibilitySettings();
     
     // Fetch initial state
     fetchState().then(() => {

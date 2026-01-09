@@ -11,12 +11,34 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #333;
     min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.app-wrapper {
+    display: flex;
+    height: 100vh;
+    gap: 0;
+}
+
+.controls-side {
+    flex: 0 0 65%;
+    overflow-y: auto;
+    overflow-x: hidden;
     padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    order: 0;
+    transition: order 0.3s ease;
+}
+
+.preview-side.preview-left ~ .controls-side {
+    order: 1;
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: 100%;
+    margin: 0;
 }
 
 /* Header */
@@ -427,6 +449,39 @@ main {
     font-weight: bold;
 }
 
+/* Visibility Controls */
+.visibility-controls {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f0f0f0;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+.visibility-toggle {
+    margin-bottom: 10px;
+}
+
+.visibility-toggle:last-child {
+    margin-bottom: 0;
+}
+
+.visibility-toggle label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.visibility-toggle input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #667eea;
+}
+
 /* Reset Panel */
 .reset-panel {
     grid-column: 1 / -1;
@@ -437,26 +492,114 @@ main {
     grid-column: 1 / -1;
 }
 
-.gfx-preview-container {
-    margin-bottom: 25px;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    background: #f5f5f5;
+/* Live Preview Side Panel */
+.preview-side {
+    flex: 0 0 35%;
+    background: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    border-left: 3px solid #667eea;
+    transition: all 0.3s ease;
+    min-width: 400px;
+    order: 2;
 }
 
-.gfx-preview-label {
-    font-weight: 600;
-    margin-bottom: 10px;
-    color: #555;
+.preview-side.preview-left {
+    order: 0;
+    border-left: none;
+    border-right: 3px solid #667eea;
 }
 
-.gfx-preview-frame {
-    width: 100%;
-    height: 300px;
-    border: 1px solid #ccc;
+.preview-side.collapsed {
+    flex: 0 0 50px;
+    min-width: 50px;
+}
+
+.preview-side.collapsed .preview-content {
+    display: none;
+}
+
+.preview-side.collapsed .preview-header h2 {
+    display: none;
+}
+
+.preview-side.collapsed .preview-header {
+    justify-content: center;
+}
+
+.preview-header {
+    background: #2a2a2a;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #667eea;
+}
+
+.preview-header h2 {
+    color: #ffffff;
+    font-size: 18px;
+    margin: 0;
+}
+
+.preview-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-preview-toggle {
+    background: #667eea;
+    color: white;
+    border: none;
     border-radius: 4px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: background 0.2s;
+}
+
+.btn-preview-toggle:hover {
+    background: #5568d3;
+}
+
+.preview-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: #0a0a0a;
+    overflow: auto;
+    position: relative;
+}
+
+.preview-loading {
+    color: #ffffff;
+    font-size: 16px;
+    padding: 20px;
+    text-align: center;
+}
+
+.preview-frame {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+    border: 2px solid #444;
+    border-radius: 8px;
     background: #000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.preview-frame.loaded {
+    display: block !important;
+}
+
+.preview-frame.loaded ~ .preview-loading {
+    display: none;
 }
 
 .gfx-section {
@@ -643,6 +786,35 @@ main {
 }
 
 /* Responsive Design */
+@media (max-width: 1400px) {
+    .controls-side {
+        flex: 0 0 60%;
+    }
+    
+    .preview-side {
+        flex: 0 0 40%;
+        min-width: 350px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .app-wrapper {
+        flex-direction: column;
+    }
+    
+    .controls-side {
+        flex: 1;
+        max-height: 50vh;
+    }
+    
+    .preview-side {
+        flex: 1;
+        min-width: 100%;
+        border-left: none;
+        border-top: 3px solid #667eea;
+    }
+}
+
 @media (max-width: 768px) {
     main {
         grid-template-columns: 1fr;
@@ -668,8 +840,12 @@ main {
     .gfx-controls {
         grid-template-columns: 1fr;
     }
-
-    .gfx-preview-frame {
-        height: 200px;
+    
+    .preview-side {
+        min-width: 100%;
+    }
+    
+    .preview-frame {
+        min-height: 400px;
     }
 }

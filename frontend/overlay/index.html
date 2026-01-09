@@ -8,7 +8,8 @@
 </head>
 <body>
     <div class="overlay-container">
-        <div class="score-section">
+        <!-- Vertical Layout (default) -->
+        <div class="score-section layout-vertical">
             <div class="team home-team">
                 <div class="team-name" id="home-name">Player 1</div>
                 <div class="team-score" id="home-score">0</div>
@@ -19,6 +20,25 @@
             <div class="team away-team">
                 <div class="team-score" id="away-score">0</div>
                 <div class="team-name" id="away-name">Player 2</div>
+            </div>
+        </div>
+        
+        <!-- Banner Layout -->
+        <div class="score-banner layout-banner" style="display: none;">
+            <div class="banner-segment banner-left">
+                <div class="banner-player-name" id="banner-home-name">Player 1</div>
+            </div>
+            <div class="banner-segment banner-center">
+                <div class="banner-score-container">
+                    <span class="banner-game-score">
+                        <span id="banner-home-score">0</span>
+                        <span class="banner-match-score" id="banner-match-scores" style="display: none;">(0)</span>
+                        <span id="banner-away-score">0</span>
+                    </span>
+                </div>
+            </div>
+            <div class="banner-segment banner-right">
+                <div class="banner-player-name" id="banner-away-name">Player 2</div>
             </div>
         </div>
         

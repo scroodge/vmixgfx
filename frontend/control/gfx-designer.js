@@ -30,7 +30,23 @@ const defaultSettings = {
     layout: {
         spacingScores: 40,
         spacingInfo: 30,
-        separatorSize: 80
+        separatorSize: 80,
+        style: 'vertical',  // 'vertical' or 'banner'
+        showMatchScores: false
+    },
+    banner: {
+        borderRadius: 12,
+        height: 80,
+        padding: 20,
+        centerWidth: 200,
+        leftColor: '#2d5016',
+        centerColor: '#ffffff',
+        rightColor: '#2d5016',
+        nameSize: 24,
+        scoreSize: 48,
+        nameColor: '#ffffff',
+        scoreColor: '#000000',
+        matchScoreColor: '#666666'
     },
     positions: {
         scoreX: 'center',
@@ -182,6 +198,37 @@ const gfxElements = {
     bgInfoGradientColor2: document.getElementById('bg-info-gradient-color2'),
     bgInfoGradientColor2Text: document.getElementById('bg-info-gradient-color2-text'),
     
+    // Layout Style
+    layoutStyle: document.getElementById('layout-style'),
+    showMatchScores: document.getElementById('show-match-scores'),
+    bannerStyleSection: document.getElementById('banner-style-section'),
+    
+    // Banner Style
+    bannerBorderRadius: document.getElementById('banner-border-radius'),
+    bannerBorderRadiusValue: document.getElementById('banner-border-radius-value'),
+    bannerHeight: document.getElementById('banner-height'),
+    bannerHeightValue: document.getElementById('banner-height-value'),
+    bannerPadding: document.getElementById('banner-padding'),
+    bannerPaddingValue: document.getElementById('banner-padding-value'),
+    bannerCenterWidth: document.getElementById('banner-center-width'),
+    bannerCenterWidthValue: document.getElementById('banner-center-width-value'),
+    bannerLeftColor: document.getElementById('banner-left-color'),
+    bannerLeftColorText: document.getElementById('banner-left-color-text'),
+    bannerCenterColor: document.getElementById('banner-center-color'),
+    bannerCenterColorText: document.getElementById('banner-center-color-text'),
+    bannerRightColor: document.getElementById('banner-right-color'),
+    bannerRightColorText: document.getElementById('banner-right-color-text'),
+    bannerNameSize: document.getElementById('banner-name-size'),
+    bannerNameSizeValue: document.getElementById('banner-name-size-value'),
+    bannerScoreSize: document.getElementById('banner-score-size'),
+    bannerScoreSizeValue: document.getElementById('banner-score-size-value'),
+    bannerNameColor: document.getElementById('banner-name-color'),
+    bannerNameColorText: document.getElementById('banner-name-color-text'),
+    bannerScoreColor: document.getElementById('banner-score-color'),
+    bannerScoreColorText: document.getElementById('banner-score-color-text'),
+    bannerMatchScoreColor: document.getElementById('banner-match-score-color'),
+    bannerMatchScoreColorText: document.getElementById('banner-match-score-color-text'),
+    
     // Presets & Actions
     presetDefault: document.getElementById('gfx-preset-default'),
     presetBold: document.getElementById('gfx-preset-bold'),
@@ -192,7 +239,12 @@ const gfxElements = {
     importFile: document.getElementById('gfx-import-file'),
     applyBtn: document.getElementById('gfx-apply'),
     resetBtn: document.getElementById('gfx-reset'),
-    preview: document.getElementById('gfx-preview')
+    preview: document.getElementById('gfx-preview'),
+    previewSide: document.getElementById('preview-side'),
+    previewToggle: document.getElementById('preview-toggle'),
+    previewToggleIcon: document.getElementById('preview-toggle-icon'),
+    previewRefresh: document.getElementById('preview-refresh'),
+    previewPosition: document.getElementById('preview-position')
 };
 
 // ============================================================================
@@ -228,6 +280,33 @@ function saveSettings() {
         } catch (e) {
             console.error('Failed to sync to preview:', e);
         }
+    }
+    // Save to API so vMix overlay can access settings
+    saveSettingsToAPI();
+}
+
+// Save settings to API so vMix overlay can access them
+async function saveSettingsToAPI() {
+    try {
+        // Get match ID from control panel (default to '1')
+        const matchIdInput = document.getElementById('match-id-input');
+        const matchId = matchIdInput ? matchIdInput.value || '1' : '1';
+        
+        const response = await fetch(`/api/match/${matchId}/gfx-settings`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(currentSettings)
+        });
+        
+        if (response.ok) {
+            console.log('GFX settings saved to API');
+        } else {
+            console.error('Failed to save GFX settings to API');
+        }
+    } catch (e) {
+        console.error('Error saving GFX settings to API:', e);
     }
 }
 
@@ -274,6 +353,43 @@ function applySettingsToUI(settings) {
     gfxElements.spacingInfoValue.textContent = settings.layout.spacingInfo + 'px';
     gfxElements.separatorSize.value = settings.layout.separatorSize;
     gfxElements.separatorSizeValue.textContent = settings.layout.separatorSize + 'px';
+    
+    // Layout Style
+    if (settings.layout.style) {
+        gfxElements.layoutStyle.value = settings.layout.style;
+        gfxElements.bannerStyleSection.style.display = settings.layout.style === 'banner' ? 'block' : 'none';
+    }
+    if (settings.layout.showMatchScores !== undefined) {
+        gfxElements.showMatchScores.checked = settings.layout.showMatchScores;
+    }
+    
+    // Banner Style
+    if (settings.banner) {
+        gfxElements.bannerBorderRadius.value = settings.banner.borderRadius || 12;
+        gfxElements.bannerBorderRadiusValue.textContent = (settings.banner.borderRadius || 12) + 'px';
+        gfxElements.bannerHeight.value = settings.banner.height || 80;
+        gfxElements.bannerHeightValue.textContent = (settings.banner.height || 80) + 'px';
+        gfxElements.bannerPadding.value = settings.banner.padding || 20;
+        gfxElements.bannerPaddingValue.textContent = (settings.banner.padding || 20) + 'px';
+        gfxElements.bannerCenterWidth.value = settings.banner.centerWidth || 200;
+        gfxElements.bannerCenterWidthValue.textContent = (settings.banner.centerWidth || 200) + 'px';
+        gfxElements.bannerLeftColor.value = settings.banner.leftColor || '#2d5016';
+        gfxElements.bannerLeftColorText.value = settings.banner.leftColor || '#2d5016';
+        gfxElements.bannerCenterColor.value = settings.banner.centerColor || '#ffffff';
+        gfxElements.bannerCenterColorText.value = settings.banner.centerColor || '#ffffff';
+        gfxElements.bannerRightColor.value = settings.banner.rightColor || '#2d5016';
+        gfxElements.bannerRightColorText.value = settings.banner.rightColor || '#2d5016';
+        gfxElements.bannerNameSize.value = settings.banner.nameSize || 24;
+        gfxElements.bannerNameSizeValue.textContent = (settings.banner.nameSize || 24) + 'px';
+        gfxElements.bannerScoreSize.value = settings.banner.scoreSize || 48;
+        gfxElements.bannerScoreSizeValue.textContent = (settings.banner.scoreSize || 48) + 'px';
+        gfxElements.bannerNameColor.value = settings.banner.nameColor || '#ffffff';
+        gfxElements.bannerNameColorText.value = settings.banner.nameColor || '#ffffff';
+        gfxElements.bannerScoreColor.value = settings.banner.scoreColor || '#000000';
+        gfxElements.bannerScoreColorText.value = settings.banner.scoreColor || '#000000';
+        gfxElements.bannerMatchScoreColor.value = settings.banner.matchScoreColor || '#666666';
+        gfxElements.bannerMatchScoreColorText.value = settings.banner.matchScoreColor || '#666666';
+    }
     
     // Positions
     if (settings.positions) {
@@ -364,20 +480,56 @@ function applySettingsToOverlay(settings) {
     // Store settings in localStorage for overlay to read
     localStorage.setItem('gfxSettings', JSON.stringify(settings));
     
-    // Send message to preview iframe
-    if (gfxElements.preview && gfxElements.preview.contentWindow) {
-        try {
-            gfxElements.preview.contentWindow.postMessage({
-                type: 'gfxSettings',
-                settings: settings
-            }, '*');
-        } catch (e) {
-            // Ignore cross-origin errors
-        }
+    // Store layout style separately for easy access
+    if (settings.layout && settings.layout.style) {
+        localStorage.setItem('gfxLayoutStyle', settings.layout.style);
     }
+    if (settings.layout && settings.layout.showMatchScores !== undefined) {
+        localStorage.setItem('gfxShowMatchScores', settings.layout.showMatchScores.toString());
+    }
+    
+    // Send message to preview iframe for real-time updates
+    updatePreview(settings);
     
     // Update main overlay windows (all tabs with overlay)
     window.dispatchEvent(new CustomEvent('gfxSettingsChanged', { detail: settings }));
+}
+
+// Update preview iframe with settings (debounced for performance)
+let previewUpdateTimeout = null;
+function updatePreview(settings) {
+    if (!gfxElements.preview) {
+        return;
+    }
+    
+    // Don't update if preview is collapsed
+    if (gfxElements.previewSide && gfxElements.previewSide.classList.contains('collapsed')) {
+        return;
+    }
+    
+    clearTimeout(previewUpdateTimeout);
+    previewUpdateTimeout = setTimeout(() => {
+        if (gfxElements.preview && gfxElements.preview.contentWindow) {
+            try {
+                // Send settings via postMessage for immediate update
+                gfxElements.preview.contentWindow.postMessage({
+                    type: 'gfxSettings',
+                    settings: settings
+                }, '*');
+                
+                // Also update localStorage in case postMessage doesn't work
+                localStorage.setItem('gfxSettings', JSON.stringify(settings));
+                
+                // Force iframe to check for settings update
+                if (gfxElements.preview.contentDocument) {
+                    gfxElements.preview.contentWindow.dispatchEvent(new Event('storage'));
+                }
+            } catch (e) {
+                // Cross-origin or iframe not ready - settings will apply via localStorage on next interaction
+                console.log('Preview will update via localStorage');
+            }
+        }
+    }, 100); // Debounce updates by 100ms for responsive feel
 }
 
 // ============================================================================
@@ -404,6 +556,9 @@ function updateSetting(path, value) {
     const parts = path.split('.');
     let obj = currentSettings;
     for (let i = 0; i < parts.length - 1; i++) {
+        if (!obj[parts[i]]) {
+            obj[parts[i]] = {};
+        }
         obj = obj[parts[i]];
     }
     obj[parts[parts.length - 1]] = value;
@@ -455,6 +610,35 @@ function initializeEventListeners() {
     setupRangeInput(gfxElements.spacingScores, gfxElements.spacingScoresValue, 'layout.spacingScores');
     setupRangeInput(gfxElements.spacingInfo, gfxElements.spacingInfoValue, 'layout.spacingInfo');
     setupRangeInput(gfxElements.separatorSize, gfxElements.separatorSizeValue, 'layout.separatorSize');
+    
+    // Layout Style
+    gfxElements.layoutStyle.addEventListener('change', (e) => {
+        if (!currentSettings.layout) currentSettings.layout = {};
+        currentSettings.layout.style = e.target.value;
+        gfxElements.bannerStyleSection.style.display = e.target.value === 'banner' ? 'block' : 'none';
+        saveSettings();
+        applySettingsToOverlay(currentSettings);
+    });
+    gfxElements.showMatchScores.addEventListener('change', (e) => {
+        if (!currentSettings.layout) currentSettings.layout = {};
+        currentSettings.layout.showMatchScores = e.target.checked;
+        saveSettings();
+        applySettingsToOverlay(currentSettings);
+    });
+    
+    // Banner Style
+    setupRangeInput(gfxElements.bannerBorderRadius, gfxElements.bannerBorderRadiusValue, 'banner.borderRadius');
+    setupRangeInput(gfxElements.bannerHeight, gfxElements.bannerHeightValue, 'banner.height');
+    setupRangeInput(gfxElements.bannerPadding, gfxElements.bannerPaddingValue, 'banner.padding');
+    setupRangeInput(gfxElements.bannerCenterWidth, gfxElements.bannerCenterWidthValue, 'banner.centerWidth');
+    setupColorSync(gfxElements.bannerLeftColor, gfxElements.bannerLeftColorText, 'banner.leftColor');
+    setupColorSync(gfxElements.bannerCenterColor, gfxElements.bannerCenterColorText, 'banner.centerColor');
+    setupColorSync(gfxElements.bannerRightColor, gfxElements.bannerRightColorText, 'banner.rightColor');
+    setupRangeInput(gfxElements.bannerNameSize, gfxElements.bannerNameSizeValue, 'banner.nameSize');
+    setupRangeInput(gfxElements.bannerScoreSize, gfxElements.bannerScoreSizeValue, 'banner.scoreSize');
+    setupColorSync(gfxElements.bannerNameColor, gfxElements.bannerNameColorText, 'banner.nameColor');
+    setupColorSync(gfxElements.bannerScoreColor, gfxElements.bannerScoreColorText, 'banner.scoreColor');
+    setupColorSync(gfxElements.bannerMatchScoreColor, gfxElements.bannerMatchScoreColorText, 'banner.matchScoreColor');
     
     // Positions
     gfxElements.posScoreX.addEventListener('input', (e) => {
@@ -553,6 +737,7 @@ function initializeEventListeners() {
     // Apply & Reset
     gfxElements.applyBtn.addEventListener('click', () => {
         applySettingsToOverlay(currentSettings);
+        updatePreview(currentSettings);
         alert('Settings applied to overlay! Refresh overlay page to see changes.');
     });
     gfxElements.resetBtn.addEventListener('click', () => {
@@ -562,6 +747,53 @@ function initializeEventListeners() {
             applySettingsToOverlay(currentSettings);
         }
     });
+    
+    // Preview panel controls
+    if (gfxElements.previewToggle) {
+        gfxElements.previewToggle.addEventListener('click', () => {
+            if (gfxElements.previewSide) {
+                gfxElements.previewSide.classList.toggle('collapsed');
+                if (gfxElements.previewSide.classList.contains('collapsed')) {
+                    gfxElements.previewToggleIcon.textContent = '▶';
+                    gfxElements.previewToggle.title = 'Show Preview';
+                } else {
+                    gfxElements.previewToggleIcon.textContent = '◀';
+                    gfxElements.previewToggle.title = 'Hide Preview';
+                    // Update preview when shown
+                    setTimeout(() => updatePreview(currentSettings), 100);
+                }
+            }
+        });
+    }
+    
+    if (gfxElements.previewRefresh) {
+        gfxElements.previewRefresh.addEventListener('click', () => {
+            if (gfxElements.preview) {
+                const currentSrc = gfxElements.preview.src;
+                gfxElements.preview.src = '';
+                setTimeout(() => {
+                    gfxElements.preview.src = currentSrc;
+                    setTimeout(() => updatePreview(currentSettings), 500);
+                }, 100);
+            }
+        });
+    }
+    
+    if (gfxElements.previewPosition) {
+        gfxElements.previewPosition.addEventListener('click', () => {
+            if (gfxElements.previewSide) {
+                gfxElements.previewSide.classList.toggle('preview-left');
+                const isLeft = gfxElements.previewSide.classList.contains('preview-left');
+                gfxElements.previewPosition.title = isLeft ? 'Move to Right' : 'Move to Left';
+                
+                // Update controls side order
+                const controlsSide = document.querySelector('.controls-side');
+                if (controlsSide) {
+                    controlsSide.style.order = isLeft ? '1' : '0';
+                }
+            }
+        });
+    }
 }
 
 // ============================================================================
@@ -722,10 +954,29 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     initializeEventListeners();
     
+    // Handle preview iframe load
+    if (gfxElements.preview) {
+        gfxElements.preview.addEventListener('load', () => {
+            // Hide loading indicator and show preview
+            const loadingEl = document.getElementById('preview-loading');
+            if (loadingEl) {
+                loadingEl.style.display = 'none';
+            }
+            gfxElements.preview.style.display = 'block';
+            gfxElements.preview.classList.add('loaded');
+            
+            // Apply settings after iframe loads
+            setTimeout(() => {
+                updatePreview(currentSettings);
+            }, 200);
+        });
+    }
+    
     // Refresh preview after a delay to allow overlay to load
     setTimeout(() => {
         if (gfxElements.preview) {
             applySettingsToOverlay(currentSettings);
+            updatePreview(currentSettings);
         }
     }, 1000);
 });

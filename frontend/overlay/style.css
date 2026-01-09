@@ -81,8 +81,8 @@ body {
     position: absolute;
 }
 
-/* Score Section */
-.score-section {
+/* Score Section - Vertical Layout */
+.score-section.layout-vertical {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -94,6 +94,85 @@ body {
 }
 
 .overlay-container.position-absolute .score-section {
+    position: absolute;
+}
+
+/* Banner Layout */
+.score-banner.layout-banner {
+    display: flex;
+    width: fit-content;
+    max-width: 90%;
+    height: auto;
+    border-radius: var(--banner-border-radius, 12px);
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.banner-segment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--banner-padding, 20px 30px);
+    min-height: var(--banner-height, 80px);
+}
+
+.banner-left {
+    background: var(--banner-left-color, linear-gradient(135deg, #2d5016 0%, #3a6b1f 100%));
+    border-top-left-radius: var(--banner-border-radius, 12px);
+    border-bottom-left-radius: var(--banner-border-radius, 12px);
+    justify-content: flex-start;
+    padding-left: var(--banner-segment-padding, 30px);
+}
+
+.banner-center {
+    background: var(--banner-center-color, #ffffff);
+    min-width: var(--banner-center-width, 200px);
+    justify-content: center;
+}
+
+.banner-right {
+    background: var(--banner-right-color, linear-gradient(135deg, #2d5016 0%, #3a6b1f 100%));
+    border-top-right-radius: var(--banner-border-radius, 12px);
+    border-bottom-right-radius: var(--banner-border-radius, 12px);
+    justify-content: flex-end;
+    padding-right: var(--banner-segment-padding, 30px);
+}
+
+.banner-player-name {
+    font-size: var(--banner-name-size, 24px);
+    font-weight: var(--font-weight);
+    color: var(--banner-name-color, #ffffff);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing);
+    white-space: nowrap;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.banner-score-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.banner-game-score {
+    font-size: var(--banner-score-size, 48px);
+    font-weight: var(--font-weight);
+    color: var(--banner-score-color, #000000);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.banner-match-score {
+    font-size: calc(var(--banner-score-size, 48px) * 0.6);
+    color: var(--banner-match-score-color, #666666);
+    font-weight: 500;
+    margin: 0 4px;
+}
+
+.overlay-container.position-absolute .score-banner {
     position: absolute;
 }
 

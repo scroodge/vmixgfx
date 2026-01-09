@@ -11,9 +11,10 @@ from collections import defaultdict
 from typing import Dict, Set, Optional
 from datetime import datetime
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field, field_validator
 
 # ============================================================================
@@ -25,8 +26,10 @@ class MatchState(BaseModel):
     match_id: str
     homeName: str = "Home"
     awayName: str = "Away"
-    homeScore: int = 0
-    awayScore: int = 0
+    homeScore: int = 0  # Current game score
+    awayScore: int = 0  # Current game score
+    homeMatchScore: int = 0  # Overall match score (sum of games won)
+    awayMatchScore: int = 0  # Overall match score (sum of games won)
     period: int = 1
     timerSecondsRemaining: int = 0
     timerRunning: bool = False
@@ -95,6 +98,9 @@ app.mount("/overlay", StaticFiles(directory=str(OVERLAY_DIR), html=True), name="
 
 # In-memory match state storage
 matches: Dict[str, MatchState] = {}
+
+# Store GFX settings per match (can be extended to database)
+gfx_settings: Dict[str, dict] = {}
 
 # WebSocket connections per match
 connections: Dict[str, Set[WebSocket]] = defaultdict(set)
@@ -209,6 +215,11 @@ async def setup_match(match_id: str, request: SetupRequest):
         state.period = request.period
         state.timerSecondsRemaining = request.timerSeconds
         state.timerRunning = False
+        # Match scores default to 0 if not set
+        if not hasattr(state, 'homeMatchScore'):
+            state.homeMatchScore = 0
+        if not hasattr(state, 'awayMatchScore'):
+            state.awayMatchScore = 0
         state.rev += 1
         matches[match_id] = state
         
@@ -248,6 +259,8 @@ async def reset_match(match_id: str):
         state = get_or_create_match(match_id)
         state.homeScore = 0
         state.awayScore = 0
+        state.homeMatchScore = 0
+        state.awayMatchScore = 0
         state.period = 1
         state.timerSecondsRemaining = 0
         state.timerRunning = False
@@ -258,6 +271,31 @@ async def reset_match(match_id: str):
         stop_timer_task(match_id)
         
         await broadcast_event(match_id, "reset", state, {"field": "reset"})
+    
+    return {"status": "ok", "state": state.model_dump()}
+
+@app.post("/api/match/{match_id}/match-score")
+async def update_match_score(match_id: str, request: ScoreRequest):
+    """Update overall match score (games won) for home or away team"""
+    async with state_lock:
+        state = get_or_create_match(match_id)
+        
+        if request.team == "home":
+            new_score = max(0, state.homeMatchScore + request.delta)
+            state.homeMatchScore = new_score
+        else:
+            new_score = max(0, state.awayMatchScore + request.delta)
+            state.awayMatchScore = new_score
+        
+        state.rev += 1
+        matches[match_id] = state
+        
+        await broadcast_event(
+            match_id,
+            "match_score_changed",
+            state,
+            {"field": "match_score", "team": request.team, "delta": request.delta}
+        )
     
     return {"status": "ok", "state": state.model_dump()}
 
@@ -371,9 +409,45 @@ async def websocket_endpoint(websocket: WebSocket, match_id: str):
 # Root endpoint
 # ============================================================================
 
+# ============================================================================
+# GFX Settings API
+# ============================================================================
+
+@app.get("/api/match/{match_id}/gfx-settings")
+async def get_gfx_settings(match_id: str):
+    """Get GFX settings for a match"""
+    if match_id in gfx_settings:
+        return gfx_settings[match_id]
+    return {}
+
+@app.post("/api/match/{match_id}/gfx-settings")
+async def set_gfx_settings(match_id: str, settings: dict):
+    """Save GFX settings for a match"""
+    gfx_settings[match_id] = settings
+    # Broadcast settings update to connected overlays
+    if match_id in connections:
+        message = json.dumps({"type": "gfxSettings", "settings": settings})
+        disconnected = []
+        for ws in connections[match_id]:
+            try:
+                await ws.send_text(message)
+            except:
+                disconnected.append(ws)
+        # Clean up disconnected clients
+        for ws in disconnected:
+            connections[match_id].discard(ws)
+    return {"status": "ok"}
+
 @app.get("/")
-async def root():
-    """Root endpoint with API information"""
+async def root(request: Request):
+    """Root endpoint - redirects to overlay if matchId provided, else shows API info"""
+    match_id = request.query_params.get("matchId")
+    
+    if match_id:
+        # If matchId is provided, redirect to overlay endpoint
+        return RedirectResponse(url=f"/overlay?matchId={match_id}")
+    
+    # Otherwise, return API information
     return {
         "service": "vMix Russian Billiard Score Control",
         "version": "1.0.0",
@@ -381,7 +455,8 @@ async def root():
             "control": "/control",
             "overlay": "/overlay",
             "api": "/api/match/{match_id}/..."
-        }
+        },
+        "usage": "Add ?matchId=1 to access overlay directly, or use /overlay?matchId=1"
     }
 
 # ============================================================================

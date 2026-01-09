@@ -27,7 +27,31 @@ function applyGFXSettings(settings) {
     const root = document.documentElement;
     const container = document.querySelector('.overlay-container');
     const scoreSection = document.querySelector('.score-section');
+    const scoreBanner = document.querySelector('.score-banner');
     const infoSection = document.querySelector('.info-section');
+    
+    // Apply layout style (banner vs vertical)
+    if (settings.layout && settings.layout.style) {
+        const layoutStyle = settings.layout.style;
+        localStorage.setItem('gfxLayoutStyle', layoutStyle);
+        
+        // Re-query banner elements in case they weren't found earlier
+        const currentScoreBanner = document.querySelector('.score-banner') || scoreBanner;
+        const currentScoreSection = document.querySelector('.score-section') || scoreSection;
+        
+        if (layoutStyle === 'banner') {
+            if (currentScoreSection) currentScoreSection.style.display = 'none';
+            if (currentScoreBanner) currentScoreBanner.style.display = 'flex';
+        } else {
+            if (currentScoreSection) currentScoreSection.style.display = 'flex';
+            if (currentScoreBanner) currentScoreBanner.style.display = 'none';
+        }
+    }
+    
+    // Show/hide match scores in banner
+    if (settings.layout && settings.layout.showMatchScores !== undefined) {
+        localStorage.setItem('gfxShowMatchScores', settings.layout.showMatchScores.toString());
+    }
     
     // Colors
     root.style.setProperty('--color-player1', settings.colors.player1);
@@ -183,6 +207,56 @@ function applyGFXSettings(settings) {
     
     // Store glow enabled state
     document.body.dataset.glowEnabled = settings.effects.enableGlow;
+    
+    // Banner styling - apply directly to banner elements
+    if (settings.banner) {
+        // Always set CSS variables
+        root.style.setProperty('--banner-border-radius', (settings.banner.borderRadius || 12) + 'px');
+        root.style.setProperty('--banner-height', (settings.banner.height || 80) + 'px');
+        root.style.setProperty('--banner-padding', (settings.banner.padding || 20) + 'px');
+        root.style.setProperty('--banner-center-width', (settings.banner.centerWidth || 200) + 'px');
+        root.style.setProperty('--banner-name-size', (settings.banner.nameSize || 24) + 'px');
+        root.style.setProperty('--banner-score-size', (settings.banner.scoreSize || 48) + 'px');
+        root.style.setProperty('--banner-name-color', settings.banner.nameColor || '#ffffff');
+        root.style.setProperty('--banner-score-color', settings.banner.scoreColor || '#000000');
+        root.style.setProperty('--banner-match-score-color', settings.banner.matchScoreColor || '#666666');
+        
+        // Try to apply to banner elements if they exist (re-query to be sure)
+        const currentScoreBanner = document.querySelector('.score-banner');
+        if (currentScoreBanner) {
+            const leftSegment = currentScoreBanner.querySelector('.banner-left');
+            const centerSegment = currentScoreBanner.querySelector('.banner-center');
+            const rightSegment = currentScoreBanner.querySelector('.banner-right');
+            
+            if (leftSegment) {
+                const lighter = adjustColorBrightness(settings.banner.leftColor || '#2d5016', 1.2);
+                leftSegment.style.background = `linear-gradient(135deg, ${settings.banner.leftColor || '#2d5016'} 0%, ${lighter} 100%)`;
+            }
+            if (centerSegment) {
+                centerSegment.style.background = settings.banner.centerColor || '#ffffff';
+            }
+            if (rightSegment) {
+                const lighter = adjustColorBrightness(settings.banner.rightColor || '#2d5016', 1.2);
+                rightSegment.style.background = `linear-gradient(135deg, ${settings.banner.rightColor || '#2d5016'} 0%, ${lighter} 100%)`;
+            }
+        } else {
+            // Set CSS variables for gradients (will be used when banner appears)
+            const lighter = adjustColorBrightness(settings.banner.leftColor || '#2d5016', 1.2);
+            root.style.setProperty('--banner-left-color', `linear-gradient(135deg, ${settings.banner.leftColor || '#2d5016'} 0%, ${lighter} 100%)`);
+            root.style.setProperty('--banner-center-color', settings.banner.centerColor || '#ffffff');
+            const lighterRight = adjustColorBrightness(settings.banner.rightColor || '#2d5016', 1.2);
+            root.style.setProperty('--banner-right-color', `linear-gradient(135deg, ${settings.banner.rightColor || '#2d5016'} 0%, ${lighterRight} 100%)`);
+        }
+    }
+}
+
+// Helper function to adjust color brightness for gradient
+function adjustColorBrightness(hex, factor) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.min(255, Math.floor((num >> 16) * factor));
+    const g = Math.min(255, Math.floor(((num >> 8) & 0x00FF) * factor));
+    const b = Math.min(255, Math.floor((num & 0x0000FF) * factor));
+    return '#' + (0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
 // Helper function to apply positioning
@@ -247,6 +321,9 @@ window.addEventListener('message', (event) => {
         applyGFXSettings(event.data.settings);
         // Also save to localStorage
         localStorage.setItem('gfxSettings', JSON.stringify(event.data.settings));
+    } else if (event.data && event.data.type === 'visibilityUpdate') {
+        // Handle visibility updates
+        updateVisibility(event.data.showGame, event.data.showTimer);
     }
 });
 
@@ -256,6 +333,70 @@ window.addEventListener('gfxSettingsChanged', (event) => {
         applyGFXSettings(event.detail);
     }
 });
+
+// Listen for storage changes (when settings are updated from control panel)
+window.addEventListener('storage', (event) => {
+    if (event.key === 'gfxSettings' && event.newValue) {
+        try {
+            const settings = JSON.parse(event.newValue);
+            applyGFXSettings(settings);
+        } catch (e) {
+            console.error('Failed to parse settings from storage:', e);
+        }
+    }
+});
+
+// Also check for settings updates periodically (fallback for same-origin)
+if (window.location.search.includes('preview=true')) {
+    let lastSettingsHash = '';
+    let lastVisibilityHash = '';
+    setInterval(() => {
+        const settingsStr = localStorage.getItem('gfxSettings');
+        if (settingsStr) {
+            const hash = settingsStr.length + ''; // Simple hash
+            if (hash !== lastSettingsHash) {
+                lastSettingsHash = hash;
+                try {
+                    const settings = JSON.parse(settingsStr);
+                    applyGFXSettings(settings);
+                } catch (e) {
+                    // Ignore parse errors
+                }
+            }
+        }
+        
+        // Check visibility settings
+        const showGame = localStorage.getItem('showGameDisplay');
+        const showTimer = localStorage.getItem('showTimerDisplay');
+        const visibilityHash = (showGame || 'true') + '|' + (showTimer || 'true');
+        if (visibilityHash !== lastVisibilityHash) {
+            lastVisibilityHash = visibilityHash;
+            updateVisibility(
+                showGame === null ? true : showGame === 'true',
+                showTimer === null ? true : showTimer === 'true'
+            );
+        }
+    }, 200); // Check every 200ms for changes
+}
+
+// Function to update visibility of game and timer displays
+function updateVisibility(showGame, showTimer) {
+    if (elements.periodDisplay) {
+        elements.periodDisplay.style.display = showGame ? 'flex' : 'none';
+    }
+    if (elements.timerDisplay) {
+        elements.timerDisplay.style.display = showTimer ? 'flex' : 'none';
+    }
+    
+    // Hide entire info section if both are hidden
+    if (elements.infoSection) {
+        if (!showGame && !showTimer) {
+            elements.infoSection.style.display = 'none';
+        } else {
+            elements.infoSection.style.display = 'flex';
+        }
+    }
+}
 
 // Get match ID from query string, default to '1'
 function getMatchId() {
@@ -278,7 +419,18 @@ const elements = {
     awayScore: document.getElementById('away-score'),
     periodValue: document.getElementById('period-value'),
     timerValue: document.getElementById('timer-value'),
-    container: document.querySelector('.overlay-container')
+    container: document.querySelector('.overlay-container'),
+    infoSection: document.querySelector('.info-section'),
+    periodDisplay: document.querySelector('.period-display'),
+    timerDisplay: document.querySelector('.timer-display'),
+    // Banner layout elements
+    scoreSection: document.querySelector('.score-section'),
+    scoreBanner: document.querySelector('.score-banner'),
+    bannerHomeName: document.getElementById('banner-home-name'),
+    bannerAwayName: document.getElementById('banner-away-name'),
+    bannerHomeScore: document.getElementById('banner-home-score'),
+    bannerAwayScore: document.getElementById('banner-away-score'),
+    bannerMatchScores: document.getElementById('banner-match-scores')
 };
 
 // ============================================================================
@@ -309,24 +461,95 @@ function updateUI(state, eventType = null, changed = null) {
     const prevState = currentState;
     currentState = state;
     
+    // Determine layout style (from localStorage or default to 'vertical')
+    const layoutStyle = localStorage.getItem('gfxLayoutStyle') || 'vertical';
+    const showMatchScores = localStorage.getItem('gfxShowMatchScores') === 'true';
+    
+    // Update layout visibility
+    if (layoutStyle === 'banner') {
+        if (elements.scoreSection) elements.scoreSection.style.display = 'none';
+        if (elements.scoreBanner) {
+            elements.scoreBanner.style.display = 'flex';
+            // Re-apply banner styles when banner becomes visible
+            const settingsStr = localStorage.getItem('gfxSettings');
+            if (settingsStr) {
+                try {
+                    const settings = JSON.parse(settingsStr);
+                    if (settings.banner) {
+                        // Re-apply banner background styles
+                        const leftSegment = elements.scoreBanner.querySelector('.banner-left');
+                        const centerSegment = elements.scoreBanner.querySelector('.banner-center');
+                        const rightSegment = elements.scoreBanner.querySelector('.banner-right');
+                        
+                        if (leftSegment && settings.banner.leftColor) {
+                            const lighter = adjustColorBrightness(settings.banner.leftColor, 1.2);
+                            leftSegment.style.background = `linear-gradient(135deg, ${settings.banner.leftColor} 0%, ${lighter} 100%)`;
+                        }
+                        if (centerSegment && settings.banner.centerColor) {
+                            centerSegment.style.background = settings.banner.centerColor;
+                        }
+                        if (rightSegment && settings.banner.rightColor) {
+                            const lighter = adjustColorBrightness(settings.banner.rightColor, 1.2);
+                            rightSegment.style.background = `linear-gradient(135deg, ${settings.banner.rightColor} 0%, ${lighter} 100%)`;
+                        }
+                    }
+                } catch (e) {
+                    // Ignore errors
+                }
+            }
+        }
+    } else {
+        if (elements.scoreSection) elements.scoreSection.style.display = 'flex';
+        if (elements.scoreBanner) elements.scoreBanner.style.display = 'none';
+    }
+    
     // Update team names
-    elements.homeName.textContent = state.homeName || 'Player 1';
-    elements.awayName.textContent = state.awayName || 'Player 2';
+    const homeName = state.homeName || 'Player 1';
+    const awayName = state.awayName || 'Player 2';
+    
+    elements.homeName.textContent = homeName;
+    elements.awayName.textContent = awayName;
+    
+    if (elements.bannerHomeName) elements.bannerHomeName.textContent = homeName;
+    if (elements.bannerAwayName) elements.bannerAwayName.textContent = awayName;
     
     // Update scores with animation on change
     const homeScoreChanged = prevState && prevState.homeScore !== state.homeScore;
     const awayScoreChanged = prevState && prevState.awayScore !== state.awayScore;
+    const homeMatchScore = state.homeMatchScore || 0;
+    const awayMatchScore = state.awayMatchScore || 0;
     
     if (homeScoreChanged) {
         animateScoreChange(elements.homeScore, state.homeScore || 0);
+        if (elements.bannerHomeScore) animateScoreChange(elements.bannerHomeScore, state.homeScore || 0);
     } else {
         elements.homeScore.textContent = state.homeScore || 0;
+        if (elements.bannerHomeScore) elements.bannerHomeScore.textContent = state.homeScore || 0;
     }
     
     if (awayScoreChanged) {
         animateScoreChange(elements.awayScore, state.awayScore || 0);
+        if (elements.bannerAwayScore) animateScoreChange(elements.bannerAwayScore, state.awayScore || 0);
     } else {
         elements.awayScore.textContent = state.awayScore || 0;
+        if (elements.bannerAwayScore) elements.bannerAwayScore.textContent = state.awayScore || 0;
+    }
+    
+    // Update match scores in banner format: "3 (5) 2"
+    // Format: GameScore1 (MatchScore) GameScore2
+    // Match score can show player 1's total games won, or total games played
+    if (elements.bannerMatchScores) {
+        if (showMatchScores) {
+            // Show player 1's match score in parentheses: "3 (5) 2" means Player 1 has won 5 games total
+            if (homeMatchScore > 0 || awayMatchScore > 0) {
+                elements.bannerMatchScores.textContent = `(${homeMatchScore})`;
+                elements.bannerMatchScores.style.display = 'inline';
+            } else {
+                elements.bannerMatchScores.style.display = 'none';
+            }
+        } else {
+            elements.bannerMatchScores.style.display = 'none';
+        }
     }
     
     // Update period
@@ -484,20 +707,110 @@ function scheduleReconnect() {
 // Initialization
 // ============================================================================
 
+// Load GFX settings from API or localStorage
+async function loadGFXSettingsFromAPI() {
+    try {
+        const response = await fetch(`/api/match/${matchId}/gfx-settings`);
+        if (response.ok) {
+            const settings = await response.json();
+            if (settings && Object.keys(settings).length > 0) {
+                console.log('Loading GFX settings from API:', settings);
+                applyGFXSettings(settings);
+                // Also save to localStorage for faster access
+                localStorage.setItem('gfxSettings', JSON.stringify(settings));
+                if (settings.layout && settings.layout.style) {
+                    localStorage.setItem('gfxLayoutStyle', settings.layout.style);
+                }
+                if (settings.layout && settings.layout.showMatchScores !== undefined) {
+                    localStorage.setItem('gfxShowMatchScores', settings.layout.showMatchScores.toString());
+                }
+                console.log('GFX settings loaded from API and applied');
+                return true;
+            }
+        }
+    } catch (e) {
+        console.error('Failed to load GFX settings from API:', e);
+    }
+    return false;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Load GFX settings first
-    loadGFXSettings();
-    
-    // Get match ID from query string
+    // Get match ID first
     matchId = getMatchId();
     
-    console.log('Initializing overlay for match:', matchId);
-    
-    // Fetch initial state first
-    fetchState().then(() => {
-        // Connect WebSocket after initial state is loaded
-        connectWebSocket();
+    // Try to load GFX settings from API first, then fallback to localStorage
+    loadGFXSettingsFromAPI().then(loadedFromAPI => {
+        if (!loadedFromAPI) {
+            // Fallback to localStorage if API doesn't have settings
+            const settingsStr = localStorage.getItem('gfxSettings');
+            if (settingsStr) {
+                try {
+                    const settings = JSON.parse(settingsStr);
+                    console.log('Loading GFX settings from localStorage:', settings);
+                    applyGFXSettings(settings);
+                    console.log('GFX settings applied from localStorage');
+                } catch (e) {
+                    console.error('Failed to load GFX settings from localStorage:', e);
+                }
+            } else {
+                console.warn('No GFX settings found in API or localStorage. Using default styling.');
+            }
+        }
+        
+        // Apply layout style from localStorage
+        const layoutStyle = localStorage.getItem('gfxLayoutStyle') || 'vertical';
+        console.log('Layout style:', layoutStyle);
+        if (elements.scoreSection && elements.scoreBanner) {
+            if (layoutStyle === 'banner') {
+                elements.scoreSection.style.display = 'none';
+                elements.scoreBanner.style.display = 'flex';
+                console.log('Banner layout applied');
+            } else {
+                elements.scoreSection.style.display = 'flex';
+                elements.scoreBanner.style.display = 'none';
+                console.log('Vertical layout applied');
+            }
+        }
+        
+        // Load visibility settings
+        const showGame = localStorage.getItem('showGameDisplay');
+        const showTimer = localStorage.getItem('showTimerDisplay');
+        updateVisibility(
+            showGame === null ? true : showGame === 'true',
+            showTimer === null ? true : showTimer === 'true'
+        );
+        
+        // Continue with initialization
+        initializeOverlay();
     });
+});
+
+// Separate function for overlay initialization
+function initializeOverlay() {
+    
+    // Check if this is a preview (from control panel)
+    const params = new URLSearchParams(window.location.search);
+    const isPreview = params.get('preview') === 'true';
+    
+    if (isPreview) {
+        console.log('Initializing overlay preview for match:', matchId);
+        // In preview mode, update immediately when settings change
+        // Settings are already loaded above
+        
+        // Fetch state but don't connect WebSocket in preview (optional, can be enabled)
+        fetchState();
+    } else {
+        console.log('Initializing overlay for match:', matchId);
+        
+        // Fetch initial state first
+        fetchState().then(() => {
+            // Connect WebSocket after initial state is loaded
+            connectWebSocket();
+        });
+    }
+    
+    // Listen for GFX settings updates via WebSocket
+    // (Settings will be updated when changed in control panel)
     
     // Set up periodic state fetch as backup (every 3 seconds)
     // This ensures display stays updated even if WebSocket fails
@@ -520,7 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
-});
+}
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {

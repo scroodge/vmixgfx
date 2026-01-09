@@ -7,21 +7,24 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>vMix Russian Billiard Score Control</h1>
-            <div class="status-bar">
-                <div id="connection-status" class="status-indicator disconnected">
-                    <span class="status-dot"></span>
-                    <span class="status-text">Disconnected</span>
-                </div>
-                <div class="match-id-display">
-                    Game ID: <input type="text" id="match-id-input" value="1" />
-                </div>
-            </div>
-        </header>
+    <div class="app-wrapper">
+        <!-- Left Side - Controls -->
+        <div class="controls-side">
+            <div class="container">
+                <header>
+                    <h1>vMix Russian Billiard Score Control</h1>
+                    <div class="status-bar">
+                        <div id="connection-status" class="status-indicator disconnected">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Disconnected</span>
+                        </div>
+                        <div class="match-id-display">
+                            Game ID: <input type="text" id="match-id-input" value="1" />
+                        </div>
+                    </div>
+                </header>
 
-        <main>
+                <main>
             <!-- Setup Section -->
             <section class="panel setup-panel">
                 <h2>Game Setup</h2>
@@ -65,6 +68,14 @@
                             <button id="home-plus" class="btn btn-score btn-plus">+1</button>
                             <button id="home-plus-ball" class="btn btn-score btn-plus-ball">+Ball</button>
                         </div>
+                        <div class="match-score-display" style="margin-top: 15px;">
+                            <span class="score-label">Match Score (Games Won):</span>
+                            <span id="home-match-score-display" class="score-value" style="font-size: 32px;">0</span>
+                        </div>
+                        <div class="score-buttons">
+                            <button id="home-match-minus" class="btn btn-small btn-minus">-1</button>
+                            <button id="home-match-plus" class="btn btn-small btn-plus">+1</button>
+                        </div>
                     </div>
 
                     <div class="team-control away-team">
@@ -78,6 +89,14 @@
                             <button id="away-plus" class="btn btn-score btn-plus">+1</button>
                             <button id="away-plus-ball" class="btn btn-score btn-plus-ball">+Ball</button>
                         </div>
+                        <div class="match-score-display" style="margin-top: 15px;">
+                            <span class="score-label">Match Score (Games Won):</span>
+                            <span id="away-match-score-display" class="score-value" style="font-size: 32px;">0</span>
+                        </div>
+                        <div class="score-buttons">
+                            <button id="away-match-minus" class="btn btn-small btn-minus">-1</button>
+                            <button id="away-match-plus" class="btn btn-small btn-plus">+1</button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -85,6 +104,23 @@
             <!-- Game & Timer Control Section -->
             <section class="panel period-timer-panel">
                 <h2>Game & Timer</h2>
+                
+                <!-- Visibility Toggles -->
+                <div class="visibility-controls">
+                    <div class="visibility-toggle">
+                        <label>
+                            <input type="checkbox" id="show-game-display" checked />
+                            Show Game Number in Overlay
+                        </label>
+                    </div>
+                    <div class="visibility-toggle">
+                        <label>
+                            <input type="checkbox" id="show-timer-display" checked />
+                            Show Timer in Overlay
+                        </label>
+                    </div>
+                </div>
+                
                 <div class="period-controls">
                     <div class="period-display">
                         <span class="label">Current Game:</span>
@@ -124,12 +160,6 @@
             <!-- GFX Designer Section -->
             <section class="panel gfx-panel">
                 <h2>GFX Designer</h2>
-                
-                <!-- Preview -->
-                <div class="gfx-preview-container">
-                    <div class="gfx-preview-label">Live Preview:</div>
-                    <iframe id="gfx-preview" src="/overlay?matchId=1&preview=true" class="gfx-preview-frame"></iframe>
-                </div>
 
                 <!-- Color Settings -->
                 <div class="gfx-section">
@@ -262,6 +292,26 @@
                     </div>
                 </div>
 
+                <!-- Layout Style Settings -->
+                <div class="gfx-section">
+                    <h3>Layout Style</h3>
+                    <div class="gfx-controls">
+                        <div class="gfx-control">
+                            <label for="layout-style">Display Style:</label>
+                            <select id="layout-style" class="gfx-select">
+                                <option value="vertical">Vertical (Default)</option>
+                                <option value="banner">Banner (Horizontal)</option>
+                            </select>
+                        </div>
+                        <div class="gfx-control">
+                            <label>
+                                <input type="checkbox" id="show-match-scores" />
+                                Show Match Scores in Banner (format: 3 (5) 2)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Layout Settings -->
                 <div class="gfx-section">
                     <h3>Layout & Spacing</h3>
@@ -280,6 +330,85 @@
                             <label for="separator-size">Separator Size (px):</label>
                             <input type="range" id="separator-size" min="40" max="120" value="80" class="gfx-range" />
                             <span id="separator-size-value" class="range-value">80px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Banner Style Settings -->
+                <div class="gfx-section" id="banner-style-section" style="display: none;">
+                    <h3>Banner Style</h3>
+                    <div class="gfx-controls">
+                        <div class="gfx-control">
+                            <label for="banner-border-radius">Border Radius (px):</label>
+                            <input type="range" id="banner-border-radius" min="0" max="50" value="12" class="gfx-range" />
+                            <span id="banner-border-radius-value" class="range-value">12px</span>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="banner-height">Banner Height (px):</label>
+                            <input type="range" id="banner-height" min="50" max="150" value="80" class="gfx-range" />
+                            <span id="banner-height-value" class="range-value">80px</span>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="banner-padding">Banner Padding (px):</label>
+                            <input type="range" id="banner-padding" min="10" max="50" value="20" class="gfx-range" />
+                            <span id="banner-padding-value" class="range-value">20px</span>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="banner-center-width">Center Width (px):</label>
+                            <input type="range" id="banner-center-width" min="150" max="400" value="200" class="gfx-range" />
+                            <span id="banner-center-width-value" class="range-value">200px</span>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="banner-left-color">Left Segment Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="banner-left-color" value="#2d5016" />
+                                <input type="text" id="banner-left-color-text" value="#2d5016" class="color-text-input" />
+                            </div>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="banner-center-color">Center Segment Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="banner-center-color" value="#ffffff" />
+                                <input type="text" id="banner-center-color-text" value="#ffffff" class="color-text-input" />
+                            </div>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="banner-right-color">Right Segment Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="banner-right-color" value="#2d5016" />
+                                <input type="text" id="banner-right-color-text" value="#2d5016" class="color-text-input" />
+                            </div>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="banner-name-size">Player Name Size (px):</label>
+                            <input type="range" id="banner-name-size" min="16" max="48" value="24" class="gfx-range" />
+                            <span id="banner-name-size-value" class="range-value">24px</span>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="banner-score-size">Score Size (px):</label>
+                            <input type="range" id="banner-score-size" min="32" max="96" value="48" class="gfx-range" />
+                            <span id="banner-score-size-value" class="range-value">48px</span>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="banner-name-color">Player Name Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="banner-name-color" value="#ffffff" />
+                                <input type="text" id="banner-name-color-text" value="#ffffff" class="color-text-input" />
+                            </div>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="banner-score-color">Score Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="banner-score-color" value="#000000" />
+                                <input type="text" id="banner-score-color-text" value="#000000" class="color-text-input" />
+                            </div>
+                        </div>
+                        <div class="gfx-control">
+                            <label for="banner-match-score-color">Match Score Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="banner-match-score-color" value="#666666" />
+                                <input type="text" id="banner-match-score-color-text" value="#666666" class="color-text-input" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -511,7 +640,31 @@
                     </div>
                 </div>
             </section>
-        </main>
+                </main>
+            </div>
+        </div>
+
+        <!-- Right Side - Live Preview Panel -->
+        <div class="preview-side preview-right" id="preview-side">
+            <div class="preview-header">
+                <h2>Live Preview</h2>
+                <div class="preview-controls">
+                    <button id="preview-position" class="btn-preview-toggle" title="Move to Left/Right">
+                        ↔
+                    </button>
+                    <button id="preview-refresh" class="btn-preview-toggle" title="Refresh Preview">
+                        ⟳
+                    </button>
+                    <button id="preview-toggle" class="btn-preview-toggle" title="Hide/Show Preview">
+                        <span id="preview-toggle-icon">◀</span>
+                    </button>
+                </div>
+            </div>
+            <div class="preview-content">
+                <div id="preview-loading" class="preview-loading">Loading preview...</div>
+                <iframe id="gfx-preview" src="/overlay?matchId=1&preview=true" class="preview-frame" style="display: none;"></iframe>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
