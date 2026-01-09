@@ -29,6 +29,26 @@ function applyGFXSettings(settings) {
         return;
     }
     
+    console.log('🎨 Applying GFX Settings - Sections present:', {
+        colors: !!settings.colors,
+        typography: !!settings.typography,
+        layout: !!settings.layout,
+        effects: !!settings.effects,
+        positions: !!settings.positions,
+        backgrounds: !!settings.backgrounds,
+        banner: !!settings.banner,
+        animations: !!settings.animations
+    });
+    
+    // Log full settings structure for debugging
+    if (!settings.typography || !settings.layout) {
+        console.warn('⚠️ Missing settings sections:', {
+            missingTypography: !settings.typography,
+            missingLayout: !settings.layout,
+            allKeys: Object.keys(settings)
+        });
+    }
+    
     const root = document.documentElement;
     const container = document.querySelector('.overlay-container');
     const scoreSection = document.querySelector('.score-section');
@@ -80,11 +100,24 @@ function applyGFXSettings(settings) {
     
     // Typography (with fallbacks)
     if (settings.typography) {
+        const playerNameSize = settings.typography.playerNameSize || 48;
+        const scoreSize = settings.typography.scoreSize || 120;
+        const gameTimerSize = settings.typography.gameTimerSize || 42;
+        
         root.style.setProperty('--font-family', settings.typography.fontFamily || 'Arial, sans-serif');
-        root.style.setProperty('--font-size-player-name', (settings.typography.playerNameSize || 48) + 'px');
-        root.style.setProperty('--font-size-score', (settings.typography.scoreSize || 120) + 'px');
-        root.style.setProperty('--font-size-game-timer', (settings.typography.gameTimerSize || 42) + 'px');
+        root.style.setProperty('--font-size-player-name', playerNameSize + 'px');
+        root.style.setProperty('--font-size-score', scoreSize + 'px');
+        root.style.setProperty('--font-size-game-timer', gameTimerSize + 'px');
         root.style.setProperty('--font-weight', settings.typography.fontWeight || 900);
+        
+        console.log('📝 Typography applied:', {
+            playerNameSize,
+            scoreSize,
+            gameTimerSize,
+            fontWeight: settings.typography.fontWeight || 900
+        });
+    } else {
+        console.warn('⚠️ No typography settings found in:', settings);
     }
     
     // Effects (with fallbacks)
@@ -96,9 +129,22 @@ function applyGFXSettings(settings) {
     
     // Layout (with fallbacks)
     if (settings.layout) {
-        root.style.setProperty('--spacing-scores', (settings.layout.spacingScores || 40) + 'px');
-        root.style.setProperty('--spacing-info', (settings.layout.spacingInfo || 30) + 'px');
-        root.style.setProperty('--separator-size', (settings.layout.separatorSize || 80) + 'px');
+        const spacingScores = settings.layout.spacingScores || 40;
+        const spacingInfo = settings.layout.spacingInfo || 30;
+        const separatorSize = settings.layout.separatorSize || 80;
+        
+        root.style.setProperty('--spacing-scores', spacingScores + 'px');
+        root.style.setProperty('--spacing-info', spacingInfo + 'px');
+        root.style.setProperty('--separator-size', separatorSize + 'px');
+        
+        console.log('📐 Layout & Spacing applied:', {
+            spacingScores: spacingScores + 'px',
+            spacingInfo: spacingInfo + 'px',
+            separatorSize: separatorSize + 'px',
+            layoutStyle: settings.layout.style
+        });
+    } else {
+        console.warn('⚠️ No layout settings found in:', settings);
     }
     
     // Positions - apply to both score section and banner
@@ -346,12 +392,15 @@ function applyGFXSettings(settings) {
         const hasUploadedImage = container && container.dataset.hasUploadedBackground === 'true';
         
         // Always set CSS variables for sizing and text styling
+        const bannerScoreSize = settings.banner.scoreSize || 48;
+        const bannerNameSize = settings.banner.nameSize || 24;
         root.style.setProperty('--banner-border-radius', (settings.banner.borderRadius || 12) + 'px');
         root.style.setProperty('--banner-height', (settings.banner.height || 80) + 'px');
         root.style.setProperty('--banner-padding', (settings.banner.padding || 20) + 'px');
         root.style.setProperty('--banner-center-width', (settings.banner.centerWidth || 200) + 'px');
-        root.style.setProperty('--banner-name-size', (settings.banner.nameSize || 24) + 'px');
-        root.style.setProperty('--banner-score-size', (settings.banner.scoreSize || 48) + 'px');
+        root.style.setProperty('--banner-name-size', bannerNameSize + 'px');
+        root.style.setProperty('--banner-score-size', bannerScoreSize + 'px');
+        console.log('📝 Banner sizes applied:', { bannerScoreSize, bannerNameSize });
         root.style.setProperty('--banner-name-color', settings.banner.nameColor || '#ffffff');
         root.style.setProperty('--banner-score-color', settings.banner.scoreColor || '#000000');
         root.style.setProperty('--banner-match-score-color', settings.banner.matchScoreColor || '#666666');
@@ -601,11 +650,42 @@ if (window.location.search.includes('preview=true')) {
                         }
                     }
                     
+                    // Ensure layout settings are present (for spacing, separator, etc.)
+                    if (!settings.layout) {
+                        console.warn('⚠️ Layout settings missing from API response, using defaults');
+                        settings.layout = {
+                            spacingScores: 40,
+                            spacingInfo: 30,
+                            separatorSize: 80,
+                            style: 'vertical',
+                            showMatchScores: false,
+                            matchScoreFormat: 'player1'
+                        };
+                    }
+                    
+                    // Ensure typography settings are present
+                    if (!settings.typography) {
+                        console.warn('⚠️ Typography settings missing from API response, using defaults');
+                        settings.typography = {
+                            fontFamily: "'Arial Black', 'Arial Bold', Arial, sans-serif",
+                            playerNameSize: 48,
+                            scoreSize: 120,
+                            gameTimerSize: 42,
+                            fontWeight: 900
+                        };
+                    }
+                    
                     // Only apply if settings actually changed (avoid unnecessary re-renders)
                     const settingsStr = JSON.stringify(settings);
                     if (!window.lastSettingsStr || window.lastSettingsStr !== settingsStr) {
                         window.lastSettingsStr = settingsStr;
-                        console.log('🔄 Settings changed, applying positions:', settings.positions);
+                        console.log('🔄 Settings changed, applying:', {
+                            hasTypography: !!settings.typography,
+                            hasLayout: !!settings.layout,
+                            hasPositions: !!settings.positions,
+                            typography: settings.typography,
+                            layout: settings.layout
+                        });
                         applyGFXSettings(settings);
                         if (settings.visibility) {
                             updateVisibility(
@@ -963,7 +1043,15 @@ function connectWebSocket() {
                 
                 // Handle GFX settings updates via WebSocket (for vMix - no localStorage needed)
                 if (data.type === 'gfxSettings' && data.settings) {
-                    console.log('Received GFX settings update via WebSocket');
+                    console.log('📡 Received GFX settings update via WebSocket:', {
+                        keys: Object.keys(data.settings),
+                        hasTypography: !!data.settings.typography,
+                        hasLayout: !!data.settings.layout,
+                        hasColors: !!data.settings.colors,
+                        hasEffects: !!data.settings.effects,
+                        hasPositions: !!data.settings.positions,
+                        hasBackgrounds: !!data.settings.backgrounds
+                    });
                     applyGFXSettings(data.settings);
                     if (data.settings.visibility) {
                         updateVisibility(

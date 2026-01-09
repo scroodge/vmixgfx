@@ -278,13 +278,55 @@ const gfxElements = {
 // Settings Management
 // ============================================================================
 
-function loadSettings() {
+async function loadSettings() {
+    // Try to load from API first (primary source for vMix compatibility)
+    try {
+        const matchIdInput = document.getElementById('match-id-input');
+        const matchId = matchIdInput ? matchIdInput.value || '1' : '1';
+        
+        const response = await fetch(`/api/match/${matchId}/gfx-settings`);
+        if (response.ok) {
+            const apiSettings = await response.json();
+            if (apiSettings && Object.keys(apiSettings).length > 0) {
+                console.log('Loaded GFX settings from API');
+                currentSettings = apiSettings;
+                applySettingsToUI(currentSettings);
+                applySettingsToOverlay(currentSettings);
+                
+                // Also sync to localStorage for preview iframe performance (preview mode only)
+                localStorage.setItem('gfxSettings', JSON.stringify(currentSettings));
+                
+                // Load visibility settings if present
+                if (currentSettings.visibility) {
+                    const showGameDisplay = document.getElementById('show-game-display');
+                    const showTimerDisplay = document.getElementById('show-timer-display');
+                    if (showGameDisplay && currentSettings.visibility.showGame !== undefined) {
+                        showGameDisplay.checked = currentSettings.visibility.showGame !== false;
+                        localStorage.setItem('showGameDisplay', showGameDisplay.checked.toString());
+                    }
+                    if (showTimerDisplay && currentSettings.visibility.showTimer !== undefined) {
+                        showTimerDisplay.checked = currentSettings.visibility.showTimer !== false;
+                        localStorage.setItem('showTimerDisplay', showTimerDisplay.checked.toString());
+                    }
+                }
+                
+                return; // Successfully loaded from API
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to load settings from API, trying localStorage:', e);
+    }
+    
+    // Fallback to localStorage (for preview iframe performance)
     const saved = localStorage.getItem('gfxSettings');
     if (saved) {
         try {
             currentSettings = JSON.parse(saved);
             applySettingsToUI(currentSettings);
             applySettingsToOverlay(currentSettings);
+            
+            // Sync to API in background so vMix overlay can access
+            saveSettingsToAPI();
             
             // Also load visibility settings if present
             if (currentSettings.visibility) {
@@ -302,10 +344,14 @@ function loadSettings() {
         } catch (e) {
             console.error('Failed to load settings:', e);
             currentSettings = JSON.parse(JSON.stringify(defaultSettings));
+            // Save defaults to API
+            saveSettingsToAPI();
         }
     } else {
         applySettingsToUI(defaultSettings);
         applySettingsToOverlay(defaultSettings);
+        // Save defaults to API
+        saveSettingsToAPI();
     }
 }
 
@@ -347,6 +393,18 @@ async function saveSettingsToAPI() {
             currentSettings.visibility.showTimer = showTimerDisplay.checked;
         }
         
+        // Ensure typography settings are included
+        if (!currentSettings.typography) {
+            currentSettings.typography = defaultSettings.typography;
+            console.warn('⚠️ Typography settings were missing, restored from defaults');
+        }
+        
+        // Ensure layout settings are included
+        if (!currentSettings.layout) {
+            currentSettings.layout = defaultSettings.layout;
+            console.warn('⚠️ Layout settings were missing, restored from defaults');
+        }
+        
         const response = await fetch(`/api/match/${matchId}/gfx-settings`, {
             method: 'POST',
             headers: {
@@ -356,7 +414,12 @@ async function saveSettingsToAPI() {
         });
         
         if (response.ok) {
-            console.log('GFX settings saved to API');
+            console.log('✅ GFX settings saved to API', {
+                hasTypography: !!currentSettings.typography,
+                hasLayout: !!currentSettings.layout,
+                typography: currentSettings.typography,
+                layout: currentSettings.layout
+            });
         } else {
             console.error('Failed to save GFX settings to API');
         }
@@ -724,9 +787,13 @@ function setupRangeInput(range, valueDisplay, settingPath, suffix = null) {
         } else {
             valueDisplay.textContent = value + (settingPath.includes('Size') || settingPath.includes('Spacing') || settingPath.includes('Blur') || settingPath.includes('letter') || settingPath.includes('padding') || settingPath.includes('radius') ? 'px' : '%');
         }
-        // For position settings, ensure we store as number (not string)
+        // Ensure we store as number (not string)
         updateSetting(settingPath, value);
-        console.log('💾 Position saved:', settingPath, '=', value, '(type:', typeof value, ')');
+        if (settingPath.includes('position')) {
+            console.log('💾 Position saved:', settingPath, '=', value, '(type:', typeof value, ')');
+        } else if (settingPath.includes('Size')) {
+            console.log('📝 Font size saved:', settingPath, '=', value + 'px');
+        }
     });
 }
 
@@ -1194,8 +1261,8 @@ function importSettings(e) {
 // Initialization
 // ============================================================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadSettings();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadSettings();
     initializeEventListeners();
     
     // Refresh preview after a delay to allow overlay to load

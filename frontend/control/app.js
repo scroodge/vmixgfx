@@ -460,8 +460,33 @@ function updateOverlayVisibility() {
     }
 }
 
-// Load visibility settings on init
-function loadVisibilitySettings() {
+// Load visibility settings on init - API first, localStorage fallback
+async function loadVisibilitySettings() {
+    try {
+        const matchIdInput = document.getElementById('match-id-input');
+        const matchId = matchIdInput ? matchIdInput.value || '1' : '1';
+        
+        // Try API first (primary source for vMix compatibility)
+        const response = await fetch(`/api/match/${matchId}/gfx-settings`);
+        if (response.ok) {
+            const settings = await response.json();
+            if (settings && settings.visibility) {
+                console.log('Loaded visibility settings from API');
+                elements.showGameDisplay.checked = settings.visibility.showGame !== false;
+                elements.showTimerDisplay.checked = settings.visibility.showTimer !== false;
+                
+                // Sync to localStorage for local use
+                localStorage.setItem('showGameDisplay', elements.showGameDisplay.checked.toString());
+                localStorage.setItem('showTimerDisplay', elements.showTimerDisplay.checked.toString());
+                
+                return; // Successfully loaded from API
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to load visibility from API, trying localStorage:', e);
+    }
+    
+    // Fallback to localStorage
     const showGame = localStorage.getItem('showGameDisplay');
     const showTimer = localStorage.getItem('showTimerDisplay');
     
@@ -471,6 +496,9 @@ function loadVisibilitySettings() {
     if (showTimer !== null) {
         elements.showTimerDisplay.checked = showTimer === 'true';
     }
+    
+    // Sync current state to API
+    saveVisibilityToAPI();
 }
 
 // Reset
@@ -491,11 +519,11 @@ elements.resetBtn.addEventListener('click', async () => {
 // ============================================================================
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     matchId = elements.matchIdInput.value || '1';
     
-    // Load visibility settings
-    loadVisibilitySettings();
+    // Load visibility settings (async, from API first)
+    await loadVisibilitySettings();
     
     // Fetch initial state
     fetchState().then(() => {
