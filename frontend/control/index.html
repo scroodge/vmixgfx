@@ -533,6 +533,16 @@
                                     <input type="range" id="bg-container-image-opacity" min="0" max="100" value="100" class="gfx-range" />
                                     <span id="bg-container-image-opacity-value" class="range-value">100%</span>
                                 </div>
+                                <div class="gfx-control">
+                                    <label for="bg-container-image-position-x">Position X (% or px):</label>
+                                    <input type="text" id="bg-container-image-position-x" value="center" placeholder="center, 50%, 100px" />
+                                    <small>Horizontal position (center, left, right, or value like 50%, 100px)</small>
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="bg-container-image-position-y">Position Y (% or px):</label>
+                                    <input type="text" id="bg-container-image-position-y" value="center" placeholder="center, 50%, 100px" />
+                                    <small>Vertical position (center, top, bottom, or value like 50%, 100px)</small>
+                                </div>
                             </div>
                         </div>
                         
@@ -644,7 +654,7 @@
                             <button id="background-remove-btn" class="btn btn-small">Remove Background Image</button>
                         </div>
                         <div class="gfx-control">
-                            <small>Upload a background image/title. The system will overlay text and scores on top of it.</small>
+                            <small>Upload a background image/title. The system will overlay text and scores on top of it. Use the position controls in "Backgrounds > Container Background > Image" section to adjust positioning.</small>
                         </div>
                     </div>
                 </div>

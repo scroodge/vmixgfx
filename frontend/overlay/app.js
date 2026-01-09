@@ -161,9 +161,25 @@ function applyGFXSettings(settings) {
             } else if (bg.type === 'image' && bg.imageUrl) {
                 const opacity = (bg.imageOpacity || 100) / 100;
                 const size = bg.imageSize || 'cover';
+                const positionX = bg.imagePositionX || 'center';
+                const positionY = bg.imagePositionY || 'center';
                 bgValue = `linear-gradient(rgba(0,0,0,${1 - opacity}), rgba(0,0,0,${1 - opacity})), url('${bg.imageUrl}')`;
                 container.style.backgroundSize = size;
-                container.style.backgroundPosition = 'center';
+                
+                // Handle position values - convert keywords to CSS values
+                let posX = positionX;
+                let posY = positionY;
+                
+                // Convert common keywords
+                if (positionX === 'left') posX = '0%';
+                else if (positionX === 'right') posX = '100%';
+                else if (positionX === 'center') posX = '50%';
+                
+                if (positionY === 'top') posY = '0%';
+                else if (positionY === 'bottom') posY = '100%';
+                else if (positionY === 'center') posY = '50%';
+                
+                container.style.backgroundPosition = `${posX} ${posY}`;
                 container.style.backgroundRepeat = 'no-repeat';
             }
             

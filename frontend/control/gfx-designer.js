@@ -67,7 +67,9 @@ const defaultSettings = {
             gradientAngle: 180,
             imageUrl: '',
             imageSize: 'cover',
-            imageOpacity: 100
+            imageOpacity: 100,
+            imagePositionX: 'center',
+            imagePositionY: 'center'
         },
         score: {
             type: 'none',
@@ -172,6 +174,8 @@ const gfxElements = {
     bgContainerImageSize: document.getElementById('bg-container-image-size'),
     bgContainerImageOpacity: document.getElementById('bg-container-image-opacity'),
     bgContainerImageOpacityValue: document.getElementById('bg-container-image-opacity-value'),
+    bgContainerImagePositionX: document.getElementById('bg-container-image-position-x'),
+    bgContainerImagePositionY: document.getElementById('bg-container-image-position-y'),
     
     // Backgrounds - Score
     bgScoreType: document.getElementById('bg-score-type'),
@@ -474,6 +478,12 @@ function applySettingsToUI(settings) {
         gfxElements.bgContainerImageSize.value = bg.imageSize || 'cover';
         gfxElements.bgContainerImageOpacity.value = bg.imageOpacity || 100;
         gfxElements.bgContainerImageOpacityValue.textContent = (bg.imageOpacity || 100) + '%';
+        if (gfxElements.bgContainerImagePositionX) {
+            gfxElements.bgContainerImagePositionX.value = bg.imagePositionX || 'center';
+        }
+        if (gfxElements.bgContainerImagePositionY) {
+            gfxElements.bgContainerImagePositionY.value = bg.imagePositionY || 'center';
+        }
     }
     
     // Backgrounds - Score
@@ -773,6 +783,24 @@ function initializeEventListeners() {
     gfxElements.bgContainerImageUrl.addEventListener('input', (e) => updateSetting('backgrounds.container.imageUrl', e.target.value));
     gfxElements.bgContainerImageSize.addEventListener('change', (e) => updateSetting('backgrounds.container.imageSize', e.target.value));
     setupRangeInput(gfxElements.bgContainerImageOpacity, gfxElements.bgContainerImageOpacityValue, 'backgrounds.container.imageOpacity', '%');
+    if (gfxElements.bgContainerImagePositionX) {
+        gfxElements.bgContainerImagePositionX.addEventListener('input', (e) => {
+            if (!currentSettings.backgrounds) currentSettings.backgrounds = {};
+            if (!currentSettings.backgrounds.container) currentSettings.backgrounds.container = {};
+            currentSettings.backgrounds.container.imagePositionX = e.target.value;
+            saveSettings();
+            applySettingsToOverlay(currentSettings);
+        });
+    }
+    if (gfxElements.bgContainerImagePositionY) {
+        gfxElements.bgContainerImagePositionY.addEventListener('input', (e) => {
+            if (!currentSettings.backgrounds) currentSettings.backgrounds = {};
+            if (!currentSettings.backgrounds.container) currentSettings.backgrounds.container = {};
+            currentSettings.backgrounds.container.imagePositionY = e.target.value;
+            saveSettings();
+            applySettingsToOverlay(currentSettings);
+        });
+    }
     
     // Backgrounds - Score
     gfxElements.bgScoreType.addEventListener('change', (e) => {
@@ -871,6 +899,8 @@ function initializeEventListeners() {
                 currentSettings.backgrounds.container.imageUrl = data.settings.backgrounds.container.imageUrl;
                 currentSettings.backgrounds.container.imageSize = 'cover';
                 currentSettings.backgrounds.container.imageOpacity = 100;
+                currentSettings.backgrounds.container.imagePositionX = data.settings.backgrounds.container.imagePositionX || 'center';
+                currentSettings.backgrounds.container.imagePositionY = data.settings.backgrounds.container.imagePositionY || 'center';
                 
                 // Update UI
                 if (gfxElements.bgContainerType) {
@@ -879,6 +909,12 @@ function initializeEventListeners() {
                 }
                 if (gfxElements.bgContainerImageUrl) {
                     gfxElements.bgContainerImageUrl.value = data.settings.backgrounds.container.imageUrl;
+                }
+                if (gfxElements.bgContainerImagePositionX) {
+                    gfxElements.bgContainerImagePositionX.value = data.settings.backgrounds.container.imagePositionX || 'center';
+                }
+                if (gfxElements.bgContainerImagePositionY) {
+                    gfxElements.bgContainerImagePositionY.value = data.settings.backgrounds.container.imagePositionY || 'center';
                 }
                 
                 saveSettings();

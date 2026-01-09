@@ -469,6 +469,8 @@ async def upload_background(match_id: str, file: UploadFile = File(...)):
     gfx_settings[match_id]['backgrounds']['container']['imageUrl'] = data_url
     gfx_settings[match_id]['backgrounds']['container']['imageSize'] = 'cover'
     gfx_settings[match_id]['backgrounds']['container']['imageOpacity'] = 100
+    gfx_settings[match_id]['backgrounds']['container']['imagePositionX'] = 'center'
+    gfx_settings[match_id]['backgrounds']['container']['imagePositionY'] = 'center'
     
     # Broadcast settings update to connected overlays via WebSocket
     if match_id in connections:
