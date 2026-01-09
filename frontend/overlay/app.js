@@ -25,6 +25,9 @@ function loadGFXSettings() {
 
 function applyGFXSettings(settings) {
     const root = document.documentElement;
+    const container = document.querySelector('.overlay-container');
+    const scoreSection = document.querySelector('.score-section');
+    const infoSection = document.querySelector('.info-section');
     
     // Colors
     root.style.setProperty('--color-player1', settings.colors.player1);
@@ -52,8 +55,190 @@ function applyGFXSettings(settings) {
     root.style.setProperty('--spacing-info', settings.layout.spacingInfo + 'px');
     root.style.setProperty('--separator-size', settings.layout.separatorSize + 'px');
     
+    // Positions
+    if (settings.positions) {
+        const absolute = settings.positions.absolutePositioning;
+        if (absolute && container) {
+            container.classList.add('position-absolute');
+            
+            // Score section positioning
+            if (scoreSection) {
+                const scoreX = settings.positions.scoreX || 'center';
+                const scoreY = settings.positions.scoreY || 'center';
+                applyPosition(scoreSection, scoreX, scoreY);
+            }
+            
+            // Info section positioning
+            if (infoSection) {
+                const infoX = settings.positions.infoX || 'center';
+                const infoY = settings.positions.infoY || 'auto';
+                applyPosition(infoSection, infoX, infoY);
+            }
+        } else if (container) {
+            container.classList.remove('position-absolute');
+            if (scoreSection) {
+                scoreSection.style.left = '';
+                scoreSection.style.top = '';
+                scoreSection.style.transform = '';
+            }
+            if (infoSection) {
+                infoSection.style.left = '';
+                infoSection.style.top = '';
+                infoSection.style.transform = '';
+            }
+        }
+    }
+    
+    // Backgrounds
+    if (settings.backgrounds) {
+        // Container background
+        if (settings.backgrounds.container && container) {
+            const bg = settings.backgrounds.container;
+            let bgValue = 'transparent';
+            
+            if (bg.type === 'solid') {
+                const opacity = (bg.solidOpacity || 100) / 100;
+                const color = bg.solidColor || '#000000';
+                const r = parseInt(color.slice(1, 3), 16);
+                const g = parseInt(color.slice(3, 5), 16);
+                const b = parseInt(color.slice(5, 7), 16);
+                bgValue = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+            } else if (bg.type === 'gradient') {
+                const angle = bg.gradientAngle || 180;
+                const color1 = bg.gradientColor1 || '#000000';
+                const color2 = bg.gradientColor2 || '#333333';
+                if (bg.gradientType === 'radial') {
+                    bgValue = `radial-gradient(circle, ${color1}, ${color2})`;
+                } else {
+                    bgValue = `linear-gradient(${angle}deg, ${color1}, ${color2})`;
+                }
+            } else if (bg.type === 'image' && bg.imageUrl) {
+                const opacity = (bg.imageOpacity || 100) / 100;
+                const size = bg.imageSize || 'cover';
+                bgValue = `linear-gradient(rgba(0,0,0,${1 - opacity}), rgba(0,0,0,${1 - opacity})), url('${bg.imageUrl}')`;
+                container.style.backgroundSize = size;
+                container.style.backgroundPosition = 'center';
+                container.style.backgroundRepeat = 'no-repeat';
+            }
+            
+            container.style.background = bgValue;
+        }
+        
+        // Score section background
+        if (settings.backgrounds.score && scoreSection) {
+            const bg = settings.backgrounds.score;
+            let bgValue = 'none';
+            
+            if (bg.type === 'solid') {
+                const opacity = (bg.solidOpacity || 50) / 100;
+                const color = bg.solidColor || '#000000';
+                const r = parseInt(color.slice(1, 3), 16);
+                const g = parseInt(color.slice(3, 5), 16);
+                const b = parseInt(color.slice(5, 7), 16);
+                bgValue = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                scoreSection.style.padding = (bg.padding || 20) + 'px';
+                scoreSection.style.borderRadius = (bg.borderRadius || 10) + 'px';
+            } else if (bg.type === 'gradient') {
+                const color1 = bg.gradientColor1 || '#000000';
+                const color2 = bg.gradientColor2 || '#333333';
+                bgValue = `linear-gradient(135deg, ${color1}, ${color2})`;
+                scoreSection.style.padding = (bg.padding || 20) + 'px';
+                scoreSection.style.borderRadius = (bg.borderRadius || 10) + 'px';
+            } else {
+                scoreSection.style.padding = '';
+                scoreSection.style.borderRadius = '';
+            }
+            
+            scoreSection.style.background = bgValue;
+        }
+        
+        // Info section background
+        if (settings.backgrounds.info && infoSection) {
+            const bg = settings.backgrounds.info;
+            let bgValue = 'none';
+            
+            if (bg.type === 'solid') {
+                const opacity = (bg.solidOpacity || 50) / 100;
+                const color = bg.solidColor || '#000000';
+                const r = parseInt(color.slice(1, 3), 16);
+                const g = parseInt(color.slice(3, 5), 16);
+                const b = parseInt(color.slice(5, 7), 16);
+                bgValue = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                infoSection.style.padding = (bg.padding || 15) + 'px';
+                infoSection.style.borderRadius = (bg.borderRadius || 10) + 'px';
+            } else if (bg.type === 'gradient') {
+                const color1 = bg.gradientColor1 || '#000000';
+                const color2 = bg.gradientColor2 || '#333333';
+                bgValue = `linear-gradient(135deg, ${color1}, ${color2})`;
+                infoSection.style.padding = (bg.padding || 15) + 'px';
+                infoSection.style.borderRadius = (bg.borderRadius || 10) + 'px';
+            } else {
+                infoSection.style.padding = '';
+                infoSection.style.borderRadius = '';
+            }
+            
+            infoSection.style.background = bgValue;
+        }
+    }
+    
     // Store glow enabled state
     document.body.dataset.glowEnabled = settings.effects.enableGlow;
+}
+
+// Helper function to apply positioning
+function applyPosition(element, x, y) {
+    let translateX = '';
+    let translateY = '';
+    
+    // Handle X position
+    if (x === 'center') {
+        element.style.left = '50%';
+        translateX = '-50%';
+    } else if (typeof x === 'string' && (x.includes('%') || x.includes('px'))) {
+        element.style.left = x;
+        translateX = '0';
+    } else if (x) {
+        element.style.left = x;
+        translateX = '0';
+    } else {
+        element.style.left = '';
+        translateX = '0';
+    }
+    
+    // Handle Y position
+    if (y === 'center') {
+        element.style.top = '50%';
+        translateY = '-50%';
+    } else if (y === 'auto') {
+        element.style.top = '';
+        translateY = '0';
+    } else if (typeof y === 'string' && (y.includes('%') || y.includes('px'))) {
+        element.style.top = y;
+        translateY = '0';
+    } else if (y) {
+        element.style.top = y;
+        translateY = '0';
+    } else {
+        element.style.top = '';
+        translateY = '0';
+    }
+    
+    // Apply transform
+    if (translateX === '-50%' || translateY === '-50%') {
+        const tx = translateX === '-50%' ? '-50%' : '0';
+        const ty = translateY === '-50%' ? '-50%' : '0';
+        if (tx === '-50%' && ty === '-50%') {
+            element.style.transform = 'translate(-50%, -50%)';
+        } else if (tx === '-50%') {
+            element.style.transform = 'translateX(-50%)';
+        } else if (ty === '-50%') {
+            element.style.transform = 'translateY(-50%)';
+        } else {
+            element.style.transform = '';
+        }
+    } else {
+        element.style.transform = '';
+    }
 }
 
 // Listen for settings updates from control panel

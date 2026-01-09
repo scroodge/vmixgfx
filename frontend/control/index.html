@@ -264,7 +264,7 @@
 
                 <!-- Layout Settings -->
                 <div class="gfx-section">
-                    <h3>Layout</h3>
+                    <h3>Layout & Spacing</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control">
                             <label for="spacing-scores">Score Spacing (px):</label>
@@ -280,6 +280,211 @@
                             <label for="separator-size">Separator Size (px):</label>
                             <input type="range" id="separator-size" min="40" max="120" value="80" class="gfx-range" />
                             <span id="separator-size-value" class="range-value">80px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Position Settings -->
+                <div class="gfx-section">
+                    <h3>Element Positions</h3>
+                    <div class="gfx-controls">
+                        <div class="gfx-control-group">
+                            <h4>Score Section</h4>
+                            <div class="position-controls">
+                                <div class="gfx-control">
+                                    <label for="pos-score-x">X Position (% or px):</label>
+                                    <input type="text" id="pos-score-x" value="center" placeholder="center, 50%, 100px" />
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="pos-score-y">Y Position (% or px):</label>
+                                    <input type="text" id="pos-score-y" value="center" placeholder="center, 30%, 100px" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gfx-control-group">
+                            <h4>Info Section (Game/Timer)</h4>
+                            <div class="position-controls">
+                                <div class="gfx-control">
+                                    <label for="pos-info-x">X Position (% or px):</label>
+                                    <input type="text" id="pos-info-x" value="center" placeholder="center, 50%, 100px" />
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="pos-info-y">Y Position (% or px):</label>
+                                    <input type="text" id="pos-info-y" value="auto" placeholder="auto, 70%, 500px" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gfx-control">
+                            <label>
+                                <input type="checkbox" id="enable-absolute-positioning" />
+                                Enable Absolute Positioning (allows free placement)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Background Settings -->
+                <div class="gfx-section">
+                    <h3>Backgrounds</h3>
+                    <div class="gfx-controls">
+                        <div class="gfx-control-group">
+                            <h4>Container Background</h4>
+                            <div class="gfx-control">
+                                <label for="bg-container-type">Background Type:</label>
+                                <select id="bg-container-type" class="gfx-select">
+                                    <option value="transparent">Transparent</option>
+                                    <option value="solid">Solid Color</option>
+                                    <option value="gradient">Gradient</option>
+                                    <option value="image">Image</option>
+                                </select>
+                            </div>
+                            <div class="bg-control solid-bg" id="bg-container-solid" style="display: none;">
+                                <div class="color-input-group">
+                                    <label>Color:</label>
+                                    <input type="color" id="bg-container-color" value="#000000" />
+                                    <input type="text" id="bg-container-color-text" value="#000000" class="color-text-input" />
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="bg-container-opacity">Opacity:</label>
+                                    <input type="range" id="bg-container-opacity" min="0" max="100" value="100" class="gfx-range" />
+                                    <span id="bg-container-opacity-value" class="range-value">100%</span>
+                                </div>
+                            </div>
+                            <div class="bg-control gradient-bg" id="bg-container-gradient" style="display: none;">
+                                <div class="gfx-control">
+                                    <label for="bg-container-gradient-type">Gradient Type:</label>
+                                    <select id="bg-container-gradient-type" class="gfx-select">
+                                        <option value="linear">Linear</option>
+                                        <option value="radial">Radial</option>
+                                    </select>
+                                </div>
+                                <div class="color-input-group">
+                                    <label>Color 1:</label>
+                                    <input type="color" id="bg-container-gradient-color1" value="#000000" />
+                                    <input type="text" id="bg-container-gradient-color1-text" value="#000000" class="color-text-input" />
+                                </div>
+                                <div class="color-input-group">
+                                    <label>Color 2:</label>
+                                    <input type="color" id="bg-container-gradient-color2" value="#333333" />
+                                    <input type="text" id="bg-container-gradient-color2-text" value="#333333" class="color-text-input" />
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="bg-container-gradient-angle">Angle/Direction:</label>
+                                    <input type="range" id="bg-container-gradient-angle" min="0" max="360" value="180" class="gfx-range" />
+                                    <span id="bg-container-gradient-angle-value" class="range-value">180°</span>
+                                </div>
+                            </div>
+                            <div class="bg-control image-bg" id="bg-container-image" style="display: none;">
+                                <div class="gfx-control">
+                                    <label for="bg-container-image-url">Image URL:</label>
+                                    <input type="text" id="bg-container-image-url" placeholder="https://example.com/image.jpg" />
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="bg-container-image-size">Size:</label>
+                                    <select id="bg-container-image-size" class="gfx-select">
+                                        <option value="cover">Cover</option>
+                                        <option value="contain">Contain</option>
+                                        <option value="auto">Auto</option>
+                                    </select>
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="bg-container-image-opacity">Opacity:</label>
+                                    <input type="range" id="bg-container-image-opacity" min="0" max="100" value="100" class="gfx-range" />
+                                    <span id="bg-container-image-opacity-value" class="range-value">100%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="gfx-control-group">
+                            <h4>Score Section Background</h4>
+                            <div class="gfx-control">
+                                <label for="bg-score-type">Background Type:</label>
+                                <select id="bg-score-type" class="gfx-select">
+                                    <option value="none">None</option>
+                                    <option value="solid">Solid Color</option>
+                                    <option value="gradient">Gradient</option>
+                                </select>
+                            </div>
+                            <div class="bg-control solid-bg" id="bg-score-solid" style="display: none;">
+                                <div class="color-input-group">
+                                    <label>Color:</label>
+                                    <input type="color" id="bg-score-color" value="#000000" />
+                                    <input type="text" id="bg-score-color-text" value="#000000" class="color-text-input" />
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="bg-score-opacity">Opacity:</label>
+                                    <input type="range" id="bg-score-opacity" min="0" max="100" value="50" class="gfx-range" />
+                                    <span id="bg-score-opacity-value" class="range-value">50%</span>
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="bg-score-padding">Padding (px):</label>
+                                    <input type="range" id="bg-score-padding" min="0" max="50" value="20" class="gfx-range" />
+                                    <span id="bg-score-padding-value" class="range-value">20px</span>
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="bg-score-radius">Border Radius (px):</label>
+                                    <input type="range" id="bg-score-radius" min="0" max="50" value="10" class="gfx-range" />
+                                    <span id="bg-score-radius-value" class="range-value">10px</span>
+                                </div>
+                            </div>
+                            <div class="bg-control gradient-bg" id="bg-score-gradient" style="display: none;">
+                                <div class="color-input-group">
+                                    <label>Color 1:</label>
+                                    <input type="color" id="bg-score-gradient-color1" value="#000000" />
+                                    <input type="text" id="bg-score-gradient-color1-text" value="#000000" class="color-text-input" />
+                                </div>
+                                <div class="color-input-group">
+                                    <label>Color 2:</label>
+                                    <input type="color" id="bg-score-gradient-color2" value="#333333" />
+                                    <input type="text" id="bg-score-gradient-color2-text" value="#333333" class="color-text-input" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="gfx-control-group">
+                            <h4>Info Section Background</h4>
+                            <div class="gfx-control">
+                                <label for="bg-info-type">Background Type:</label>
+                                <select id="bg-info-type" class="gfx-select">
+                                    <option value="none">None</option>
+                                    <option value="solid">Solid Color</option>
+                                    <option value="gradient">Gradient</option>
+                                </select>
+                            </div>
+                            <div class="bg-control solid-bg" id="bg-info-solid" style="display: none;">
+                                <div class="color-input-group">
+                                    <label>Color:</label>
+                                    <input type="color" id="bg-info-color" value="#000000" />
+                                    <input type="text" id="bg-info-color-text" value="#000000" class="color-text-input" />
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="bg-info-opacity">Opacity:</label>
+                                    <input type="range" id="bg-info-opacity" min="0" max="100" value="50" class="gfx-range" />
+                                    <span id="bg-info-opacity-value" class="range-value">50%</span>
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="bg-info-padding">Padding (px):</label>
+                                    <input type="range" id="bg-info-padding" min="0" max="50" value="15" class="gfx-range" />
+                                    <span id="bg-info-padding-value" class="range-value">15px</span>
+                                </div>
+                                <div class="gfx-control">
+                                    <label for="bg-info-radius">Border Radius (px):</label>
+                                    <input type="range" id="bg-info-radius" min="0" max="50" value="10" class="gfx-range" />
+                                    <span id="bg-info-radius-value" class="range-value">10px</span>
+                                </div>
+                            </div>
+                            <div class="bg-control gradient-bg" id="bg-info-gradient" style="display: none;">
+                                <div class="color-input-group">
+                                    <label>Color 1:</label>
+                                    <input type="color" id="bg-info-gradient-color1" value="#000000" />
+                                    <input type="text" id="bg-info-gradient-color1-text" value="#000000" class="color-text-input" />
+                                </div>
+                                <div class="color-input-group">
+                                    <label>Color 2:</label>
+                                    <input type="color" id="bg-info-gradient-color2" value="#333333" />
+                                    <input type="text" id="bg-info-gradient-color2-text" value="#333333" class="color-text-input" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

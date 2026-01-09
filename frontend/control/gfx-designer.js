@@ -31,6 +31,45 @@ const defaultSettings = {
         spacingScores: 40,
         spacingInfo: 30,
         separatorSize: 80
+    },
+    positions: {
+        scoreX: 'center',
+        scoreY: 'center',
+        infoX: 'center',
+        infoY: 'auto',
+        absolutePositioning: false
+    },
+    backgrounds: {
+        container: {
+            type: 'transparent',
+            solidColor: '#000000',
+            solidOpacity: 100,
+            gradientType: 'linear',
+            gradientColor1: '#000000',
+            gradientColor2: '#333333',
+            gradientAngle: 180,
+            imageUrl: '',
+            imageSize: 'cover',
+            imageOpacity: 100
+        },
+        score: {
+            type: 'none',
+            solidColor: '#000000',
+            solidOpacity: 50,
+            padding: 20,
+            borderRadius: 10,
+            gradientColor1: '#000000',
+            gradientColor2: '#333333'
+        },
+        info: {
+            type: 'none',
+            solidColor: '#000000',
+            solidOpacity: 50,
+            padding: 15,
+            borderRadius: 10,
+            gradientColor1: '#000000',
+            gradientColor2: '#333333'
+        }
     }
 };
 
@@ -80,6 +119,68 @@ const gfxElements = {
     spacingInfoValue: document.getElementById('spacing-info-value'),
     separatorSize: document.getElementById('separator-size'),
     separatorSizeValue: document.getElementById('separator-size-value'),
+    
+    // Positions
+    posScoreX: document.getElementById('pos-score-x'),
+    posScoreY: document.getElementById('pos-score-y'),
+    posInfoX: document.getElementById('pos-info-x'),
+    posInfoY: document.getElementById('pos-info-y'),
+    enableAbsolutePositioning: document.getElementById('enable-absolute-positioning'),
+    
+    // Backgrounds - Container
+    bgContainerType: document.getElementById('bg-container-type'),
+    bgContainerSolid: document.getElementById('bg-container-solid'),
+    bgContainerColor: document.getElementById('bg-container-color'),
+    bgContainerColorText: document.getElementById('bg-container-color-text'),
+    bgContainerOpacity: document.getElementById('bg-container-opacity'),
+    bgContainerOpacityValue: document.getElementById('bg-container-opacity-value'),
+    bgContainerGradient: document.getElementById('bg-container-gradient'),
+    bgContainerGradientType: document.getElementById('bg-container-gradient-type'),
+    bgContainerGradientColor1: document.getElementById('bg-container-gradient-color1'),
+    bgContainerGradientColor1Text: document.getElementById('bg-container-gradient-color1-text'),
+    bgContainerGradientColor2: document.getElementById('bg-container-gradient-color2'),
+    bgContainerGradientColor2Text: document.getElementById('bg-container-gradient-color2-text'),
+    bgContainerGradientAngle: document.getElementById('bg-container-gradient-angle'),
+    bgContainerGradientAngleValue: document.getElementById('bg-container-gradient-angle-value'),
+    bgContainerImage: document.getElementById('bg-container-image'),
+    bgContainerImageUrl: document.getElementById('bg-container-image-url'),
+    bgContainerImageSize: document.getElementById('bg-container-image-size'),
+    bgContainerImageOpacity: document.getElementById('bg-container-image-opacity'),
+    bgContainerImageOpacityValue: document.getElementById('bg-container-image-opacity-value'),
+    
+    // Backgrounds - Score
+    bgScoreType: document.getElementById('bg-score-type'),
+    bgScoreSolid: document.getElementById('bg-score-solid'),
+    bgScoreColor: document.getElementById('bg-score-color'),
+    bgScoreColorText: document.getElementById('bg-score-color-text'),
+    bgScoreOpacity: document.getElementById('bg-score-opacity'),
+    bgScoreOpacityValue: document.getElementById('bg-score-opacity-value'),
+    bgScorePadding: document.getElementById('bg-score-padding'),
+    bgScorePaddingValue: document.getElementById('bg-score-padding-value'),
+    bgScoreRadius: document.getElementById('bg-score-radius'),
+    bgScoreRadiusValue: document.getElementById('bg-score-radius-value'),
+    bgScoreGradient: document.getElementById('bg-score-gradient'),
+    bgScoreGradientColor1: document.getElementById('bg-score-gradient-color1'),
+    bgScoreGradientColor1Text: document.getElementById('bg-score-gradient-color1-text'),
+    bgScoreGradientColor2: document.getElementById('bg-score-gradient-color2'),
+    bgScoreGradientColor2Text: document.getElementById('bg-score-gradient-color2-text'),
+    
+    // Backgrounds - Info
+    bgInfoType: document.getElementById('bg-info-type'),
+    bgInfoSolid: document.getElementById('bg-info-solid'),
+    bgInfoColor: document.getElementById('bg-info-color'),
+    bgInfoColorText: document.getElementById('bg-info-color-text'),
+    bgInfoOpacity: document.getElementById('bg-info-opacity'),
+    bgInfoOpacityValue: document.getElementById('bg-info-opacity-value'),
+    bgInfoPadding: document.getElementById('bg-info-padding'),
+    bgInfoPaddingValue: document.getElementById('bg-info-padding-value'),
+    bgInfoRadius: document.getElementById('bg-info-radius'),
+    bgInfoRadiusValue: document.getElementById('bg-info-radius-value'),
+    bgInfoGradient: document.getElementById('bg-info-gradient'),
+    bgInfoGradientColor1: document.getElementById('bg-info-gradient-color1'),
+    bgInfoGradientColor1Text: document.getElementById('bg-info-gradient-color1-text'),
+    bgInfoGradientColor2: document.getElementById('bg-info-gradient-color2'),
+    bgInfoGradientColor2Text: document.getElementById('bg-info-gradient-color2-text'),
     
     // Presets & Actions
     presetDefault: document.getElementById('gfx-preset-default'),
@@ -173,6 +274,90 @@ function applySettingsToUI(settings) {
     gfxElements.spacingInfoValue.textContent = settings.layout.spacingInfo + 'px';
     gfxElements.separatorSize.value = settings.layout.separatorSize;
     gfxElements.separatorSizeValue.textContent = settings.layout.separatorSize + 'px';
+    
+    // Positions
+    if (settings.positions) {
+        gfxElements.posScoreX.value = settings.positions.scoreX || 'center';
+        gfxElements.posScoreY.value = settings.positions.scoreY || 'center';
+        gfxElements.posInfoX.value = settings.positions.infoX || 'center';
+        gfxElements.posInfoY.value = settings.positions.infoY || 'auto';
+        gfxElements.enableAbsolutePositioning.checked = settings.positions.absolutePositioning || false;
+    }
+    
+    // Backgrounds - Container
+    if (settings.backgrounds && settings.backgrounds.container) {
+        const bg = settings.backgrounds.container;
+        gfxElements.bgContainerType.value = bg.type || 'transparent';
+        updateBackgroundControls('container', bg.type);
+        gfxElements.bgContainerColor.value = bg.solidColor || '#000000';
+        gfxElements.bgContainerColorText.value = bg.solidColor || '#000000';
+        gfxElements.bgContainerOpacity.value = bg.solidOpacity || 100;
+        gfxElements.bgContainerOpacityValue.textContent = (bg.solidOpacity || 100) + '%';
+        gfxElements.bgContainerGradientType.value = bg.gradientType || 'linear';
+        gfxElements.bgContainerGradientColor1.value = bg.gradientColor1 || '#000000';
+        gfxElements.bgContainerGradientColor1Text.value = bg.gradientColor1 || '#000000';
+        gfxElements.bgContainerGradientColor2.value = bg.gradientColor2 || '#333333';
+        gfxElements.bgContainerGradientColor2Text.value = bg.gradientColor2 || '#333333';
+        gfxElements.bgContainerGradientAngle.value = bg.gradientAngle || 180;
+        gfxElements.bgContainerGradientAngleValue.textContent = (bg.gradientAngle || 180) + '°';
+        gfxElements.bgContainerImageUrl.value = bg.imageUrl || '';
+        gfxElements.bgContainerImageSize.value = bg.imageSize || 'cover';
+        gfxElements.bgContainerImageOpacity.value = bg.imageOpacity || 100;
+        gfxElements.bgContainerImageOpacityValue.textContent = (bg.imageOpacity || 100) + '%';
+    }
+    
+    // Backgrounds - Score
+    if (settings.backgrounds && settings.backgrounds.score) {
+        const bg = settings.backgrounds.score;
+        gfxElements.bgScoreType.value = bg.type || 'none';
+        updateBackgroundControls('score', bg.type);
+        gfxElements.bgScoreColor.value = bg.solidColor || '#000000';
+        gfxElements.bgScoreColorText.value = bg.solidColor || '#000000';
+        gfxElements.bgScoreOpacity.value = bg.solidOpacity || 50;
+        gfxElements.bgScoreOpacityValue.textContent = (bg.solidOpacity || 50) + '%';
+        gfxElements.bgScorePadding.value = bg.padding || 20;
+        gfxElements.bgScorePaddingValue.textContent = (bg.padding || 20) + 'px';
+        gfxElements.bgScoreRadius.value = bg.borderRadius || 10;
+        gfxElements.bgScoreRadiusValue.textContent = (bg.borderRadius || 10) + 'px';
+        gfxElements.bgScoreGradientColor1.value = bg.gradientColor1 || '#000000';
+        gfxElements.bgScoreGradientColor1Text.value = bg.gradientColor1 || '#000000';
+        gfxElements.bgScoreGradientColor2.value = bg.gradientColor2 || '#333333';
+        gfxElements.bgScoreGradientColor2Text.value = bg.gradientColor2 || '#333333';
+    }
+    
+    // Backgrounds - Info
+    if (settings.backgrounds && settings.backgrounds.info) {
+        const bg = settings.backgrounds.info;
+        gfxElements.bgInfoType.value = bg.type || 'none';
+        updateBackgroundControls('info', bg.type);
+        gfxElements.bgInfoColor.value = bg.solidColor || '#000000';
+        gfxElements.bgInfoColorText.value = bg.solidColor || '#000000';
+        gfxElements.bgInfoOpacity.value = bg.solidOpacity || 50;
+        gfxElements.bgInfoOpacityValue.textContent = (bg.solidOpacity || 50) + '%';
+        gfxElements.bgInfoPadding.value = bg.padding || 15;
+        gfxElements.bgInfoPaddingValue.textContent = (bg.padding || 15) + 'px';
+        gfxElements.bgInfoRadius.value = bg.borderRadius || 10;
+        gfxElements.bgInfoRadiusValue.textContent = (bg.borderRadius || 10) + 'px';
+        gfxElements.bgInfoGradientColor1.value = bg.gradientColor1 || '#000000';
+        gfxElements.bgInfoGradientColor1Text.value = bg.gradientColor1 || '#000000';
+        gfxElements.bgInfoGradientColor2.value = bg.gradientColor2 || '#333333';
+        gfxElements.bgInfoGradientColor2Text.value = bg.gradientColor2 || '#333333';
+    }
+}
+
+// Show/hide background controls based on type
+function updateBackgroundControls(section, type) {
+    if (section === 'container') {
+        gfxElements.bgContainerSolid.style.display = type === 'solid' ? 'block' : 'none';
+        gfxElements.bgContainerGradient.style.display = type === 'gradient' ? 'block' : 'none';
+        gfxElements.bgContainerImage.style.display = type === 'image' ? 'block' : 'none';
+    } else if (section === 'score') {
+        gfxElements.bgScoreSolid.style.display = type === 'solid' ? 'block' : 'none';
+        gfxElements.bgScoreGradient.style.display = type === 'gradient' ? 'block' : 'none';
+    } else if (section === 'info') {
+        gfxElements.bgInfoSolid.style.display = type === 'solid' ? 'block' : 'none';
+        gfxElements.bgInfoGradient.style.display = type === 'gradient' ? 'block' : 'none';
+    }
 }
 
 function applySettingsToOverlay(settings) {
@@ -227,10 +412,14 @@ function updateSetting(path, value) {
 }
 
 // Range inputs
-function setupRangeInput(range, valueDisplay, settingPath) {
+function setupRangeInput(range, valueDisplay, settingPath, suffix = null) {
     range.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
-        valueDisplay.textContent = value + (settingPath.includes('Size') || settingPath.includes('Spacing') || settingPath.includes('Blur') || settingPath.includes('letter') ? 'px' : '%');
+        if (suffix) {
+            valueDisplay.textContent = value + suffix;
+        } else {
+            valueDisplay.textContent = value + (settingPath.includes('Size') || settingPath.includes('Spacing') || settingPath.includes('Blur') || settingPath.includes('letter') || settingPath.includes('padding') || settingPath.includes('radius') ? 'px' : '%');
+        }
         updateSetting(settingPath, value);
     });
 }
@@ -266,6 +455,89 @@ function initializeEventListeners() {
     setupRangeInput(gfxElements.spacingScores, gfxElements.spacingScoresValue, 'layout.spacingScores');
     setupRangeInput(gfxElements.spacingInfo, gfxElements.spacingInfoValue, 'layout.spacingInfo');
     setupRangeInput(gfxElements.separatorSize, gfxElements.separatorSizeValue, 'layout.separatorSize');
+    
+    // Positions
+    gfxElements.posScoreX.addEventListener('input', (e) => {
+        if (!currentSettings.positions) currentSettings.positions = {};
+        currentSettings.positions.scoreX = e.target.value;
+        saveSettings();
+        applySettingsToOverlay(currentSettings);
+    });
+    gfxElements.posScoreY.addEventListener('input', (e) => {
+        if (!currentSettings.positions) currentSettings.positions = {};
+        currentSettings.positions.scoreY = e.target.value;
+        saveSettings();
+        applySettingsToOverlay(currentSettings);
+    });
+    gfxElements.posInfoX.addEventListener('input', (e) => {
+        if (!currentSettings.positions) currentSettings.positions = {};
+        currentSettings.positions.infoX = e.target.value;
+        saveSettings();
+        applySettingsToOverlay(currentSettings);
+    });
+    gfxElements.posInfoY.addEventListener('input', (e) => {
+        if (!currentSettings.positions) currentSettings.positions = {};
+        currentSettings.positions.infoY = e.target.value;
+        saveSettings();
+        applySettingsToOverlay(currentSettings);
+    });
+    gfxElements.enableAbsolutePositioning.addEventListener('change', (e) => {
+        if (!currentSettings.positions) currentSettings.positions = {};
+        currentSettings.positions.absolutePositioning = e.target.checked;
+        saveSettings();
+        applySettingsToOverlay(currentSettings);
+    });
+    
+    // Backgrounds - Container
+    gfxElements.bgContainerType.addEventListener('change', (e) => {
+        if (!currentSettings.backgrounds) currentSettings.backgrounds = {};
+        if (!currentSettings.backgrounds.container) currentSettings.backgrounds.container = {};
+        currentSettings.backgrounds.container.type = e.target.value;
+        updateBackgroundControls('container', e.target.value);
+        saveSettings();
+        applySettingsToOverlay(currentSettings);
+    });
+    setupColorSync(gfxElements.bgContainerColor, gfxElements.bgContainerColorText, 'backgrounds.container.solidColor');
+    setupRangeInput(gfxElements.bgContainerOpacity, gfxElements.bgContainerOpacityValue, 'backgrounds.container.solidOpacity', '%');
+    gfxElements.bgContainerGradientType.addEventListener('change', (e) => updateSetting('backgrounds.container.gradientType', e.target.value));
+    setupColorSync(gfxElements.bgContainerGradientColor1, gfxElements.bgContainerGradientColor1Text, 'backgrounds.container.gradientColor1');
+    setupColorSync(gfxElements.bgContainerGradientColor2, gfxElements.bgContainerGradientColor2Text, 'backgrounds.container.gradientColor2');
+    setupRangeInput(gfxElements.bgContainerGradientAngle, gfxElements.bgContainerGradientAngleValue, 'backgrounds.container.gradientAngle', '°');
+    gfxElements.bgContainerImageUrl.addEventListener('input', (e) => updateSetting('backgrounds.container.imageUrl', e.target.value));
+    gfxElements.bgContainerImageSize.addEventListener('change', (e) => updateSetting('backgrounds.container.imageSize', e.target.value));
+    setupRangeInput(gfxElements.bgContainerImageOpacity, gfxElements.bgContainerImageOpacityValue, 'backgrounds.container.imageOpacity', '%');
+    
+    // Backgrounds - Score
+    gfxElements.bgScoreType.addEventListener('change', (e) => {
+        if (!currentSettings.backgrounds) currentSettings.backgrounds = {};
+        if (!currentSettings.backgrounds.score) currentSettings.backgrounds.score = {};
+        currentSettings.backgrounds.score.type = e.target.value;
+        updateBackgroundControls('score', e.target.value);
+        saveSettings();
+        applySettingsToOverlay(currentSettings);
+    });
+    setupColorSync(gfxElements.bgScoreColor, gfxElements.bgScoreColorText, 'backgrounds.score.solidColor');
+    setupRangeInput(gfxElements.bgScoreOpacity, gfxElements.bgScoreOpacityValue, 'backgrounds.score.solidOpacity', '%');
+    setupRangeInput(gfxElements.bgScorePadding, gfxElements.bgScorePaddingValue, 'backgrounds.score.padding');
+    setupRangeInput(gfxElements.bgScoreRadius, gfxElements.bgScoreRadiusValue, 'backgrounds.score.borderRadius');
+    setupColorSync(gfxElements.bgScoreGradientColor1, gfxElements.bgScoreGradientColor1Text, 'backgrounds.score.gradientColor1');
+    setupColorSync(gfxElements.bgScoreGradientColor2, gfxElements.bgScoreGradientColor2Text, 'backgrounds.score.gradientColor2');
+    
+    // Backgrounds - Info
+    gfxElements.bgInfoType.addEventListener('change', (e) => {
+        if (!currentSettings.backgrounds) currentSettings.backgrounds = {};
+        if (!currentSettings.backgrounds.info) currentSettings.backgrounds.info = {};
+        currentSettings.backgrounds.info.type = e.target.value;
+        updateBackgroundControls('info', e.target.value);
+        saveSettings();
+        applySettingsToOverlay(currentSettings);
+    });
+    setupColorSync(gfxElements.bgInfoColor, gfxElements.bgInfoColorText, 'backgrounds.info.solidColor');
+    setupRangeInput(gfxElements.bgInfoOpacity, gfxElements.bgInfoOpacityValue, 'backgrounds.info.solidOpacity', '%');
+    setupRangeInput(gfxElements.bgInfoPadding, gfxElements.bgInfoPaddingValue, 'backgrounds.info.padding');
+    setupRangeInput(gfxElements.bgInfoRadius, gfxElements.bgInfoRadiusValue, 'backgrounds.info.borderRadius');
+    setupColorSync(gfxElements.bgInfoGradientColor1, gfxElements.bgInfoGradientColor1Text, 'backgrounds.info.gradientColor1');
+    setupColorSync(gfxElements.bgInfoGradientColor2, gfxElements.bgInfoGradientColor2Text, 'backgrounds.info.gradientColor2');
     
     // Presets
     gfxElements.presetDefault.addEventListener('click', () => applyPreset('default'));
@@ -389,7 +661,19 @@ const presets = {
 
 function applyPreset(presetName) {
     if (presets[presetName]) {
-        currentSettings = JSON.parse(JSON.stringify(presets[presetName]));
+        // Merge preset with default settings to ensure all properties exist
+        currentSettings = JSON.parse(JSON.stringify(defaultSettings));
+        const preset = presets[presetName];
+        
+        // Deep merge
+        Object.assign(currentSettings.colors, preset.colors || {});
+        Object.assign(currentSettings.typography, preset.typography || {});
+        Object.assign(currentSettings.effects, preset.effects || {});
+        Object.assign(currentSettings.layout, preset.layout || {});
+        
+        // Positions and backgrounds are preserved from default (or can be customized)
+        // User can still customize them after applying preset
+        
         applySettingsToUI(currentSettings);
         applySettingsToOverlay(currentSettings);
     }

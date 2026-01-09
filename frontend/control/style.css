@@ -594,6 +594,54 @@ main {
     cursor: pointer;
 }
 
+.gfx-control-group {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+.gfx-control-group h4 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: #333;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 8px;
+}
+
+.position-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.position-controls .gfx-control input {
+    width: 100%;
+    padding: 8px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.position-controls .gfx-control input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.bg-control {
+    margin-top: 15px;
+}
+
+.bg-control .color-input-group {
+    margin-bottom: 10px;
+}
+
+.bg-control .color-input-group label {
+    min-width: 80px;
+    font-size: 14px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     main {

@@ -26,6 +26,22 @@
     --spacing-scores: 40px;
     --spacing-info: 30px;
     --separator-size: 80px;
+    
+    /* Positions */
+    --pos-score-x: center;
+    --pos-score-y: center;
+    --pos-info-x: center;
+    --pos-info-y: auto;
+    --pos-absolute: 0;
+    
+    /* Backgrounds */
+    --bg-container: transparent;
+    --bg-score: none;
+    --bg-info: none;
+    --bg-score-padding: 20px;
+    --bg-score-radius: 10px;
+    --bg-info-padding: 15px;
+    --bg-info-radius: 10px;
 }
 
 * {
@@ -52,10 +68,17 @@ body {
 .overlay-container {
     width: 100%;
     max-width: 1920px;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: var(--spacing-info);
+    background: var(--bg-container);
+    position: relative;
+}
+
+.overlay-container.position-absolute {
+    position: absolute;
 }
 
 /* Score Section */
@@ -64,7 +87,14 @@ body {
     align-items: center;
     justify-content: center;
     gap: var(--spacing-scores);
-    width: 100%;
+    width: fit-content;
+    background: var(--bg-score);
+    padding: var(--bg-score-padding);
+    border-radius: var(--bg-score-radius);
+}
+
+.overlay-container.position-absolute .score-section {
+    position: absolute;
 }
 
 .team {
@@ -215,6 +245,14 @@ body {
     justify-content: center;
     gap: var(--spacing-info);
     margin-top: 20px;
+    width: fit-content;
+    background: var(--bg-info);
+    padding: var(--bg-info-padding);
+    border-radius: var(--bg-info-radius);
+}
+
+.overlay-container.position-absolute .info-section {
+    position: absolute;
 }
 
 .period-display,
