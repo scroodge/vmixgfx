@@ -50,11 +50,11 @@ const defaultSettings = {
         matchScoreColor: '#666666'
     },
     positions: {
-        scoreX: 'center',
-        scoreY: 'center',
-        infoX: 'center',
-        infoY: 'auto',
-        absolutePositioning: false
+        scoreX: 50,  // Percentage 0-100
+        scoreY: 50,  // Percentage 0-100
+        infoX: 50,   // Percentage 0-100
+        infoY: 80,   // Percentage 0-100
+        absolutePositioning: true  // Enabled by default for positioning to work
     },
     backgrounds: {
         container: {
@@ -68,8 +68,8 @@ const defaultSettings = {
             imageUrl: '',
             imageSize: 'cover',
             imageOpacity: 100,
-            imagePositionX: 'center',
-            imagePositionY: 'center'
+            imagePositionX: 50,  // Percentage 0-100
+            imagePositionY: 50   // Percentage 0-100
         },
         score: {
             type: 'none',
@@ -149,9 +149,13 @@ const gfxElements = {
     
     // Positions
     posScoreX: document.getElementById('pos-score-x'),
+    posScoreXValue: document.getElementById('pos-score-x-value'),
     posScoreY: document.getElementById('pos-score-y'),
+    posScoreYValue: document.getElementById('pos-score-y-value'),
     posInfoX: document.getElementById('pos-info-x'),
+    posInfoXValue: document.getElementById('pos-info-x-value'),
     posInfoY: document.getElementById('pos-info-y'),
+    posInfoYValue: document.getElementById('pos-info-y-value'),
     enableAbsolutePositioning: document.getElementById('enable-absolute-positioning'),
     
     // Backgrounds - Container
@@ -175,7 +179,9 @@ const gfxElements = {
     bgContainerImageOpacity: document.getElementById('bg-container-image-opacity'),
     bgContainerImageOpacityValue: document.getElementById('bg-container-image-opacity-value'),
     bgContainerImagePositionX: document.getElementById('bg-container-image-position-x'),
+    bgContainerImagePositionXValue: document.getElementById('bg-container-image-position-x-value'),
     bgContainerImagePositionY: document.getElementById('bg-container-image-position-y'),
+    bgContainerImagePositionYValue: document.getElementById('bg-container-image-position-y-value'),
     
     // Backgrounds - Score
     bgScoreType: document.getElementById('bg-score-type'),
@@ -449,13 +455,55 @@ function applySettingsToUI(settings) {
         gfxElements.bannerMatchScoreColorText.value = settings.banner.matchScoreColor || '#666666';
     }
     
-    // Positions
+    // Positions - convert from number or string to number for sliders
     if (settings.positions) {
-        gfxElements.posScoreX.value = settings.positions.scoreX || 'center';
-        gfxElements.posScoreY.value = settings.positions.scoreY || 'center';
-        gfxElements.posInfoX.value = settings.positions.infoX || 'center';
-        gfxElements.posInfoY.value = settings.positions.infoY || 'auto';
-        gfxElements.enableAbsolutePositioning.checked = settings.positions.absolutePositioning || false;
+        // Handle scoreX - convert from string keywords or use number
+        const scoreX = typeof settings.positions.scoreX === 'number' ? settings.positions.scoreX :
+                      (settings.positions.scoreX === 'center' ? 50 : 
+                       (settings.positions.scoreX === 'left' ? 0 : 
+                        (typeof settings.positions.scoreX === 'string' && settings.positions.scoreX.includes('%') ? 
+                         parseInt(settings.positions.scoreX.replace('%', '')) : 50)));
+        gfxElements.posScoreX.value = scoreX;
+        if (gfxElements.posScoreXValue) {
+            gfxElements.posScoreXValue.textContent = scoreX + '%';
+        }
+        
+        // Handle scoreY
+        const scoreY = typeof settings.positions.scoreY === 'number' ? settings.positions.scoreY :
+                      (settings.positions.scoreY === 'center' ? 50 : 
+                       (settings.positions.scoreY === 'top' ? 0 : 
+                        (settings.positions.scoreY === 'bottom' ? 100 : 
+                         (typeof settings.positions.scoreY === 'string' && settings.positions.scoreY.includes('%') ? 
+                          parseInt(settings.positions.scoreY.replace('%', '')) : 50))));
+        gfxElements.posScoreY.value = scoreY;
+        if (gfxElements.posScoreYValue) {
+            gfxElements.posScoreYValue.textContent = scoreY + '%';
+        }
+        
+        // Handle infoX
+        const infoX = typeof settings.positions.infoX === 'number' ? settings.positions.infoX :
+                     (settings.positions.infoX === 'center' ? 50 : 
+                      (settings.positions.infoX === 'left' ? 0 : 
+                       (typeof settings.positions.infoX === 'string' && settings.positions.infoX.includes('%') ? 
+                        parseInt(settings.positions.infoX.replace('%', '')) : 50)));
+        gfxElements.posInfoX.value = infoX;
+        if (gfxElements.posInfoXValue) {
+            gfxElements.posInfoXValue.textContent = infoX + '%';
+        }
+        
+        // Handle infoY - convert 'auto' to a number or use number
+        const infoY = typeof settings.positions.infoY === 'number' ? settings.positions.infoY :
+                     (settings.positions.infoY === 'auto' ? 80 : 
+                      (settings.positions.infoY === 'top' ? 0 : 
+                       (settings.positions.infoY === 'bottom' ? 100 : 
+                        (typeof settings.positions.infoY === 'string' && settings.positions.infoY.includes('%') ? 
+                         parseInt(settings.positions.infoY.replace('%', '')) : 80))));
+        gfxElements.posInfoY.value = infoY;
+        if (gfxElements.posInfoYValue) {
+            gfxElements.posInfoYValue.textContent = infoY + '%';
+        }
+        
+        gfxElements.enableAbsolutePositioning.checked = settings.positions.absolutePositioning !== false; // Default to true
     }
     
     // Backgrounds - Container
@@ -478,11 +526,28 @@ function applySettingsToUI(settings) {
         gfxElements.bgContainerImageSize.value = bg.imageSize || 'cover';
         gfxElements.bgContainerImageOpacity.value = bg.imageOpacity || 100;
         gfxElements.bgContainerImageOpacityValue.textContent = (bg.imageOpacity || 100) + '%';
+        
+        // Handle position - convert from percentage or default to 50
+        const posX = typeof bg.imagePositionX === 'number' ? bg.imagePositionX : 
+                     (bg.imagePositionX === 'center' ? 50 : 
+                      (bg.imagePositionX === 'left' ? 0 : 
+                       (bg.imagePositionX === 'right' ? 100 : 50)));
+        const posY = typeof bg.imagePositionY === 'number' ? bg.imagePositionY : 
+                     (bg.imagePositionY === 'center' ? 50 : 
+                      (bg.imagePositionY === 'top' ? 0 : 
+                       (bg.imagePositionY === 'bottom' ? 100 : 50)));
+        
         if (gfxElements.bgContainerImagePositionX) {
-            gfxElements.bgContainerImagePositionX.value = bg.imagePositionX || 'center';
+            gfxElements.bgContainerImagePositionX.value = posX;
+        }
+        if (gfxElements.bgContainerImagePositionXValue) {
+            gfxElements.bgContainerImagePositionXValue.textContent = posX + '%';
         }
         if (gfxElements.bgContainerImagePositionY) {
-            gfxElements.bgContainerImagePositionY.value = bg.imagePositionY || 'center';
+            gfxElements.bgContainerImagePositionY.value = posY;
+        }
+        if (gfxElements.bgContainerImagePositionYValue) {
+            gfxElements.bgContainerImagePositionYValue.textContent = posY + '%';
         }
     }
     
@@ -643,6 +708,11 @@ function updateSetting(path, value) {
     obj[parts[parts.length - 1]] = value;
     saveSettings();
     applySettingsToOverlay(currentSettings);
+    
+    // Debug: Log position changes specifically
+    if (path.includes('imagePosition')) {
+        console.log('🔄 Position setting changed:', path, '=', value);
+    }
 }
 
 // Range inputs
@@ -654,7 +724,9 @@ function setupRangeInput(range, valueDisplay, settingPath, suffix = null) {
         } else {
             valueDisplay.textContent = value + (settingPath.includes('Size') || settingPath.includes('Spacing') || settingPath.includes('Blur') || settingPath.includes('letter') || settingPath.includes('padding') || settingPath.includes('radius') ? 'px' : '%');
         }
+        // For position settings, ensure we store as number (not string)
         updateSetting(settingPath, value);
+        console.log('💾 Position saved:', settingPath, '=', value, '(type:', typeof value, ')');
     });
 }
 
@@ -734,30 +806,19 @@ function initializeEventListeners() {
     setupColorSync(gfxElements.bannerMatchScoreColor, gfxElements.bannerMatchScoreColorText, 'banner.matchScoreColor');
     
     // Positions
-    gfxElements.posScoreX.addEventListener('input', (e) => {
-        if (!currentSettings.positions) currentSettings.positions = {};
-        currentSettings.positions.scoreX = e.target.value;
-        saveSettings();
-        applySettingsToOverlay(currentSettings);
-    });
-    gfxElements.posScoreY.addEventListener('input', (e) => {
-        if (!currentSettings.positions) currentSettings.positions = {};
-        currentSettings.positions.scoreY = e.target.value;
-        saveSettings();
-        applySettingsToOverlay(currentSettings);
-    });
-    gfxElements.posInfoX.addEventListener('input', (e) => {
-        if (!currentSettings.positions) currentSettings.positions = {};
-        currentSettings.positions.infoX = e.target.value;
-        saveSettings();
-        applySettingsToOverlay(currentSettings);
-    });
-    gfxElements.posInfoY.addEventListener('input', (e) => {
-        if (!currentSettings.positions) currentSettings.positions = {};
-        currentSettings.positions.infoY = e.target.value;
-        saveSettings();
-        applySettingsToOverlay(currentSettings);
-    });
+    // Position controls - use range inputs with percentage display
+    if (gfxElements.posScoreX && gfxElements.posScoreXValue) {
+        setupRangeInput(gfxElements.posScoreX, gfxElements.posScoreXValue, 'positions.scoreX', '%');
+    }
+    if (gfxElements.posScoreY && gfxElements.posScoreYValue) {
+        setupRangeInput(gfxElements.posScoreY, gfxElements.posScoreYValue, 'positions.scoreY', '%');
+    }
+    if (gfxElements.posInfoX && gfxElements.posInfoXValue) {
+        setupRangeInput(gfxElements.posInfoX, gfxElements.posInfoXValue, 'positions.infoX', '%');
+    }
+    if (gfxElements.posInfoY && gfxElements.posInfoYValue) {
+        setupRangeInput(gfxElements.posInfoY, gfxElements.posInfoYValue, 'positions.infoY', '%');
+    }
     gfxElements.enableAbsolutePositioning.addEventListener('change', (e) => {
         if (!currentSettings.positions) currentSettings.positions = {};
         currentSettings.positions.absolutePositioning = e.target.checked;
@@ -783,23 +844,11 @@ function initializeEventListeners() {
     gfxElements.bgContainerImageUrl.addEventListener('input', (e) => updateSetting('backgrounds.container.imageUrl', e.target.value));
     gfxElements.bgContainerImageSize.addEventListener('change', (e) => updateSetting('backgrounds.container.imageSize', e.target.value));
     setupRangeInput(gfxElements.bgContainerImageOpacity, gfxElements.bgContainerImageOpacityValue, 'backgrounds.container.imageOpacity', '%');
-    if (gfxElements.bgContainerImagePositionX) {
-        gfxElements.bgContainerImagePositionX.addEventListener('input', (e) => {
-            if (!currentSettings.backgrounds) currentSettings.backgrounds = {};
-            if (!currentSettings.backgrounds.container) currentSettings.backgrounds.container = {};
-            currentSettings.backgrounds.container.imagePositionX = e.target.value;
-            saveSettings();
-            applySettingsToOverlay(currentSettings);
-        });
+    if (gfxElements.bgContainerImagePositionX && gfxElements.bgContainerImagePositionXValue) {
+        setupRangeInput(gfxElements.bgContainerImagePositionX, gfxElements.bgContainerImagePositionXValue, 'backgrounds.container.imagePositionX', '%');
     }
-    if (gfxElements.bgContainerImagePositionY) {
-        gfxElements.bgContainerImagePositionY.addEventListener('input', (e) => {
-            if (!currentSettings.backgrounds) currentSettings.backgrounds = {};
-            if (!currentSettings.backgrounds.container) currentSettings.backgrounds.container = {};
-            currentSettings.backgrounds.container.imagePositionY = e.target.value;
-            saveSettings();
-            applySettingsToOverlay(currentSettings);
-        });
+    if (gfxElements.bgContainerImagePositionY && gfxElements.bgContainerImagePositionYValue) {
+        setupRangeInput(gfxElements.bgContainerImagePositionY, gfxElements.bgContainerImagePositionYValue, 'backgrounds.container.imagePositionY', '%');
     }
     
     // Backgrounds - Score
@@ -899,8 +948,8 @@ function initializeEventListeners() {
                 currentSettings.backgrounds.container.imageUrl = data.settings.backgrounds.container.imageUrl;
                 currentSettings.backgrounds.container.imageSize = 'cover';
                 currentSettings.backgrounds.container.imageOpacity = 100;
-                currentSettings.backgrounds.container.imagePositionX = data.settings.backgrounds.container.imagePositionX || 'center';
-                currentSettings.backgrounds.container.imagePositionY = data.settings.backgrounds.container.imagePositionY || 'center';
+                currentSettings.backgrounds.container.imagePositionX = data.settings.backgrounds.container.imagePositionX || 50;
+                currentSettings.backgrounds.container.imagePositionY = data.settings.backgrounds.container.imagePositionY || 50;
                 
                 // Update UI
                 if (gfxElements.bgContainerType) {
@@ -910,11 +959,23 @@ function initializeEventListeners() {
                 if (gfxElements.bgContainerImageUrl) {
                     gfxElements.bgContainerImageUrl.value = data.settings.backgrounds.container.imageUrl;
                 }
+                // Convert position to number if needed
+                const posX = typeof data.settings.backgrounds.container.imagePositionX === 'number' ? 
+                             data.settings.backgrounds.container.imagePositionX : 50;
+                const posY = typeof data.settings.backgrounds.container.imagePositionY === 'number' ? 
+                             data.settings.backgrounds.container.imagePositionY : 50;
+                             
                 if (gfxElements.bgContainerImagePositionX) {
-                    gfxElements.bgContainerImagePositionX.value = data.settings.backgrounds.container.imagePositionX || 'center';
+                    gfxElements.bgContainerImagePositionX.value = posX;
+                }
+                if (gfxElements.bgContainerImagePositionXValue) {
+                    gfxElements.bgContainerImagePositionXValue.textContent = posX + '%';
                 }
                 if (gfxElements.bgContainerImagePositionY) {
-                    gfxElements.bgContainerImagePositionY.value = data.settings.backgrounds.container.imagePositionY || 'center';
+                    gfxElements.bgContainerImagePositionY.value = posY;
+                }
+                if (gfxElements.bgContainerImagePositionYValue) {
+                    gfxElements.bgContainerImagePositionYValue.textContent = posY + '%';
                 }
                 
                 saveSettings();

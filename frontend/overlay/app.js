@@ -101,31 +101,67 @@ function applyGFXSettings(settings) {
         root.style.setProperty('--separator-size', (settings.layout.separatorSize || 80) + 'px');
     }
     
-    // Positions
+    // Positions - apply to both score section and banner
+    // Only clear positions if explicitly disabled (absolutePositioning === false)
+    // If positions object exists but absolutePositioning is undefined/missing, keep current positions
     if (settings.positions) {
-        const absolute = settings.positions.absolutePositioning;
+        const absolute = settings.positions.absolutePositioning !== false; // Default to true if undefined
         if (absolute && container) {
             container.classList.add('position-absolute');
             
-            // Score section positioning
+            // Convert position values - expect numbers (0-100) from API, convert to percentage strings
+            // Normalize to ensure we're working with numbers
+            const scoreXNum = typeof settings.positions.scoreX === 'number' ? settings.positions.scoreX :
+                             (typeof settings.positions.scoreX === 'string' && settings.positions.scoreX.includes('%') ?
+                              parseInt(settings.positions.scoreX.replace('%', '')) : 50);
+            const scoreYNum = typeof settings.positions.scoreY === 'number' ? settings.positions.scoreY :
+                             (typeof settings.positions.scoreY === 'string' && settings.positions.scoreY.includes('%') ?
+                              parseInt(settings.positions.scoreY.replace('%', '')) : 50);
+            const infoXNum = typeof settings.positions.infoX === 'number' ? settings.positions.infoX :
+                            (typeof settings.positions.infoX === 'string' && settings.positions.infoX.includes('%') ?
+                             parseInt(settings.positions.infoX.replace('%', '')) : 50);
+            const infoYNum = typeof settings.positions.infoY === 'number' ? settings.positions.infoY :
+                            (settings.positions.infoY === 'auto' ? 'auto' :
+                             (typeof settings.positions.infoY === 'string' && settings.positions.infoY.includes('%') ?
+                              parseInt(settings.positions.infoY.replace('%', '')) : 80));
+            
+            const scoreX = scoreXNum + '%';
+            const scoreY = scoreYNum + '%';
+            const infoX = infoXNum + '%';
+            const infoY = infoYNum === 'auto' ? 'auto' : infoYNum + '%';
+            
+            console.log('📍 Applying positions:', { 
+                scoreX: scoreXNum, scoreY: scoreYNum, 
+                infoX: infoXNum, infoY: infoYNum,
+                raw: settings.positions 
+            });
+            
+            // Apply to score section (vertical layout)
             if (scoreSection) {
-                const scoreX = settings.positions.scoreX || 'center';
-                const scoreY = settings.positions.scoreY || 'center';
                 applyPosition(scoreSection, scoreX, scoreY);
+            }
+            
+            // Apply to banner (banner layout) - same positioning
+            if (scoreBanner) {
+                applyPosition(scoreBanner, scoreX, scoreY);
             }
             
             // Info section positioning
             if (infoSection) {
-                const infoX = settings.positions.infoX || 'center';
-                const infoY = settings.positions.infoY || 'auto';
                 applyPosition(infoSection, infoX, infoY);
             }
-        } else if (container) {
+        } else if (settings.positions.absolutePositioning === false && container) {
+            // Only clear if explicitly disabled
             container.classList.remove('position-absolute');
             if (scoreSection) {
                 scoreSection.style.left = '';
                 scoreSection.style.top = '';
                 scoreSection.style.transform = '';
+            }
+            if (scoreBanner) {
+                scoreBanner.style.left = '';
+                scoreBanner.style.top = '';
+                scoreBanner.style.transform = '';
             }
             if (infoSection) {
                 infoSection.style.left = '';
@@ -133,6 +169,7 @@ function applyGFXSettings(settings) {
                 infoSection.style.transform = '';
             }
         }
+        // If positions object exists but absolutePositioning is undefined, do nothing (preserve current state)
     }
     
     // Backgrounds
@@ -161,26 +198,74 @@ function applyGFXSettings(settings) {
             } else if (bg.type === 'image' && bg.imageUrl) {
                 const opacity = (bg.imageOpacity || 100) / 100;
                 const size = bg.imageSize || 'cover';
-                const positionX = bg.imagePositionX || 'center';
-                const positionY = bg.imagePositionY || 'center';
+                
+                // Handle position - can be number (percentage) or string (keyword)
+                let posX = typeof bg.imagePositionX === 'number' ? `${bg.imagePositionX}%` : 
+                          (bg.imagePositionX === 'center' ? '50%' : 
+                           (bg.imagePositionX === 'left' ? '0%' : 
+                            (bg.imagePositionX === 'right' ? '100%' : 
+                             (bg.imagePositionX || '50%'))));
+                let posY = typeof bg.imagePositionY === 'number' ? `${bg.imagePositionY}%` : 
+                          (bg.imagePositionY === 'center' ? '50%' : 
+                           (bg.imagePositionY === 'top' ? '0%' : 
+                            (bg.imagePositionY === 'bottom' ? '100%' : 
+                             (bg.imagePositionY || '50%'))));
+                
+                // Build background value with opacity overlay
                 bgValue = `linear-gradient(rgba(0,0,0,${1 - opacity}), rgba(0,0,0,${1 - opacity})), url('${bg.imageUrl}')`;
+                
+                // Set background position FIRST (before other properties to avoid reset)
+                const bgPosition = `${posX} ${posY}`;
+                
+                // Set all background properties in correct order
+                // Use individual properties instead of shorthand to preserve position
+                container.style.backgroundImage = bgValue.includes('linear-gradient') ? 
+                    `linear-gradient(rgba(0,0,0,${1 - opacity}), rgba(0,0,0,${1 - opacity})), url('${bg.imageUrl}')` : 
+                    `url('${bg.imageUrl}')`;
                 container.style.backgroundSize = size;
-                
-                // Handle position values - convert keywords to CSS values
-                let posX = positionX;
-                let posY = positionY;
-                
-                // Convert common keywords
-                if (positionX === 'left') posX = '0%';
-                else if (positionX === 'right') posX = '100%';
-                else if (positionX === 'center') posX = '50%';
-                
-                if (positionY === 'top') posY = '0%';
-                else if (positionY === 'bottom') posY = '100%';
-                else if (positionY === 'center') posY = '50%';
-                
-                container.style.backgroundPosition = `${posX} ${posY}`;
                 container.style.backgroundRepeat = 'no-repeat';
+                container.style.backgroundPosition = bgPosition;
+                container.style.backgroundAttachment = 'scroll';
+                
+                // Force reflow to ensure position is applied
+                void container.offsetWidth;
+                
+                // Verify the position was actually applied
+                const computedPosition = window.getComputedStyle(container).backgroundPosition;
+                console.log('✅ Background position updated:', {
+                    requested: bgPosition,
+                    computed: computedPosition,
+                    size: size,
+                    posX: posX,
+                    posY: posY
+                });
+                
+                // When background image is uploaded, disable generated banner colors
+                // Set a flag to indicate uploaded image exists
+                container.dataset.hasUploadedBackground = 'true';
+                
+                // Disable banner segment backgrounds
+                const scoreBanner = document.querySelector('.score-banner');
+                if (scoreBanner) {
+                    const leftSegment = scoreBanner.querySelector('.banner-left');
+                    const centerSegment = scoreBanner.querySelector('.banner-center');
+                    const rightSegment = scoreBanner.querySelector('.banner-right');
+                    
+                    if (leftSegment) {
+                        leftSegment.style.setProperty('background', 'transparent', 'important');
+                    }
+                    if (centerSegment) {
+                        centerSegment.style.setProperty('background', 'transparent', 'important');
+                    }
+                    if (rightSegment) {
+                        rightSegment.style.setProperty('background', 'transparent', 'important');
+                    }
+                }
+            } else {
+                // No uploaded image - clear the flag
+                if (container) {
+                    container.dataset.hasUploadedBackground = 'false';
+                }
             }
             
             container.style.background = bgValue;
@@ -255,8 +340,12 @@ function applyGFXSettings(settings) {
     }
     
     // Banner styling - apply directly to banner elements
+    // BUT: Only apply colors if no uploaded background image exists
     if (settings.banner) {
-        // Always set CSS variables
+        // Check if uploaded image exists
+        const hasUploadedImage = container && container.dataset.hasUploadedBackground === 'true';
+        
+        // Always set CSS variables for sizing and text styling
         root.style.setProperty('--banner-border-radius', (settings.banner.borderRadius || 12) + 'px');
         root.style.setProperty('--banner-height', (settings.banner.height || 80) + 'px');
         root.style.setProperty('--banner-padding', (settings.banner.padding || 20) + 'px');
@@ -274,24 +363,49 @@ function applyGFXSettings(settings) {
             const centerSegment = currentScoreBanner.querySelector('.banner-center');
             const rightSegment = currentScoreBanner.querySelector('.banner-right');
             
-            if (leftSegment) {
-                const lighter = adjustColorBrightness(settings.banner.leftColor || '#2d5016', 1.2);
-                leftSegment.style.background = `linear-gradient(135deg, ${settings.banner.leftColor || '#2d5016'} 0%, ${lighter} 100%)`;
-            }
-            if (centerSegment) {
-                centerSegment.style.background = settings.banner.centerColor || '#ffffff';
-            }
-            if (rightSegment) {
-                const lighter = adjustColorBrightness(settings.banner.rightColor || '#2d5016', 1.2);
-                rightSegment.style.background = `linear-gradient(135deg, ${settings.banner.rightColor || '#2d5016'} 0%, ${lighter} 100%)`;
+            if (hasUploadedImage) {
+                // If uploaded image exists, keep banner segments transparent
+                if (leftSegment) {
+                    leftSegment.style.setProperty('background', 'transparent', 'important');
+                }
+                if (centerSegment) {
+                    centerSegment.style.setProperty('background', 'transparent', 'important');
+                }
+                if (rightSegment) {
+                    rightSegment.style.setProperty('background', 'transparent', 'important');
+                }
+            } else {
+                // Use generated banner colors only if no uploaded image
+                if (leftSegment) {
+                    leftSegment.style.removeProperty('background');
+                    const lighter = adjustColorBrightness(settings.banner.leftColor || '#2d5016', 1.2);
+                    leftSegment.style.background = `linear-gradient(135deg, ${settings.banner.leftColor || '#2d5016'} 0%, ${lighter} 100%)`;
+                }
+                if (centerSegment) {
+                    centerSegment.style.removeProperty('background');
+                    centerSegment.style.background = settings.banner.centerColor || '#ffffff';
+                }
+                if (rightSegment) {
+                    rightSegment.style.removeProperty('background');
+                    const lighter = adjustColorBrightness(settings.banner.rightColor || '#2d5016', 1.2);
+                    rightSegment.style.background = `linear-gradient(135deg, ${settings.banner.rightColor || '#2d5016'} 0%, ${lighter} 100%)`;
+                }
             }
         } else {
             // Set CSS variables for gradients (will be used when banner appears)
-            const lighter = adjustColorBrightness(settings.banner.leftColor || '#2d5016', 1.2);
-            root.style.setProperty('--banner-left-color', `linear-gradient(135deg, ${settings.banner.leftColor || '#2d5016'} 0%, ${lighter} 100%)`);
-            root.style.setProperty('--banner-center-color', settings.banner.centerColor || '#ffffff');
-            const lighterRight = adjustColorBrightness(settings.banner.rightColor || '#2d5016', 1.2);
-            root.style.setProperty('--banner-right-color', `linear-gradient(135deg, ${settings.banner.rightColor || '#2d5016'} 0%, ${lighterRight} 100%)`);
+            if (hasUploadedImage) {
+                // Transparent when uploaded image exists
+                root.style.setProperty('--banner-left-color', 'transparent');
+                root.style.setProperty('--banner-center-color', 'transparent');
+                root.style.setProperty('--banner-right-color', 'transparent');
+            } else {
+                // Use generated banner colors
+                const lighter = adjustColorBrightness(settings.banner.leftColor || '#2d5016', 1.2);
+                root.style.setProperty('--banner-left-color', `linear-gradient(135deg, ${settings.banner.leftColor || '#2d5016'} 0%, ${lighter} 100%)`);
+                root.style.setProperty('--banner-center-color', settings.banner.centerColor || '#ffffff');
+                const lighterRight = adjustColorBrightness(settings.banner.rightColor || '#2d5016', 1.2);
+                root.style.setProperty('--banner-right-color', `linear-gradient(135deg, ${settings.banner.rightColor || '#2d5016'} 0%, ${lighterRight} 100%)`);
+            }
         }
     }
 }
@@ -307,43 +421,64 @@ function adjustColorBrightness(hex, factor) {
 
 // Helper function to apply positioning
 function applyPosition(element, x, y) {
-    let translateX = '';
-    let translateY = '';
+    if (!element) return;
     
-    // Handle X position
-    if (x === 'center') {
-        element.style.left = '50%';
+    let leftValue = '';
+    let topValue = '';
+    let translateX = '0';
+    let translateY = '0';
+    
+    // Handle X position - support percentage values directly
+    if (x === 'center' || x === '50%') {
+        leftValue = '50%';
         translateX = '-50%';
-    } else if (typeof x === 'string' && (x.includes('%') || x.includes('px'))) {
-        element.style.left = x;
+    } else if (typeof x === 'string' && x.includes('%')) {
+        // Percentage value like "30%"
+        leftValue = x;
+        translateX = '0';
+    } else if (typeof x === 'string' && x.includes('px')) {
+        // Pixel value
+        leftValue = x;
         translateX = '0';
     } else if (x) {
-        element.style.left = x;
-        translateX = '0';
-    } else {
-        element.style.left = '';
+        leftValue = x;
         translateX = '0';
     }
     
     // Handle Y position
-    if (y === 'center') {
-        element.style.top = '50%';
+    if (y === 'center' || y === '50%') {
+        topValue = '50%';
         translateY = '-50%';
     } else if (y === 'auto') {
-        element.style.top = '';
+        topValue = '';
         translateY = '0';
-    } else if (typeof y === 'string' && (y.includes('%') || y.includes('px'))) {
-        element.style.top = y;
+    } else if (typeof y === 'string' && y.includes('%')) {
+        // Percentage value like "25%"
+        topValue = y;
+        translateY = '0';
+    } else if (typeof y === 'string' && y.includes('px')) {
+        // Pixel value
+        topValue = y;
         translateY = '0';
     } else if (y) {
-        element.style.top = y;
-        translateY = '0';
-    } else {
-        element.style.top = '';
+        topValue = y;
         translateY = '0';
     }
     
-    // Apply transform
+    // Apply styles
+    if (leftValue) {
+        element.style.left = leftValue;
+    } else {
+        element.style.left = '';
+    }
+    
+    if (topValue) {
+        element.style.top = topValue;
+    } else {
+        element.style.top = '';
+    }
+    
+    // Apply transform for centering
     if (translateX === '-50%' || translateY === '-50%') {
         const tx = translateX === '-50%' ? '-50%' : '0';
         const ty = translateY === '-50%' ? '-50%' : '0';
@@ -359,6 +494,14 @@ function applyPosition(element, x, y) {
     } else {
         element.style.transform = '';
     }
+    
+    // Debug logging
+    console.log('📍 Position applied:', {
+        element: element.className,
+        left: leftValue || 'default',
+        top: topValue || 'default',
+        transform: element.style.transform || 'none'
+    });
 }
 
 // Listen for settings updates from control panel (preview mode only)
@@ -431,25 +574,53 @@ if (window.location.search.includes('preview=true')) {
     }, 200); // Check every 200ms for changes (preview mode only)
 } else {
     // vMix mode: Periodically refresh settings from API (not localStorage)
+    // Use shorter interval for more responsive position updates
     setInterval(async () => {
         try {
             const response = await fetch(`/api/match/${matchId}/gfx-settings`);
             if (response.ok) {
                 const settings = await response.json();
                 if (settings && Object.keys(settings).length > 0) {
-                    applyGFXSettings(settings);
-                    if (settings.visibility) {
-                        updateVisibility(
-                            settings.visibility.showGame !== false,
-                            settings.visibility.showTimer !== false
-                        );
+                    // Normalize position values to ensure they're numbers (0-100) for consistent comparison
+                    if (settings.positions) {
+                        if (typeof settings.positions.scoreX === 'string' && settings.positions.scoreX.includes('%')) {
+                            settings.positions.scoreX = parseInt(settings.positions.scoreX.replace('%', '')) || 50;
+                        }
+                        if (typeof settings.positions.scoreY === 'string' && settings.positions.scoreY.includes('%')) {
+                            settings.positions.scoreY = parseInt(settings.positions.scoreY.replace('%', '')) || 50;
+                        }
+                        if (typeof settings.positions.infoX === 'string' && settings.positions.infoX.includes('%')) {
+                            settings.positions.infoX = parseInt(settings.positions.infoX.replace('%', '')) || 50;
+                        }
+                        if (typeof settings.positions.infoY === 'string' && settings.positions.infoY.includes('%') && settings.positions.infoY !== 'auto') {
+                            settings.positions.infoY = parseInt(settings.positions.infoY.replace('%', '')) || 80;
+                        }
+                        // Ensure absolutePositioning defaults to true if not explicitly false
+                        if (settings.positions.absolutePositioning === undefined) {
+                            settings.positions.absolutePositioning = true;
+                        }
+                    }
+                    
+                    // Only apply if settings actually changed (avoid unnecessary re-renders)
+                    const settingsStr = JSON.stringify(settings);
+                    if (!window.lastSettingsStr || window.lastSettingsStr !== settingsStr) {
+                        window.lastSettingsStr = settingsStr;
+                        console.log('🔄 Settings changed, applying positions:', settings.positions);
+                        applyGFXSettings(settings);
+                        if (settings.visibility) {
+                            updateVisibility(
+                                settings.visibility.showGame !== false,
+                                settings.visibility.showTimer !== false
+                            );
+                        }
                     }
                 }
             }
         } catch (e) {
             // Silent fail - will retry on next interval
+            console.error('Failed to fetch GFX settings:', e);
         }
-    }, 5000); // Check API every 5 seconds for vMix
+    }, 1000); // Check API every 1 second for more responsive updates
 }
 
 // Function to update visibility of game and timer displays

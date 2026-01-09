@@ -427,38 +427,43 @@
 
                 <!-- Position Settings -->
                 <div class="gfx-section">
-                    <h3>Element Positions</h3>
+                    <h3>Element Positions (Move Text/Scores)</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control-group">
-                            <h4>Score Section</h4>
+                            <h4>Score Banner/Section Position</h4>
                             <div class="position-controls">
                                 <div class="gfx-control">
-                                    <label for="pos-score-x">X Position (% or px):</label>
-                                    <input type="text" id="pos-score-x" value="center" placeholder="center, 50%, 100px" />
+                                    <label for="pos-score-x">X Position (%):</label>
+                                    <input type="range" id="pos-score-x" min="0" max="100" value="50" class="gfx-range" />
+                                    <span id="pos-score-x-value" class="range-value">50%</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="pos-score-y">Y Position (% or px):</label>
-                                    <input type="text" id="pos-score-y" value="center" placeholder="center, 30%, 100px" />
+                                    <label for="pos-score-y">Y Position (%):</label>
+                                    <input type="range" id="pos-score-y" min="0" max="100" value="50" class="gfx-range" />
+                                    <span id="pos-score-y-value" class="range-value">50%</span>
+                                    <small>Lower values = move up, Higher values = move down</small>
                                 </div>
                             </div>
                         </div>
                         <div class="gfx-control-group">
-                            <h4>Info Section (Game/Timer)</h4>
+                            <h4>Info Section (Game/Timer) Position</h4>
                             <div class="position-controls">
                                 <div class="gfx-control">
-                                    <label for="pos-info-x">X Position (% or px):</label>
-                                    <input type="text" id="pos-info-x" value="center" placeholder="center, 50%, 100px" />
+                                    <label for="pos-info-x">X Position (%):</label>
+                                    <input type="range" id="pos-info-x" min="0" max="100" value="50" class="gfx-range" />
+                                    <span id="pos-info-x-value" class="range-value">50%</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="pos-info-y">Y Position (% or px):</label>
-                                    <input type="text" id="pos-info-y" value="auto" placeholder="auto, 70%, 500px" />
+                                    <label for="pos-info-y">Y Position (%):</label>
+                                    <input type="range" id="pos-info-y" min="0" max="100" value="80" class="gfx-range" />
+                                    <span id="pos-info-y-value" class="range-value">80%</span>
                                 </div>
                             </div>
                         </div>
                         <div class="gfx-control">
                             <label>
-                                <input type="checkbox" id="enable-absolute-positioning" />
-                                Enable Absolute Positioning (allows free placement)
+                                <input type="checkbox" id="enable-absolute-positioning" checked />
+                                Enable Absolute Positioning (required for positioning to work)
                             </label>
                         </div>
                     </div>
@@ -534,14 +539,14 @@
                                     <span id="bg-container-image-opacity-value" class="range-value">100%</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="bg-container-image-position-x">Position X (% or px):</label>
-                                    <input type="text" id="bg-container-image-position-x" value="center" placeholder="center, 50%, 100px" />
-                                    <small>Horizontal position (center, left, right, or value like 50%, 100px)</small>
+                                    <label for="bg-container-image-position-x">Position X (%):</label>
+                                    <input type="range" id="bg-container-image-position-x" min="0" max="100" value="50" class="gfx-range" />
+                                    <span id="bg-container-image-position-x-value" class="range-value">50%</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="bg-container-image-position-y">Position Y (% or px):</label>
-                                    <input type="text" id="bg-container-image-position-y" value="center" placeholder="center, 50%, 100px" />
-                                    <small>Vertical position (center, top, bottom, or value like 50%, 100px)</small>
+                                    <label for="bg-container-image-position-y">Position Y (%):</label>
+                                    <input type="range" id="bg-container-image-position-y" min="0" max="100" value="50" class="gfx-range" />
+                                    <span id="bg-container-image-position-y-value" class="range-value">50%</span>
                                 </div>
                             </div>
                         </div>
