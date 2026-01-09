@@ -32,7 +32,8 @@ const defaultSettings = {
         spacingInfo: 30,
         separatorSize: 80,
         style: 'vertical',  // 'vertical' or 'banner'
-        showMatchScores: false
+        showMatchScores: false,
+        matchScoreFormat: 'player1'  // 'player1', 'player2', 'both', 'total'
     },
     banner: {
         borderRadius: 12,
@@ -205,6 +206,8 @@ const gfxElements = {
     // Layout Style
     layoutStyle: document.getElementById('layout-style'),
     showMatchScores: document.getElementById('show-match-scores'),
+    matchScoreFormat: document.getElementById('match-score-format'),
+    matchScoreFormatControl: document.getElementById('match-score-format-control'),
     bannerStyleSection: document.getElementById('banner-style-section'),
     
     // Banner Style
@@ -243,12 +246,7 @@ const gfxElements = {
     importFile: document.getElementById('gfx-import-file'),
     applyBtn: document.getElementById('gfx-apply'),
     resetBtn: document.getElementById('gfx-reset'),
-    preview: document.getElementById('gfx-preview'),
-    previewSide: document.getElementById('preview-side'),
-    previewToggle: document.getElementById('preview-toggle'),
-    previewToggleIcon: document.getElementById('preview-toggle-icon'),
-    previewRefresh: document.getElementById('preview-refresh'),
-    previewPosition: document.getElementById('preview-position')
+    preview: document.getElementById('gfx-preview')
 };
 
 // ============================================================================
@@ -393,6 +391,15 @@ function applySettingsToUI(settings) {
     }
     if (settings.layout.showMatchScores !== undefined) {
         gfxElements.showMatchScores.checked = settings.layout.showMatchScores;
+        // Show/hide format control based on checkbox
+        if (gfxElements.matchScoreFormatControl) {
+            gfxElements.matchScoreFormatControl.style.display = settings.layout.showMatchScores ? 'block' : 'none';
+        }
+    }
+    if (settings.layout.matchScoreFormat) {
+        if (gfxElements.matchScoreFormat) {
+            gfxElements.matchScoreFormat.value = settings.layout.matchScoreFormat;
+        }
     }
     
     // Banner Style
@@ -534,11 +541,6 @@ function updatePreview(settings) {
         return;
     }
     
-    // Don't update if preview is collapsed
-    if (gfxElements.previewSide && gfxElements.previewSide.classList.contains('collapsed')) {
-        return;
-    }
-    
     clearTimeout(previewUpdateTimeout);
     previewUpdateTimeout = setTimeout(() => {
         if (gfxElements.preview && gfxElements.preview.contentWindow) {
@@ -654,9 +656,23 @@ function initializeEventListeners() {
     gfxElements.showMatchScores.addEventListener('change', (e) => {
         if (!currentSettings.layout) currentSettings.layout = {};
         currentSettings.layout.showMatchScores = e.target.checked;
+        // Show/hide format control
+        if (gfxElements.matchScoreFormatControl) {
+            gfxElements.matchScoreFormatControl.style.display = e.target.checked ? 'block' : 'none';
+        }
         saveSettings();
         applySettingsToOverlay(currentSettings);
     });
+    
+    // Match Score Format
+    if (gfxElements.matchScoreFormat) {
+        gfxElements.matchScoreFormat.addEventListener('change', (e) => {
+            if (!currentSettings.layout) currentSettings.layout = {};
+            currentSettings.layout.matchScoreFormat = e.target.value;
+            saveSettings();
+            applySettingsToOverlay(currentSettings);
+        });
+    }
     
     // Banner Style
     setupRangeInput(gfxElements.bannerBorderRadius, gfxElements.bannerBorderRadiusValue, 'banner.borderRadius');
@@ -780,52 +796,6 @@ function initializeEventListeners() {
         }
     });
     
-    // Preview panel controls
-    if (gfxElements.previewToggle) {
-        gfxElements.previewToggle.addEventListener('click', () => {
-            if (gfxElements.previewSide) {
-                gfxElements.previewSide.classList.toggle('collapsed');
-                if (gfxElements.previewSide.classList.contains('collapsed')) {
-                    gfxElements.previewToggleIcon.textContent = '▶';
-                    gfxElements.previewToggle.title = 'Show Preview';
-                } else {
-                    gfxElements.previewToggleIcon.textContent = '◀';
-                    gfxElements.previewToggle.title = 'Hide Preview';
-                    // Update preview when shown
-                    setTimeout(() => updatePreview(currentSettings), 100);
-                }
-            }
-        });
-    }
-    
-    if (gfxElements.previewRefresh) {
-        gfxElements.previewRefresh.addEventListener('click', () => {
-            if (gfxElements.preview) {
-                const currentSrc = gfxElements.preview.src;
-                gfxElements.preview.src = '';
-                setTimeout(() => {
-                    gfxElements.preview.src = currentSrc;
-                    setTimeout(() => updatePreview(currentSettings), 500);
-                }, 100);
-            }
-        });
-    }
-    
-    if (gfxElements.previewPosition) {
-        gfxElements.previewPosition.addEventListener('click', () => {
-            if (gfxElements.previewSide) {
-                gfxElements.previewSide.classList.toggle('preview-left');
-                const isLeft = gfxElements.previewSide.classList.contains('preview-left');
-                gfxElements.previewPosition.title = isLeft ? 'Move to Right' : 'Move to Left';
-                
-                // Update controls side order
-                const controlsSide = document.querySelector('.controls-side');
-                if (controlsSide) {
-                    controlsSide.style.order = isLeft ? '1' : '0';
-                }
-            }
-        });
-    }
 }
 
 // ============================================================================
@@ -985,24 +955,6 @@ function importSettings(e) {
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     initializeEventListeners();
-    
-    // Handle preview iframe load
-    if (gfxElements.preview) {
-        gfxElements.preview.addEventListener('load', () => {
-            // Hide loading indicator and show preview
-            const loadingEl = document.getElementById('preview-loading');
-            if (loadingEl) {
-                loadingEl.style.display = 'none';
-            }
-            gfxElements.preview.style.display = 'block';
-            gfxElements.preview.classList.add('loaded');
-            
-            // Apply settings after iframe loads
-            setTimeout(() => {
-                updatePreview(currentSettings);
-            }, 200);
-        });
-    }
     
     // Refresh preview after a delay to allow overlay to load
     setTimeout(() => {

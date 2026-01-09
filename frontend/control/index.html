@@ -7,24 +7,21 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-wrapper">
-        <!-- Left Side - Controls -->
-        <div class="controls-side">
-            <div class="container">
-                <header>
-                    <h1>vMix Russian Billiard Score Control</h1>
-                    <div class="status-bar">
-                        <div id="connection-status" class="status-indicator disconnected">
-                            <span class="status-dot"></span>
-                            <span class="status-text">Disconnected</span>
-                        </div>
-                        <div class="match-id-display">
-                            Game ID: <input type="text" id="match-id-input" value="1" />
-                        </div>
-                    </div>
-                </header>
+    <div class="container">
+        <header>
+            <h1>vMix Russian Billiard Score Control</h1>
+            <div class="status-bar">
+                <div id="connection-status" class="status-indicator disconnected">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Disconnected</span>
+                </div>
+                <div class="match-id-display">
+                    Game ID: <input type="text" id="match-id-input" value="1" />
+                </div>
+            </div>
+        </header>
 
-                <main>
+        <main>
             <!-- Setup Section -->
             <section class="panel setup-panel">
                 <h2>Game Setup</h2>
@@ -160,6 +157,12 @@
             <!-- GFX Designer Section -->
             <section class="panel gfx-panel">
                 <h2>GFX Designer</h2>
+                
+                <!-- Preview -->
+                <div class="gfx-preview-container">
+                    <div class="gfx-preview-label">Live Preview:</div>
+                    <iframe id="gfx-preview" src="/overlay?matchId=1&preview=true" class="gfx-preview-frame"></iframe>
+                </div>
 
                 <!-- Color Settings -->
                 <div class="gfx-section">
@@ -306,8 +309,17 @@
                         <div class="gfx-control">
                             <label>
                                 <input type="checkbox" id="show-match-scores" />
-                                Show Match Scores in Banner (format: 3 (5) 2)
+                                Show Match Scores in Banner (партии count)
                             </label>
+                        </div>
+                        <div class="gfx-control" id="match-score-format-control" style="display: none;">
+                            <label for="match-score-format">Match Score Format:</label>
+                            <select id="match-score-format" class="gfx-select">
+                                <option value="player1">Player 1 Only: (5)</option>
+                                <option value="player2">Player 2 Only: (5)</option>
+                                <option value="both">Both Players: (5-3)</option>
+                                <option value="total">Total Games: (8)</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -640,31 +652,7 @@
                     </div>
                 </div>
             </section>
-                </main>
-            </div>
-        </div>
-
-        <!-- Right Side - Live Preview Panel -->
-        <div class="preview-side preview-right" id="preview-side">
-            <div class="preview-header">
-                <h2>Live Preview</h2>
-                <div class="preview-controls">
-                    <button id="preview-position" class="btn-preview-toggle" title="Move to Left/Right">
-                        ↔
-                    </button>
-                    <button id="preview-refresh" class="btn-preview-toggle" title="Refresh Preview">
-                        ⟳
-                    </button>
-                    <button id="preview-toggle" class="btn-preview-toggle" title="Hide/Show Preview">
-                        <span id="preview-toggle-icon">◀</span>
-                    </button>
-                </div>
-            </div>
-            <div class="preview-content">
-                <div id="preview-loading" class="preview-loading">Loading preview...</div>
-                <iframe id="gfx-preview" src="/overlay?matchId=1&preview=true" class="preview-frame" style="display: none;"></iframe>
-            </div>
-        </div>
+        </main>
     </div>
 
     <script src="app.js"></script>

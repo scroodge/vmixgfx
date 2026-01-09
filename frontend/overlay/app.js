@@ -55,7 +55,16 @@ function applyGFXSettings(settings) {
     
     // Show/hide match scores in banner
     if (settings.layout && settings.layout.showMatchScores !== undefined) {
-        localStorage.setItem('gfxShowMatchScores', settings.layout.showMatchScores.toString());
+        const isPreview = window.location.search.includes('preview=true');
+        if (isPreview) {
+            localStorage.setItem('gfxShowMatchScores', settings.layout.showMatchScores.toString());
+        }
+        // Store format for later use
+        if (settings.layout.matchScoreFormat) {
+            if (isPreview) {
+                localStorage.setItem('gfxMatchScoreFormat', settings.layout.matchScoreFormat);
+            }
+        }
     }
     
     // Colors (with fallbacks)
@@ -330,42 +339,48 @@ function applyPosition(element, x, y) {
     }
 }
 
-// Listen for settings updates from control panel
-window.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'gfxSettings') {
-        applyGFXSettings(event.data.settings);
-        // Also save to localStorage
-        localStorage.setItem('gfxSettings', JSON.stringify(event.data.settings));
-    } else if (event.data && event.data.type === 'visibilityUpdate') {
-        // Handle visibility updates
-        updateVisibility(event.data.showGame, event.data.showTimer);
-    }
-});
-
-// Listen for custom event from same window (for direct updates)
-window.addEventListener('gfxSettingsChanged', (event) => {
-    if (event.detail) {
-        applyGFXSettings(event.detail);
-    }
-});
-
-// Listen for storage changes (when settings are updated from control panel)
-window.addEventListener('storage', (event) => {
-    if (event.key === 'gfxSettings' && event.newValue) {
-        try {
-            const settings = JSON.parse(event.newValue);
-            applyGFXSettings(settings);
-        } catch (e) {
-            console.error('Failed to parse settings from storage:', e);
+// Listen for settings updates from control panel (preview mode only)
+// In vMix, settings come from API, not postMessage
+const isPreview = window.location.search.includes('preview=true');
+if (isPreview) {
+    window.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'gfxSettings') {
+            applyGFXSettings(event.data.settings);
+            // Cache in localStorage for preview mode only
+            localStorage.setItem('gfxSettings', JSON.stringify(event.data.settings));
+        } else if (event.data && event.data.type === 'visibilityUpdate') {
+            // Handle visibility updates (preview mode)
+            updateVisibility(event.data.showGame, event.data.showTimer);
         }
-    }
-});
+    });
 
-// Also check for settings updates periodically (fallback for same-origin)
+    // Listen for custom event from same window (for direct updates in preview)
+    window.addEventListener('gfxSettingsChanged', (event) => {
+        if (event.detail) {
+            applyGFXSettings(event.detail);
+        }
+    });
+
+    // Listen for storage changes (preview mode only - same-origin iframe)
+    window.addEventListener('storage', (event) => {
+        if (event.key === 'gfxSettings' && event.newValue) {
+            try {
+                const settings = JSON.parse(event.newValue);
+                applyGFXSettings(settings);
+            } catch (e) {
+                console.error('Failed to parse settings from storage:', e);
+            }
+        }
+    });
+}
+
+// For preview mode only: check localStorage for real-time updates (same-origin iframe)
+// For vMix: settings are updated via WebSocket messages from the server
 if (window.location.search.includes('preview=true')) {
     let lastSettingsHash = '';
     let lastVisibilityHash = '';
     setInterval(() => {
+        // Only use localStorage polling in preview mode
         const settingsStr = localStorage.getItem('gfxSettings');
         if (settingsStr) {
             const hash = settingsStr.length + ''; // Simple hash
@@ -380,7 +395,7 @@ if (window.location.search.includes('preview=true')) {
             }
         }
         
-        // Check visibility settings
+        // Check visibility settings (preview mode only)
         const showGame = localStorage.getItem('showGameDisplay');
         const showTimer = localStorage.getItem('showTimerDisplay');
         const visibilityHash = (showGame || 'true') + '|' + (showTimer || 'true');
@@ -391,7 +406,28 @@ if (window.location.search.includes('preview=true')) {
                 showTimer === null ? true : showTimer === 'true'
             );
         }
-    }, 200); // Check every 200ms for changes
+    }, 200); // Check every 200ms for changes (preview mode only)
+} else {
+    // vMix mode: Periodically refresh settings from API (not localStorage)
+    setInterval(async () => {
+        try {
+            const response = await fetch(`/api/match/${matchId}/gfx-settings`);
+            if (response.ok) {
+                const settings = await response.json();
+                if (settings && Object.keys(settings).length > 0) {
+                    applyGFXSettings(settings);
+                    if (settings.visibility) {
+                        updateVisibility(
+                            settings.visibility.showGame !== false,
+                            settings.visibility.showTimer !== false
+                        );
+                    }
+                }
+            }
+        } catch (e) {
+            // Silent fail - will retry on next interval
+        }
+    }, 5000); // Check API every 5 seconds for vMix
 }
 
 // Function to update visibility of game and timer displays
@@ -476,9 +512,23 @@ function updateUI(state, eventType = null, changed = null) {
     const prevState = currentState;
     currentState = state;
     
-    // Determine layout style (from localStorage or default to 'vertical')
-    const layoutStyle = localStorage.getItem('gfxLayoutStyle') || 'vertical';
-    const showMatchScores = localStorage.getItem('gfxShowMatchScores') === 'true';
+    // Get settings from loaded GFX settings or localStorage (preview mode only)
+    const isPreview = window.location.search.includes('preview=true');
+    let layoutStyle = 'vertical';
+    let showMatchScores = false;
+    let matchScoreFormat = 'player1';
+    
+    // Try to get from loaded settings (stored when settings are loaded)
+    if (window.gfxSettings && window.gfxSettings.layout) {
+        layoutStyle = window.gfxSettings.layout.style || 'vertical';
+        showMatchScores = window.gfxSettings.layout.showMatchScores || false;
+        matchScoreFormat = window.gfxSettings.layout.matchScoreFormat || 'player1';
+    } else if (isPreview) {
+        // Preview mode: fallback to localStorage
+        layoutStyle = localStorage.getItem('gfxLayoutStyle') || 'vertical';
+        showMatchScores = localStorage.getItem('gfxShowMatchScores') === 'true';
+        matchScoreFormat = localStorage.getItem('gfxMatchScoreFormat') || 'player1';
+    }
     
     // Update layout visibility
     if (layoutStyle === 'banner') {
@@ -550,14 +600,29 @@ function updateUI(state, eventType = null, changed = null) {
         if (elements.bannerAwayScore) elements.bannerAwayScore.textContent = state.awayScore || 0;
     }
     
-    // Update match scores in banner format: "3 (5) 2"
-    // Format: GameScore1 (MatchScore) GameScore2
-    // Match score can show player 1's total games won, or total games played
+    // Update match scores in banner format based on selected format
+    // Formats: player1 = "(5)", player2 = "(3)", both = "(5-3)", total = "(8)"
     if (elements.bannerMatchScores) {
         if (showMatchScores) {
-            // Show player 1's match score in parentheses: "3 (5) 2" means Player 1 has won 5 games total
+            let matchScoreText = '';
+            
+            if (matchScoreFormat === 'player1') {
+                // Show Player 1's match score: "3 (5) 2"
+                matchScoreText = `(${homeMatchScore})`;
+            } else if (matchScoreFormat === 'player2') {
+                // Show Player 2's match score: "3 (3) 2"
+                matchScoreText = `(${awayMatchScore})`;
+            } else if (matchScoreFormat === 'both') {
+                // Show both: "3 (5-3) 2"
+                matchScoreText = `(${homeMatchScore}-${awayMatchScore})`;
+            } else if (matchScoreFormat === 'total') {
+                // Show total games played: "3 (8) 2"
+                const total = homeMatchScore + awayMatchScore;
+                matchScoreText = `(${total})`;
+            }
+            
             if (homeMatchScore > 0 || awayMatchScore > 0) {
-                elements.bannerMatchScores.textContent = `(${homeMatchScore})`;
+                elements.bannerMatchScores.textContent = matchScoreText;
                 elements.bannerMatchScores.style.display = 'inline';
             } else {
                 elements.bannerMatchScores.style.display = 'none';
@@ -654,6 +719,19 @@ function connectWebSocket() {
             try {
                 const data = JSON.parse(event.data);
                 
+                // Handle GFX settings updates via WebSocket (for vMix - no localStorage needed)
+                if (data.type === 'gfxSettings' && data.settings) {
+                    console.log('Received GFX settings update via WebSocket');
+                    applyGFXSettings(data.settings);
+                    if (data.settings.visibility) {
+                        updateVisibility(
+                            data.settings.visibility.showGame !== false,
+                            data.settings.visibility.showTimer !== false
+                        );
+                    }
+                    return; // Don't process as state update
+                }
+                
                 if (data.state) {
                     // Update UI with event type and change info
                     updateUI(
@@ -722,7 +800,7 @@ function scheduleReconnect() {
 // Initialization
 // ============================================================================
 
-// Load GFX settings from API or localStorage
+// Load GFX settings from API (primary source for vMix)
 async function loadGFXSettingsFromAPI() {
     try {
         const response = await fetch(`/api/match/${matchId}/gfx-settings`);
@@ -731,18 +809,33 @@ async function loadGFXSettingsFromAPI() {
             if (settings && Object.keys(settings).length > 0) {
                 console.log('Loading GFX settings from API:', settings);
                 applyGFXSettings(settings);
-                // Also save to localStorage for faster access
-                localStorage.setItem('gfxSettings', JSON.stringify(settings));
-                if (settings.layout && settings.layout.style) {
-                    localStorage.setItem('gfxLayoutStyle', settings.layout.style);
+                
+                // Only use localStorage for preview mode (same-origin iframe), NOT for vMix
+                // Store settings globally for access in updateUI
+                window.gfxSettings = settings;
+                
+                const isPreview = window.location.search.includes('preview=true');
+                if (isPreview) {
+                    // Cache in localStorage for preview iframe performance only
+                    localStorage.setItem('gfxSettings', JSON.stringify(settings));
+                    if (settings.layout && settings.layout.style) {
+                        localStorage.setItem('gfxLayoutStyle', settings.layout.style);
+                    }
+                    if (settings.layout && settings.layout.showMatchScores !== undefined) {
+                        localStorage.setItem('gfxShowMatchScores', settings.layout.showMatchScores.toString());
+                    }
+                    if (settings.layout && settings.layout.matchScoreFormat) {
+                        localStorage.setItem('gfxMatchScoreFormat', settings.layout.matchScoreFormat);
+                    }
+                    if (settings.visibility) {
+                        localStorage.setItem('showGameDisplay', settings.visibility.showGame !== false ? 'true' : 'false');
+                        localStorage.setItem('showTimerDisplay', settings.visibility.showTimer !== false ? 'true' : 'false');
+                    }
                 }
-                if (settings.layout && settings.layout.showMatchScores !== undefined) {
-                    localStorage.setItem('gfxShowMatchScores', settings.layout.showMatchScores.toString());
-                }
-                // Apply visibility settings if present
+                // For vMix: Do NOT use localStorage - settings come from API/WebSocket only
+                
+                // Apply visibility settings if present (works for both preview and vMix)
                 if (settings.visibility) {
-                    localStorage.setItem('showGameDisplay', settings.visibility.showGame !== false ? 'true' : 'false');
-                    localStorage.setItem('showTimerDisplay', settings.visibility.showTimer !== false ? 'true' : 'false');
                     updateVisibility(
                         settings.visibility.showGame !== false,
                         settings.visibility.showTimer !== false
@@ -762,72 +855,72 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get match ID first
     matchId = getMatchId();
     
-    // Try to load GFX settings from API first, then fallback to localStorage
+    // Check if this is preview mode (iframe in control panel) or vMix (standalone)
+    const isPreview = window.location.search.includes('preview=true');
+    
+    // For vMix: Load ONLY from API (no localStorage dependency)
+    // For preview: Can use localStorage as cache for same-origin performance
     loadGFXSettingsFromAPI().then(loadedFromAPI => {
         if (!loadedFromAPI) {
-            // Fallback to localStorage if API doesn't have settings
-            const settingsStr = localStorage.getItem('gfxSettings');
-            if (settingsStr) {
-                try {
-                    const settings = JSON.parse(settingsStr);
-                    console.log('Loading GFX settings from localStorage:', settings);
-                    applyGFXSettings(settings);
-                    console.log('GFX settings applied from localStorage');
-                } catch (e) {
-                    console.error('Failed to load GFX settings from localStorage:', e);
+            if (isPreview) {
+                // Preview mode only: fallback to localStorage for development/testing
+                const settingsStr = localStorage.getItem('gfxSettings');
+                if (settingsStr) {
+                    try {
+                        const settings = JSON.parse(settingsStr);
+                        console.log('Loading GFX settings from localStorage (preview mode fallback):', settings);
+                        applyGFXSettings(settings);
+                        
+                        // Apply layout and visibility from settings
+                        if (settings.layout && settings.layout.style) {
+                            const layoutStyle = settings.layout.style;
+                            if (elements.scoreSection && elements.scoreBanner) {
+                                if (layoutStyle === 'banner') {
+                                    elements.scoreSection.style.display = 'none';
+                                    elements.scoreBanner.style.display = 'flex';
+                                } else {
+                                    elements.scoreSection.style.display = 'flex';
+                                    elements.scoreBanner.style.display = 'none';
+                                }
+                            }
+                        }
+                        
+                        if (settings.visibility) {
+                            updateVisibility(
+                                settings.visibility.showGame !== false,
+                                settings.visibility.showTimer !== false
+                            );
+                        }
+                    } catch (e) {
+                        console.error('Failed to load GFX settings from localStorage:', e);
+                        // Use defaults
+                        if (elements.scoreSection && elements.scoreBanner) {
+                            elements.scoreSection.style.display = 'flex';
+                            elements.scoreBanner.style.display = 'none';
+                        }
+                        updateVisibility(true, true);
+                    }
+                } else {
+                    // Preview mode: no settings found
+                    if (elements.scoreSection && elements.scoreBanner) {
+                        elements.scoreSection.style.display = 'flex';
+                        elements.scoreBanner.style.display = 'none';
+                    }
+                    updateVisibility(true, true);
                 }
             } else {
-                console.warn('No GFX settings found in API or localStorage. Using default styling.');
-            }
-        }
-        
-        // Apply layout style from localStorage
-        const layoutStyle = localStorage.getItem('gfxLayoutStyle') || 'vertical';
-        console.log('Layout style:', layoutStyle);
-        if (elements.scoreSection && elements.scoreBanner) {
-            if (layoutStyle === 'banner') {
-                elements.scoreSection.style.display = 'none';
-                elements.scoreBanner.style.display = 'flex';
-                console.log('Banner layout applied');
-            } else {
-                elements.scoreSection.style.display = 'flex';
-                elements.scoreBanner.style.display = 'none';
-                console.log('Vertical layout applied');
-            }
-        }
-        
-        // Load visibility settings from API or localStorage
-        let showGame = true;
-        let showTimer = true;
-        
-        // Check if settings have visibility info
-        const settingsStr = localStorage.getItem('gfxSettings');
-        if (settingsStr) {
-            try {
-                const settings = JSON.parse(settingsStr);
-                if (settings.visibility) {
-                    showGame = settings.visibility.showGame !== false; // Default true
-                    showTimer = settings.visibility.showTimer !== false; // Default true
-                    // Save to localStorage for backward compatibility
-                    localStorage.setItem('showGameDisplay', showGame.toString());
-                    localStorage.setItem('showTimerDisplay', showTimer.toString());
+                // vMix mode: no localStorage fallback - use defaults
+                console.warn('No GFX settings found in API. Using default styling.');
+                if (elements.scoreSection && elements.scoreBanner) {
+                    elements.scoreSection.style.display = 'flex';
+                    elements.scoreBanner.style.display = 'none';
                 }
-            } catch (e) {
-                // Fallback to localStorage
-                const game = localStorage.getItem('showGameDisplay');
-                const timer = localStorage.getItem('showTimerDisplay');
-                showGame = game === null ? true : game === 'true';
-                showTimer = timer === null ? true : timer === 'true';
+                updateVisibility(true, true);
             }
         } else {
-            // Fallback to localStorage
-            const game = localStorage.getItem('showGameDisplay');
-            const timer = localStorage.getItem('showTimerDisplay');
-            showGame = game === null ? true : game === 'true';
-            showTimer = timer === null ? true : timer === 'true';
+            // Settings loaded from API - layout and visibility already applied in loadGFXSettingsFromAPI
+            // Layout is applied from settings in applyGFXSettings function
         }
-        
-        updateVisibility(showGame, showTimer);
         
         // Continue with initialization
         initializeOverlay();

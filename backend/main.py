@@ -422,9 +422,9 @@ async def get_gfx_settings(match_id: str):
 
 @app.post("/api/match/{match_id}/gfx-settings")
 async def set_gfx_settings(match_id: str, settings: dict):
-    """Save GFX settings for a match"""
+    """Save GFX settings for a match (primary storage for vMix)"""
     gfx_settings[match_id] = settings
-    # Broadcast settings update to connected overlays
+    # Broadcast settings update to connected overlays via WebSocket
     if match_id in connections:
         message = json.dumps({"type": "gfxSettings", "settings": settings})
         disconnected = []
