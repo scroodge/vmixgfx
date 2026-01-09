@@ -681,6 +681,80 @@ main {
     color: #333;
 }
 
+/* Collapsible/Spoiler Styles */
+.gfx-section.collapsible {
+    padding: 0;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f9f9f9;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.gfx-section.collapsible:last-of-type {
+    margin-bottom: 0;
+}
+
+.gfx-section.collapsible .collapsible-header {
+    margin: 0;
+    padding: 15px 20px;
+    background: #667eea;
+    color: white;
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    border-bottom: 2px solid #5568d3;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.3s ease;
+    position: relative;
+}
+
+.gfx-section.collapsible .collapsible-header:hover {
+    background: #5568d3;
+}
+
+.gfx-section.collapsible .collapsible-header::after {
+    content: '▼';
+    font-size: 12px;
+    transition: transform 0.3s ease;
+    margin-left: 10px;
+    flex-shrink: 0;
+}
+
+.gfx-section.collapsible .collapsible-header.active::after {
+    transform: rotate(180deg);
+}
+
+.gfx-section.collapsible .collapsible-content {
+    padding: 20px;
+    background: #f9f9f9;
+    display: none;
+}
+
+.gfx-section.collapsible .collapsible-content.show {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 5000px;
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+}
+
 .gfx-controls {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));

@@ -540,9 +540,44 @@ elements.resetBtn.addEventListener('click', async () => {
 // Initialization
 // ============================================================================
 
+// Initialize collapsible sections (spoilers)
+function initializeCollapsibles() {
+    const collapsibleHeaders = document.querySelectorAll('.collapsible-header');
+    collapsibleHeaders.forEach(header => {
+        // Remove any existing event listeners by cloning the header
+        const newHeader = header.cloneNode(true);
+        header.parentNode.replaceChild(newHeader, header);
+        
+        const section = newHeader.closest('.collapsible');
+        if (!section) return;
+        
+        newHeader.addEventListener('click', function() {
+            const content = section.querySelector('.collapsible-content');
+            if (!content) return;
+            
+            // Check if content is currently visible
+            const isOpen = content.classList.contains('show') || 
+                          (content.style.display !== 'none' && content.style.display !== '');
+            
+            if (isOpen) {
+                content.style.display = 'none';
+                content.classList.remove('show');
+                this.classList.remove('active');
+            } else {
+                content.style.display = 'block';
+                content.classList.add('show');
+                this.classList.add('active');
+            }
+        });
+    });
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     matchId = elements.matchIdInput.value || '1';
+    
+    // Initialize collapsible sections
+    initializeCollapsibles();
     
     // Initialize language switcher
     const languageSelect = document.getElementById('language-select');
