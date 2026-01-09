@@ -121,6 +121,7 @@ const translations = {
         'cover': 'Cover',
         'contain': 'Contain',
         'auto': 'Auto',
+        'none': 'None',
         'positionX': 'Position X (%):',
         'positionY': 'Position Y (%):',
         'scoreSectionBackground': 'Score Section Background',
@@ -270,6 +271,7 @@ const translations = {
         'cover': 'Покрытие',
         'contain': 'Содержать',
         'auto': 'Авто',
+        'none': 'Нет',
         'positionX': 'Позиция X (%):',
         'positionY': 'Позиция Y (%):',
         'scoreSectionBackground': 'Фон секции счета',
@@ -419,6 +421,7 @@ const translations = {
         'cover': 'Пакрыццё',
         'contain': 'Змяшчаць',
         'auto': 'Аўта',
+        'none': 'Няма',
         'positionX': 'Пазіцыя X (%):',
         'positionY': 'Пазіцыя Y (%):',
         'scoreSectionBackground': 'Фон секцыі ліку',
@@ -481,7 +484,12 @@ function updateAllTexts() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (key) {
-            el.textContent = t(key);
+            // For option elements, update textContent
+            if (el.tagName === 'OPTION') {
+                el.textContent = t(key);
+            } else {
+                el.textContent = t(key);
+            }
         }
     });
     
@@ -498,6 +506,14 @@ function updateAllTexts() {
         const key = el.getAttribute('data-i18n-title');
         if (key) {
             el.title = t(key);
+        }
+    });
+    
+    // Update select options that have data-i18n attribute
+    document.querySelectorAll('select option[data-i18n]').forEach(option => {
+        const key = option.getAttribute('data-i18n');
+        if (key) {
+            option.textContent = t(key);
         }
     });
 }

@@ -281,24 +281,24 @@
                     <h3 data-i18n="effects">Effects</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control">
-                            <label for="text-shadow-blur">Text Shadow Blur (px):</label>
+                            <label for="text-shadow-blur" data-i18n="textShadowBlur">Text Shadow Blur (px):</label>
                             <input type="range" id="text-shadow-blur" min="0" max="20" value="4" class="gfx-range" />
                             <span id="text-shadow-blur-value" class="range-value">4px</span>
                         </div>
                         <div class="gfx-control">
-                            <label for="text-shadow-opacity">Text Shadow Opacity:</label>
+                            <label for="text-shadow-opacity" data-i18n="textShadowOpacity">Text Shadow Opacity:</label>
                             <input type="range" id="text-shadow-opacity" min="0" max="100" value="80" class="gfx-range" />
                             <span id="text-shadow-opacity-value" class="range-value">80%</span>
                         </div>
                         <div class="gfx-control">
-                            <label for="letter-spacing">Letter Spacing (px):</label>
+                            <label for="letter-spacing" data-i18n="letterSpacing">Letter Spacing (px):</label>
                             <input type="range" id="letter-spacing" min="0" max="10" value="2" class="gfx-range" />
                             <span id="letter-spacing-value" class="range-value">2px</span>
                         </div>
                         <div class="gfx-control">
                             <label>
                                 <input type="checkbox" id="enable-glow" checked />
-                                Enable Score Change Glow Animation
+                                <span data-i18n="enableGlowAnimation">Enable Score Change Glow Animation</span>
                             </label>
                         </div>
                     </div>
@@ -309,25 +309,25 @@
                     <h3 data-i18n="layoutStyle">Layout Style</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control">
-                            <label for="layout-style">Display Style:</label>
+                            <label for="layout-style" data-i18n="displayStyle">Display Style:</label>
                             <select id="layout-style" class="gfx-select">
-                                <option value="vertical">Vertical (Default)</option>
-                                <option value="banner">Banner (Horizontal)</option>
+                                <option value="vertical" data-i18n="vertical">Vertical (Default)</option>
+                                <option value="banner" data-i18n="banner">Banner (Horizontal)</option>
                             </select>
                         </div>
                         <div class="gfx-control">
                             <label>
                                 <input type="checkbox" id="show-match-scores" />
-                                Show Match Scores in Banner (партии count)
+                                <span data-i18n="showMatchScores">Show Match Scores in Banner (games count)</span>
                             </label>
                         </div>
                         <div class="gfx-control" id="match-score-format-control" style="display: none;">
-                            <label for="match-score-format">Match Score Format:</label>
+                            <label for="match-score-format" data-i18n="matchScoreFormat">Match Score Format:</label>
                             <select id="match-score-format" class="gfx-select">
-                                <option value="player1">Player 1 Only: (5)</option>
-                                <option value="player2">Player 2 Only: (5)</option>
-                                <option value="both">Both Players: (5-3)</option>
-                                <option value="total">Total Games: (8)</option>
+                                <option value="player1" data-i18n="player1Only">Player 1 Only: (5)</option>
+                                <option value="player2" data-i18n="player2Only">Player 2 Only: (5)</option>
+                                <option value="both" data-i18n="bothPlayers">Both Players: (5-3)</option>
+                                <option value="total" data-i18n="totalGames">Total Games: (8)</option>
                             </select>
                         </div>
                     </div>
@@ -335,20 +335,20 @@
 
                 <!-- Layout Settings -->
                 <div class="gfx-section">
-                    <h3>Layout & Spacing</h3>
+                    <h3 data-i18n="layoutSpacing">Layout & Spacing</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control">
-                            <label for="spacing-scores">Score Spacing (px):</label>
+                            <label for="spacing-scores" data-i18n="scoreSpacing">Score Spacing (px):</label>
                             <input type="range" id="spacing-scores" min="20" max="100" value="40" class="gfx-range" />
                             <span id="spacing-scores-value" class="range-value">40px</span>
                         </div>
                         <div class="gfx-control">
-                            <label for="spacing-info">Info Section Spacing (px):</label>
+                            <label for="spacing-info" data-i18n="infoSectionSpacing">Info Section Spacing (px):</label>
                             <input type="range" id="spacing-info" min="10" max="60" value="30" class="gfx-range" />
                             <span id="spacing-info-value" class="range-value">30px</span>
                         </div>
                         <div class="gfx-control">
-                            <label for="separator-size">Separator Size (px):</label>
+                            <label for="separator-size" data-i18n="separatorSize">Separator Size (px):</label>
                             <input type="range" id="separator-size" min="40" max="120" value="80" class="gfx-range" />
                             <span id="separator-size-value" class="range-value">80px</span>
                         </div>
@@ -357,75 +357,75 @@
 
                 <!-- Banner Style Settings -->
                 <div class="gfx-section" id="banner-style-section" style="display: none;">
-                    <h3>Banner Style</h3>
+                    <h3 data-i18n="bannerStyle">Banner Style</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control">
-                            <label for="banner-border-radius">Border Radius (px):</label>
+                            <label for="banner-border-radius" data-i18n="borderRadius">Border Radius (px):</label>
                             <input type="range" id="banner-border-radius" min="0" max="50" value="12" class="gfx-range" />
                             <span id="banner-border-radius-value" class="range-value">12px</span>
                         </div>
                         <div class="gfx-control">
-                            <label for="banner-height">Banner Height (px):</label>
+                            <label for="banner-height" data-i18n="bannerHeight">Banner Height (px):</label>
                             <input type="range" id="banner-height" min="50" max="150" value="80" class="gfx-range" />
                             <span id="banner-height-value" class="range-value">80px</span>
                         </div>
                         <div class="gfx-control">
-                            <label for="banner-padding">Banner Padding (px):</label>
+                            <label for="banner-padding" data-i18n="bannerPadding">Banner Padding (px):</label>
                             <input type="range" id="banner-padding" min="10" max="50" value="20" class="gfx-range" />
                             <span id="banner-padding-value" class="range-value">20px</span>
                         </div>
                         <div class="gfx-control">
-                            <label for="banner-center-width">Center Width (px):</label>
+                            <label for="banner-center-width" data-i18n="centerWidth">Center Width (px):</label>
                             <input type="range" id="banner-center-width" min="150" max="400" value="200" class="gfx-range" />
                             <span id="banner-center-width-value" class="range-value">200px</span>
                         </div>
                         <div class="gfx-control">
-                            <label for="banner-left-color">Left Segment Color:</label>
+                            <label for="banner-left-color" data-i18n="leftSegmentColor">Left Segment Color:</label>
                             <div class="color-input-group">
                                 <input type="color" id="banner-left-color" value="#2d5016" />
                                 <input type="text" id="banner-left-color-text" value="#2d5016" class="color-text-input" />
                             </div>
                         </div>
                         <div class="gfx-control">
-                            <label for="banner-center-color">Center Segment Color:</label>
+                            <label for="banner-center-color" data-i18n="centerSegmentColor">Center Segment Color:</label>
                             <div class="color-input-group">
                                 <input type="color" id="banner-center-color" value="#ffffff" />
                                 <input type="text" id="banner-center-color-text" value="#ffffff" class="color-text-input" />
                             </div>
                         </div>
                         <div class="gfx-control">
-                            <label for="banner-right-color">Right Segment Color:</label>
+                            <label for="banner-right-color" data-i18n="rightSegmentColor">Right Segment Color:</label>
                             <div class="color-input-group">
                                 <input type="color" id="banner-right-color" value="#2d5016" />
                                 <input type="text" id="banner-right-color-text" value="#2d5016" class="color-text-input" />
                             </div>
                         </div>
                         <div class="gfx-control">
-                            <label for="banner-name-size">Player Name Size (px):</label>
+                            <label for="banner-name-size" data-i18n="bannerNameSize">Player Name Size (px):</label>
                             <input type="range" id="banner-name-size" min="16" max="48" value="24" class="gfx-range" />
                             <span id="banner-name-size-value" class="range-value">24px</span>
                         </div>
                         <div class="gfx-control">
-                            <label for="banner-score-size">Score Size (px):</label>
+                            <label for="banner-score-size" data-i18n="bannerScoreSize">Score Size (px):</label>
                             <input type="range" id="banner-score-size" min="32" max="96" value="48" class="gfx-range" />
                             <span id="banner-score-size-value" class="range-value">48px</span>
                         </div>
                         <div class="gfx-control">
-                            <label for="banner-name-color">Player Name Color:</label>
+                            <label for="banner-name-color" data-i18n="bannerNameColor">Player Name Color:</label>
                             <div class="color-input-group">
                                 <input type="color" id="banner-name-color" value="#ffffff" />
                                 <input type="text" id="banner-name-color-text" value="#ffffff" class="color-text-input" />
                             </div>
                         </div>
                         <div class="gfx-control">
-                            <label for="banner-score-color">Score Color:</label>
+                            <label for="banner-score-color" data-i18n="bannerScoreColor">Score Color:</label>
                             <div class="color-input-group">
                                 <input type="color" id="banner-score-color" value="#000000" />
                                 <input type="text" id="banner-score-color-text" value="#000000" class="color-text-input" />
                             </div>
                         </div>
                         <div class="gfx-control">
-                            <label for="banner-match-score-color">Match Score Color:</label>
+                            <label for="banner-match-score-color" data-i18n="bannerMatchScoreColor">Match Score Color:</label>
                             <div class="color-input-group">
                                 <input type="color" id="banner-match-score-color" value="#666666" />
                                 <input type="text" id="banner-match-score-color-text" value="#666666" class="color-text-input" />
@@ -436,63 +436,63 @@
 
                 <!-- Position Settings -->
                 <div class="gfx-section">
-                    <h3>Element Positions (Move Text/Scores Independently)</h3>
+                    <h3 data-i18n="elementPositions">Element Positions (Move Text/Scores Independently)</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control-group">
-                            <h4>Left Section (Player Name)</h4>
+                            <h4 data-i18n="leftSection">Left Section (Player Name)</h4>
                             <div class="position-controls">
                                 <div class="gfx-control">
-                                    <label for="pos-left-x">X Position (%):</label>
+                                    <label for="pos-left-x" data-i18n="xPosition">X Position (%):</label>
                                     <input type="range" id="pos-left-x" min="0" max="100" value="10" class="gfx-range" />
                                     <span id="pos-left-x-value" class="range-value">10%</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="pos-left-y">Y Position (%):</label>
+                                    <label for="pos-left-y" data-i18n="yPosition">Y Position (%):</label>
                                     <input type="range" id="pos-left-y" min="0" max="100" value="50" class="gfx-range" />
                                     <span id="pos-left-y-value" class="range-value">50%</span>
                                 </div>
                             </div>
                         </div>
                         <div class="gfx-control-group">
-                            <h4>Center Section (Scores)</h4>
+                            <h4 data-i18n="centerSection">Center Section (Scores)</h4>
                             <div class="position-controls">
                                 <div class="gfx-control">
-                                    <label for="pos-center-x">X Position (%):</label>
+                                    <label for="pos-center-x" data-i18n="xPosition">X Position (%):</label>
                                     <input type="range" id="pos-center-x" min="0" max="100" value="50" class="gfx-range" />
                                     <span id="pos-center-x-value" class="range-value">50%</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="pos-center-y">Y Position (%):</label>
+                                    <label for="pos-center-y" data-i18n="yPosition">Y Position (%):</label>
                                     <input type="range" id="pos-center-y" min="0" max="100" value="50" class="gfx-range" />
                                     <span id="pos-center-y-value" class="range-value">50%</span>
                                 </div>
                             </div>
                         </div>
                         <div class="gfx-control-group">
-                            <h4>Right Section (Player Name)</h4>
+                            <h4 data-i18n="rightSection">Right Section (Player Name)</h4>
                             <div class="position-controls">
                                 <div class="gfx-control">
-                                    <label for="pos-right-x">X Position (%):</label>
+                                    <label for="pos-right-x" data-i18n="xPosition">X Position (%):</label>
                                     <input type="range" id="pos-right-x" min="0" max="100" value="90" class="gfx-range" />
                                     <span id="pos-right-x-value" class="range-value">90%</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="pos-right-y">Y Position (%):</label>
+                                    <label for="pos-right-y" data-i18n="yPosition">Y Position (%):</label>
                                     <input type="range" id="pos-right-y" min="0" max="100" value="50" class="gfx-range" />
                                     <span id="pos-right-y-value" class="range-value">50%</span>
                                 </div>
                             </div>
                         </div>
                         <div class="gfx-control-group">
-                            <h4>Info Section (Game/Timer) Position</h4>
+                            <h4 data-i18n="infoSectionPosition">Info Section (Game/Timer) Position</h4>
                             <div class="position-controls">
                                 <div class="gfx-control">
-                                    <label for="pos-info-x">X Position (%):</label>
+                                    <label for="pos-info-x" data-i18n="xPosition">X Position (%):</label>
                                     <input type="range" id="pos-info-x" min="0" max="100" value="50" class="gfx-range" />
                                     <span id="pos-info-x-value" class="range-value">50%</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="pos-info-y">Y Position (%):</label>
+                                    <label for="pos-info-y" data-i18n="yPosition">Y Position (%):</label>
                                     <input type="range" id="pos-info-y" min="0" max="100" value="80" class="gfx-range" />
                                     <span id="pos-info-y-value" class="range-value">80%</span>
                                 </div>
@@ -501,7 +501,7 @@
                         <div class="gfx-control">
                             <label>
                                 <input type="checkbox" id="enable-absolute-positioning" checked />
-                                Enable Absolute Positioning (required for positioning to work)
+                                <span data-i18n="enableAbsolutePositioning">Enable Absolute Positioning (required for positioning to work)</span>
                             </label>
                         </div>
                     </div>
@@ -509,80 +509,80 @@
 
                 <!-- Background Settings -->
                 <div class="gfx-section">
-                    <h3>Backgrounds</h3>
+                    <h3 data-i18n="backgrounds">Backgrounds</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control-group">
-                            <h4>Container Background</h4>
+                            <h4 data-i18n="containerBackground">Container Background</h4>
                             <div class="gfx-control">
-                                <label for="bg-container-type">Background Type:</label>
+                                <label for="bg-container-type" data-i18n="backgroundType">Background Type:</label>
                                 <select id="bg-container-type" class="gfx-select">
-                                    <option value="transparent">Transparent</option>
-                                    <option value="solid">Solid Color</option>
-                                    <option value="gradient">Gradient</option>
-                                    <option value="image">Image</option>
+                                    <option value="transparent" data-i18n="transparent">Transparent</option>
+                                    <option value="solid" data-i18n="solidColor">Solid Color</option>
+                                    <option value="gradient" data-i18n="gradient">Gradient</option>
+                                    <option value="image" data-i18n="image">Image</option>
                                 </select>
                             </div>
                             <div class="bg-control solid-bg" id="bg-container-solid" style="display: none;">
                                 <div class="color-input-group">
-                                    <label>Color:</label>
+                                    <label data-i18n="color">Color:</label>
                                     <input type="color" id="bg-container-color" value="#000000" />
                                     <input type="text" id="bg-container-color-text" value="#000000" class="color-text-input" />
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="bg-container-opacity">Opacity:</label>
+                                    <label for="bg-container-opacity" data-i18n="opacity">Opacity:</label>
                                     <input type="range" id="bg-container-opacity" min="0" max="100" value="100" class="gfx-range" />
                                     <span id="bg-container-opacity-value" class="range-value">100%</span>
                                 </div>
                             </div>
                             <div class="bg-control gradient-bg" id="bg-container-gradient" style="display: none;">
                                 <div class="gfx-control">
-                                    <label for="bg-container-gradient-type">Gradient Type:</label>
+                                    <label for="bg-container-gradient-type" data-i18n="gradientType">Gradient Type:</label>
                                     <select id="bg-container-gradient-type" class="gfx-select">
-                                        <option value="linear">Linear</option>
-                                        <option value="radial">Radial</option>
+                                        <option value="linear" data-i18n="linear">Linear</option>
+                                        <option value="radial" data-i18n="radial">Radial</option>
                                     </select>
                                 </div>
                                 <div class="color-input-group">
-                                    <label>Color 1:</label>
+                                    <label data-i18n="color1">Color 1:</label>
                                     <input type="color" id="bg-container-gradient-color1" value="#000000" />
                                     <input type="text" id="bg-container-gradient-color1-text" value="#000000" class="color-text-input" />
                                 </div>
                                 <div class="color-input-group">
-                                    <label>Color 2:</label>
+                                    <label data-i18n="color2">Color 2:</label>
                                     <input type="color" id="bg-container-gradient-color2" value="#333333" />
                                     <input type="text" id="bg-container-gradient-color2-text" value="#333333" class="color-text-input" />
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="bg-container-gradient-angle">Angle/Direction:</label>
+                                    <label for="bg-container-gradient-angle" data-i18n="angleDirection">Angle/Direction:</label>
                                     <input type="range" id="bg-container-gradient-angle" min="0" max="360" value="180" class="gfx-range" />
                                     <span id="bg-container-gradient-angle-value" class="range-value">180°</span>
                                 </div>
                             </div>
                             <div class="bg-control image-bg" id="bg-container-image" style="display: none;">
                                 <div class="gfx-control">
-                                    <label for="bg-container-image-url">Image URL:</label>
+                                    <label for="bg-container-image-url" data-i18n="imageUrl">Image URL:</label>
                                     <input type="text" id="bg-container-image-url" placeholder="https://example.com/image.jpg" />
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="bg-container-image-size">Size:</label>
+                                    <label for="bg-container-image-size" data-i18n="size">Size:</label>
                                     <select id="bg-container-image-size" class="gfx-select">
-                                        <option value="cover">Cover</option>
-                                        <option value="contain">Contain</option>
-                                        <option value="auto">Auto</option>
+                                        <option value="cover" data-i18n="cover">Cover</option>
+                                        <option value="contain" data-i18n="contain">Contain</option>
+                                        <option value="auto" data-i18n="auto">Auto</option>
                                     </select>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="bg-container-image-opacity">Opacity:</label>
+                                    <label for="bg-container-image-opacity" data-i18n="opacity">Opacity:</label>
                                     <input type="range" id="bg-container-image-opacity" min="0" max="100" value="100" class="gfx-range" />
                                     <span id="bg-container-image-opacity-value" class="range-value">100%</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="bg-container-image-position-x">Position X (%):</label>
+                                    <label for="bg-container-image-position-x" data-i18n="positionX">Position X (%):</label>
                                     <input type="range" id="bg-container-image-position-x" min="0" max="100" value="50" class="gfx-range" />
                                     <span id="bg-container-image-position-x-value" class="range-value">50%</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="bg-container-image-position-y">Position Y (%):</label>
+                                    <label for="bg-container-image-position-y" data-i18n="positionY">Position Y (%):</label>
                                     <input type="range" id="bg-container-image-position-y" min="0" max="100" value="50" class="gfx-range" />
                                     <span id="bg-container-image-position-y-value" class="range-value">50%</span>
                                 </div>
@@ -590,45 +590,45 @@
                         </div>
                         
                         <div class="gfx-control-group">
-                            <h4>Score Section Background</h4>
+                            <h4 data-i18n="scoreSectionBackground">Score Section Background</h4>
                             <div class="gfx-control">
-                                <label for="bg-score-type">Background Type:</label>
+                                <label for="bg-score-type" data-i18n="backgroundType">Background Type:</label>
                                 <select id="bg-score-type" class="gfx-select">
-                                    <option value="none">None</option>
-                                    <option value="solid">Solid Color</option>
-                                    <option value="gradient">Gradient</option>
+                                    <option value="none" data-i18n="none">None</option>
+                                    <option value="solid" data-i18n="solidColor">Solid Color</option>
+                                    <option value="gradient" data-i18n="gradient">Gradient</option>
                                 </select>
                             </div>
                             <div class="bg-control solid-bg" id="bg-score-solid" style="display: none;">
                                 <div class="color-input-group">
-                                    <label>Color:</label>
+                                    <label data-i18n="color">Color:</label>
                                     <input type="color" id="bg-score-color" value="#000000" />
                                     <input type="text" id="bg-score-color-text" value="#000000" class="color-text-input" />
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="bg-score-opacity">Opacity:</label>
+                                    <label for="bg-score-opacity" data-i18n="opacity">Opacity:</label>
                                     <input type="range" id="bg-score-opacity" min="0" max="100" value="50" class="gfx-range" />
                                     <span id="bg-score-opacity-value" class="range-value">50%</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="bg-score-padding">Padding (px):</label>
+                                    <label for="bg-score-padding" data-i18n="padding">Padding (px):</label>
                                     <input type="range" id="bg-score-padding" min="0" max="50" value="20" class="gfx-range" />
                                     <span id="bg-score-padding-value" class="range-value">20px</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="bg-score-radius">Border Radius (px):</label>
+                                    <label for="bg-score-radius" data-i18n="borderRadius">Border Radius (px):</label>
                                     <input type="range" id="bg-score-radius" min="0" max="50" value="10" class="gfx-range" />
                                     <span id="bg-score-radius-value" class="range-value">10px</span>
                                 </div>
                             </div>
                             <div class="bg-control gradient-bg" id="bg-score-gradient" style="display: none;">
                                 <div class="color-input-group">
-                                    <label>Color 1:</label>
+                                    <label data-i18n="color1">Color 1:</label>
                                     <input type="color" id="bg-score-gradient-color1" value="#000000" />
                                     <input type="text" id="bg-score-gradient-color1-text" value="#000000" class="color-text-input" />
                                 </div>
                                 <div class="color-input-group">
-                                    <label>Color 2:</label>
+                                    <label data-i18n="color2">Color 2:</label>
                                     <input type="color" id="bg-score-gradient-color2" value="#333333" />
                                     <input type="text" id="bg-score-gradient-color2-text" value="#333333" class="color-text-input" />
                                 </div>
@@ -636,45 +636,45 @@
                         </div>
 
                         <div class="gfx-control-group">
-                            <h4>Info Section Background</h4>
+                            <h4 data-i18n="infoSectionBackground">Info Section Background</h4>
                             <div class="gfx-control">
-                                <label for="bg-info-type">Background Type:</label>
+                                <label for="bg-info-type" data-i18n="backgroundType">Background Type:</label>
                                 <select id="bg-info-type" class="gfx-select">
-                                    <option value="none">None</option>
-                                    <option value="solid">Solid Color</option>
-                                    <option value="gradient">Gradient</option>
+                                    <option value="none" data-i18n="none">None</option>
+                                    <option value="solid" data-i18n="solidColor">Solid Color</option>
+                                    <option value="gradient" data-i18n="gradient">Gradient</option>
                                 </select>
                             </div>
                             <div class="bg-control solid-bg" id="bg-info-solid" style="display: none;">
                                 <div class="color-input-group">
-                                    <label>Color:</label>
+                                    <label data-i18n="color">Color:</label>
                                     <input type="color" id="bg-info-color" value="#000000" />
                                     <input type="text" id="bg-info-color-text" value="#000000" class="color-text-input" />
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="bg-info-opacity">Opacity:</label>
+                                    <label for="bg-info-opacity" data-i18n="opacity">Opacity:</label>
                                     <input type="range" id="bg-info-opacity" min="0" max="100" value="50" class="gfx-range" />
                                     <span id="bg-info-opacity-value" class="range-value">50%</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="bg-info-padding">Padding (px):</label>
+                                    <label for="bg-info-padding" data-i18n="padding">Padding (px):</label>
                                     <input type="range" id="bg-info-padding" min="0" max="50" value="15" class="gfx-range" />
                                     <span id="bg-info-padding-value" class="range-value">15px</span>
                                 </div>
                                 <div class="gfx-control">
-                                    <label for="bg-info-radius">Border Radius (px):</label>
+                                    <label for="bg-info-radius" data-i18n="borderRadius">Border Radius (px):</label>
                                     <input type="range" id="bg-info-radius" min="0" max="50" value="10" class="gfx-range" />
                                     <span id="bg-info-radius-value" class="range-value">10px</span>
                                 </div>
                             </div>
                             <div class="bg-control gradient-bg" id="bg-info-gradient" style="display: none;">
                                 <div class="color-input-group">
-                                    <label>Color 1:</label>
+                                    <label data-i18n="color1">Color 1:</label>
                                     <input type="color" id="bg-info-gradient-color1" value="#000000" />
                                     <input type="text" id="bg-info-gradient-color1-text" value="#000000" class="color-text-input" />
                                 </div>
                                 <div class="color-input-group">
-                                    <label>Color 2:</label>
+                                    <label data-i18n="color2">Color 2:</label>
                                     <input type="color" id="bg-info-gradient-color2" value="#333333" />
                                     <input type="text" id="bg-info-gradient-color2-text" value="#333333" class="color-text-input" />
                                 </div>
@@ -685,46 +685,46 @@
 
                 <!-- Background Image Upload -->
                 <div class="gfx-section">
-                    <h3>Background Image Upload</h3>
+                    <h3 data-i18n="backgroundImageUpload">Background Image Upload</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control">
-                            <label for="background-upload">Upload Background Image:</label>
+                            <label for="background-upload" data-i18n="uploadBackgroundImage">Upload Background Image:</label>
                             <input type="file" id="background-upload" accept="image/*" class="gfx-file-input" />
-                            <button id="background-upload-btn" class="btn btn-primary">Upload Background</button>
+                            <button id="background-upload-btn" class="btn btn-primary" data-i18n="uploadBackground">Upload Background</button>
                             <div id="background-upload-status" class="upload-status"></div>
                         </div>
                         <div class="gfx-control">
-                            <button id="background-remove-btn" class="btn btn-small">Remove Background Image</button>
+                            <button id="background-remove-btn" class="btn btn-small" data-i18n="removeBackgroundImage">Remove Background Image</button>
                         </div>
                         <div class="gfx-control">
-                            <small>Upload a background image/title. The system will overlay text and scores on top of it. Use the position controls in "Backgrounds > Container Background > Image" section to adjust positioning.</small>
+                            <small data-i18n="backgroundUploadHint">Upload a background image/title. The system will overlay text and scores on top of it. Use the position controls in "Backgrounds > Container Background > Image" section to adjust positioning.</small>
                         </div>
                     </div>
                 </div>
 
                 <!-- Score Animations -->
                 <div class="gfx-section">
-                    <h3>Score Animations</h3>
+                    <h3 data-i18n="scoreAnimations">Score Animations</h3>
                     <div class="gfx-controls">
                         <div class="gfx-control">
                             <label>
                                 <input type="checkbox" id="enable-score-animations" />
-                                Enable Fantastic Score Animations
+                                <span data-i18n="enableFantasticAnimations">Enable Fantastic Score Animations</span>
                             </label>
                         </div>
                         <div class="gfx-control" id="animation-type-control" style="display: none;">
-                            <label for="animation-type">Animation Type:</label>
+                            <label for="animation-type" data-i18n="animationType">Animation Type:</label>
                             <select id="animation-type" class="gfx-select">
-                                <option value="explosion">Explosion (with particles)</option>
-                                <option value="bounce">Bounce (elastic bounce)</option>
-                                <option value="rotate">Rotate (3D spin)</option>
-                                <option value="particles">Particles (floating particles)</option>
-                                <option value="flip">Flip (card flip)</option>
-                                <option value="zoom">Zoom (scale burst)</option>
+                                <option value="explosion" data-i18n="explosion">Explosion (with particles)</option>
+                                <option value="bounce" data-i18n="bounce">Bounce (elastic bounce)</option>
+                                <option value="rotate" data-i18n="rotate">Rotate (3D spin)</option>
+                                <option value="particles" data-i18n="particles">Particles (floating particles)</option>
+                                <option value="flip" data-i18n="flip">Flip (card flip)</option>
+                                <option value="zoom" data-i18n="zoom">Zoom (scale burst)</option>
                             </select>
                         </div>
                         <div class="gfx-control">
-                            <small>When enabled, score changes will trigger spectacular animations!</small>
+                            <small data-i18n="animationsHint">When enabled, score changes will trigger spectacular animations!</small>
                         </div>
                     </div>
                 </div>
