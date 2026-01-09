@@ -86,6 +86,10 @@ const defaultSettings = {
             gradientColor1: '#000000',
             gradientColor2: '#333333'
         }
+    },
+    visibility: {
+        showGame: true,
+        showTimer: true
     }
 };
 
@@ -258,6 +262,20 @@ function loadSettings() {
             currentSettings = JSON.parse(saved);
             applySettingsToUI(currentSettings);
             applySettingsToOverlay(currentSettings);
+            
+            // Also load visibility settings if present
+            if (currentSettings.visibility) {
+                const showGameDisplay = document.getElementById('show-game-display');
+                const showTimerDisplay = document.getElementById('show-timer-display');
+                if (showGameDisplay && currentSettings.visibility.showGame !== undefined) {
+                    showGameDisplay.checked = currentSettings.visibility.showGame !== false;
+                    localStorage.setItem('showGameDisplay', showGameDisplay.checked.toString());
+                }
+                if (showTimerDisplay && currentSettings.visibility.showTimer !== undefined) {
+                    showTimerDisplay.checked = currentSettings.visibility.showTimer !== false;
+                    localStorage.setItem('showTimerDisplay', showTimerDisplay.checked.toString());
+                }
+            }
         } catch (e) {
             console.error('Failed to load settings:', e);
             currentSettings = JSON.parse(JSON.stringify(defaultSettings));
@@ -291,6 +309,20 @@ async function saveSettingsToAPI() {
         // Get match ID from control panel (default to '1')
         const matchIdInput = document.getElementById('match-id-input');
         const matchId = matchIdInput ? matchIdInput.value || '1' : '1';
+        
+        // Include visibility settings from control panel
+        const showGameDisplay = document.getElementById('show-game-display');
+        const showTimerDisplay = document.getElementById('show-timer-display');
+        
+        if (!currentSettings.visibility) {
+            currentSettings.visibility = {};
+        }
+        if (showGameDisplay) {
+            currentSettings.visibility.showGame = showGameDisplay.checked;
+        }
+        if (showTimerDisplay) {
+            currentSettings.visibility.showTimer = showTimerDisplay.checked;
+        }
         
         const response = await fetch(`/api/match/${matchId}/gfx-settings`, {
             method: 'POST',

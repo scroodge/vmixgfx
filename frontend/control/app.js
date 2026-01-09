@@ -378,6 +378,8 @@ elements.timerSetBtn.addEventListener('click', async () => {
 // Visibility Toggles
 elements.showGameDisplay.addEventListener('change', (e) => {
     localStorage.setItem('showGameDisplay', e.target.checked.toString());
+    // Save visibility to API
+    saveVisibilityToAPI();
     // Update overlay via broadcast
     window.dispatchEvent(new CustomEvent('overlayVisibilityChanged', { 
         detail: { game: e.target.checked, timer: elements.showTimerDisplay.checked } 
@@ -388,6 +390,8 @@ elements.showGameDisplay.addEventListener('change', (e) => {
 
 elements.showTimerDisplay.addEventListener('change', (e) => {
     localStorage.setItem('showTimerDisplay', e.target.checked.toString());
+    // Save visibility to API
+    saveVisibilityToAPI();
     // Update overlay via broadcast
     window.dispatchEvent(new CustomEvent('overlayVisibilityChanged', { 
         detail: { game: elements.showGameDisplay.checked, timer: e.target.checked } 
@@ -395,6 +399,46 @@ elements.showTimerDisplay.addEventListener('change', (e) => {
     // Update preview iframe
     updateOverlayVisibility();
 });
+
+// Save visibility settings to API
+async function saveVisibilityToAPI() {
+    try {
+        const matchIdInput = document.getElementById('match-id-input');
+        const matchId = matchIdInput ? matchIdInput.value || '1' : '1';
+        
+        // Get current GFX settings from API or create new object
+        const response = await fetch(`/api/match/${matchId}/gfx-settings`);
+        let settings = {};
+        if (response.ok) {
+            const data = await response.json();
+            if (data && Object.keys(data).length > 0) {
+                settings = data;
+            }
+        }
+        
+        // Update visibility settings
+        if (!settings.visibility) {
+            settings.visibility = {};
+        }
+        settings.visibility.showGame = elements.showGameDisplay.checked;
+        settings.visibility.showTimer = elements.showTimerDisplay.checked;
+        
+        // Save to API
+        const saveResponse = await fetch(`/api/match/${matchId}/gfx-settings`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(settings)
+        });
+        
+        if (saveResponse.ok) {
+            console.log('Visibility settings saved to API');
+        }
+    } catch (e) {
+        console.error('Error saving visibility settings to API:', e);
+    }
+}
 
 // Function to update overlay visibility
 function updateOverlayVisibility() {

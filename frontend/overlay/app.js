@@ -24,6 +24,11 @@ function loadGFXSettings() {
 }
 
 function applyGFXSettings(settings) {
+    if (!settings || typeof settings !== 'object') {
+        console.error('Invalid settings provided to applyGFXSettings');
+        return;
+    }
+    
     const root = document.documentElement;
     const container = document.querySelector('.overlay-container');
     const scoreSection = document.querySelector('.score-section');
@@ -53,31 +58,39 @@ function applyGFXSettings(settings) {
         localStorage.setItem('gfxShowMatchScores', settings.layout.showMatchScores.toString());
     }
     
-    // Colors
-    root.style.setProperty('--color-player1', settings.colors.player1);
-    root.style.setProperty('--color-player1-score', settings.colors.player1Score);
-    root.style.setProperty('--color-player2', settings.colors.player2);
-    root.style.setProperty('--color-player2-score', settings.colors.player2Score);
-    root.style.setProperty('--color-separator', settings.colors.separator);
-    root.style.setProperty('--color-game-timer', settings.colors.gameTimer);
-    root.style.setProperty('--color-glow', settings.colors.glow);
+    // Colors (with fallbacks)
+    if (settings.colors) {
+        root.style.setProperty('--color-player1', settings.colors.player1 || '#ffffff');
+        root.style.setProperty('--color-player1-score', settings.colors.player1Score || '#ffffff');
+        root.style.setProperty('--color-player2', settings.colors.player2 || '#ffffff');
+        root.style.setProperty('--color-player2-score', settings.colors.player2Score || '#ffffff');
+        root.style.setProperty('--color-separator', settings.colors.separator || '#ffffff');
+        root.style.setProperty('--color-game-timer', settings.colors.gameTimer || '#ffffff');
+        root.style.setProperty('--color-glow', settings.colors.glow || '#ffd700');
+    }
     
-    // Typography
-    root.style.setProperty('--font-family', settings.typography.fontFamily);
-    root.style.setProperty('--font-size-player-name', settings.typography.playerNameSize + 'px');
-    root.style.setProperty('--font-size-score', settings.typography.scoreSize + 'px');
-    root.style.setProperty('--font-size-game-timer', settings.typography.gameTimerSize + 'px');
-    root.style.setProperty('--font-weight', settings.typography.fontWeight);
+    // Typography (with fallbacks)
+    if (settings.typography) {
+        root.style.setProperty('--font-family', settings.typography.fontFamily || 'Arial, sans-serif');
+        root.style.setProperty('--font-size-player-name', (settings.typography.playerNameSize || 48) + 'px');
+        root.style.setProperty('--font-size-score', (settings.typography.scoreSize || 120) + 'px');
+        root.style.setProperty('--font-size-game-timer', (settings.typography.gameTimerSize || 42) + 'px');
+        root.style.setProperty('--font-weight', settings.typography.fontWeight || 900);
+    }
     
-    // Effects
-    root.style.setProperty('--text-shadow-blur', settings.effects.textShadowBlur + 'px');
-    root.style.setProperty('--text-shadow-opacity', (settings.effects.textShadowOpacity / 100).toFixed(2));
-    root.style.setProperty('--letter-spacing', settings.effects.letterSpacing + 'px');
+    // Effects (with fallbacks)
+    if (settings.effects) {
+        root.style.setProperty('--text-shadow-blur', (settings.effects.textShadowBlur || 4) + 'px');
+        root.style.setProperty('--text-shadow-opacity', ((settings.effects.textShadowOpacity || 80) / 100).toFixed(2));
+        root.style.setProperty('--letter-spacing', (settings.effects.letterSpacing || 2) + 'px');
+    }
     
-    // Layout
-    root.style.setProperty('--spacing-scores', settings.layout.spacingScores + 'px');
-    root.style.setProperty('--spacing-info', settings.layout.spacingInfo + 'px');
-    root.style.setProperty('--separator-size', settings.layout.separatorSize + 'px');
+    // Layout (with fallbacks)
+    if (settings.layout) {
+        root.style.setProperty('--spacing-scores', (settings.layout.spacingScores || 40) + 'px');
+        root.style.setProperty('--spacing-info', (settings.layout.spacingInfo || 30) + 'px');
+        root.style.setProperty('--separator-size', (settings.layout.separatorSize || 80) + 'px');
+    }
     
     // Positions
     if (settings.positions) {
@@ -206,7 +219,9 @@ function applyGFXSettings(settings) {
     }
     
     // Store glow enabled state
-    document.body.dataset.glowEnabled = settings.effects.enableGlow;
+    if (settings.effects && settings.effects.enableGlow !== undefined) {
+        document.body.dataset.glowEnabled = settings.effects.enableGlow;
+    }
     
     // Banner styling - apply directly to banner elements
     if (settings.banner) {
@@ -724,6 +739,15 @@ async function loadGFXSettingsFromAPI() {
                 if (settings.layout && settings.layout.showMatchScores !== undefined) {
                     localStorage.setItem('gfxShowMatchScores', settings.layout.showMatchScores.toString());
                 }
+                // Apply visibility settings if present
+                if (settings.visibility) {
+                    localStorage.setItem('showGameDisplay', settings.visibility.showGame !== false ? 'true' : 'false');
+                    localStorage.setItem('showTimerDisplay', settings.visibility.showTimer !== false ? 'true' : 'false');
+                    updateVisibility(
+                        settings.visibility.showGame !== false,
+                        settings.visibility.showTimer !== false
+                    );
+                }
                 console.log('GFX settings loaded from API and applied');
                 return true;
             }
@@ -772,13 +796,38 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // Load visibility settings
-        const showGame = localStorage.getItem('showGameDisplay');
-        const showTimer = localStorage.getItem('showTimerDisplay');
-        updateVisibility(
-            showGame === null ? true : showGame === 'true',
-            showTimer === null ? true : showTimer === 'true'
-        );
+        // Load visibility settings from API or localStorage
+        let showGame = true;
+        let showTimer = true;
+        
+        // Check if settings have visibility info
+        const settingsStr = localStorage.getItem('gfxSettings');
+        if (settingsStr) {
+            try {
+                const settings = JSON.parse(settingsStr);
+                if (settings.visibility) {
+                    showGame = settings.visibility.showGame !== false; // Default true
+                    showTimer = settings.visibility.showTimer !== false; // Default true
+                    // Save to localStorage for backward compatibility
+                    localStorage.setItem('showGameDisplay', showGame.toString());
+                    localStorage.setItem('showTimerDisplay', showTimer.toString());
+                }
+            } catch (e) {
+                // Fallback to localStorage
+                const game = localStorage.getItem('showGameDisplay');
+                const timer = localStorage.getItem('showTimerDisplay');
+                showGame = game === null ? true : game === 'true';
+                showTimer = timer === null ? true : timer === 'true';
+            }
+        } else {
+            // Fallback to localStorage
+            const game = localStorage.getItem('showGameDisplay');
+            const timer = localStorage.getItem('showTimerDisplay');
+            showGame = game === null ? true : game === 'true';
+            showTimer = timer === null ? true : timer === 'true';
+        }
+        
+        updateVisibility(showGame, showTimer);
         
         // Continue with initialization
         initializeOverlay();
