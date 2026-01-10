@@ -121,6 +121,37 @@ body {
     justify-content: flex-end;
 }
 
+/* Text centering within defined areas */
+.score-element[style*="position: absolute"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+.score-element[style*="position: absolute"] .team-name,
+.score-element[style*="position: absolute"] .score-container,
+.score-element[style*="position: absolute"] > * {
+    width: 100% !important;
+    text-align: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.info-section[style*="position: absolute"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.info-section[style*="position: absolute"] > * {
+    text-align: center !important;
+}
+
 .overlay-container.position-absolute .score-section {
     position: absolute;
     top: 0;

@@ -1032,6 +1032,18 @@ function initializeEventListeners() {
         applySettingsToOverlay(currentSettings);
     });
     
+    // Edit Text Areas button
+    const editTextAreasBtn = document.getElementById('edit-text-areas-btn');
+    if (editTextAreasBtn) {
+        editTextAreasBtn.addEventListener('click', () => {
+            const matchIdInput = document.getElementById('match-id-input');
+            const matchId = matchIdInput ? matchIdInput.value || '1' : '1';
+            // Open overlay in edit mode in a new window
+            const overlayUrl = `/overlay?matchId=${matchId}&editMode=true`;
+            window.open(overlayUrl, '_blank', 'width=1920,height=1080');
+        });
+    }
+    
     // Backgrounds - Container
     gfxElements.bgContainerType.addEventListener('change', (e) => {
         if (!currentSettings.backgrounds) currentSettings.backgrounds = {};
@@ -1397,6 +1409,81 @@ function importSettings(e) {
 }
 
 // ============================================================================
+// Preview Auto-Scaling
+// ============================================================================
+
+/**
+ * Calculate preview scale to fit container while maintaining aspect ratio
+ */
+function calculatePreviewScale() {
+    const container = document.querySelector('.gfx-preview-container');
+    const iframe = document.getElementById('gfx-preview');
+    
+    if (!container || !iframe) return 1;
+    
+    const containerWidth = container.clientWidth - 30; // Account for padding
+    const containerHeight = container.clientHeight - 50; // Account for padding and label
+    const contentWidth = 1920; // Standard overlay width
+    const contentHeight = 1080; // Standard overlay height
+    
+    const scaleX = containerWidth / contentWidth;
+    const scaleY = containerHeight / contentHeight;
+    const scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
+    
+    return scale;
+}
+
+/**
+ * Update preview scale
+ */
+function updatePreviewScale() {
+    const iframe = document.getElementById('gfx-preview');
+    if (!iframe) return;
+    
+    const scale = calculatePreviewScale();
+    iframe.style.transform = `scale(${scale})`;
+    
+    // Adjust container height to fit scaled content
+    const container = document.querySelector('.gfx-preview-container');
+    if (container) {
+        const scaledHeight = 1080 * scale;
+        const minHeight = Math.min(scaledHeight + 50, 600); // Max 600px including padding/label
+        container.style.minHeight = minHeight + 'px';
+        container.style.height = 'auto';
+    }
+}
+
+// Make function globally available for use in app.js
+window.updatePreviewScale = updatePreviewScale;
+
+/**
+ * Initialize preview auto-scaling
+ */
+function initializePreviewAutoScale() {
+    const iframe = document.getElementById('gfx-preview');
+    if (!iframe) return;
+    
+    // Update scale on iframe load
+    iframe.addEventListener('load', () => {
+        updatePreviewScale();
+    });
+    
+    // Update scale on window resize
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            updatePreviewScale();
+        }, 250); // Debounce resize events
+    });
+    
+    // Initial scale calculation
+    setTimeout(() => {
+        updatePreviewScale();
+    }, 500);
+}
+
+// ============================================================================
 // Initialization
 // ============================================================================
 
@@ -1404,11 +1491,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadSettings();
     initializeEventListeners();
     
+    // Initialize preview auto-scaling
+    initializePreviewAutoScale();
+    
     // Refresh preview after a delay to allow overlay to load
     setTimeout(() => {
         if (gfxElements.preview) {
             applySettingsToOverlay(currentSettings);
             updatePreview(currentSettings);
+            updatePreviewScale(); // Ensure scale is applied after preview loads
         }
     }, 1000);
 });

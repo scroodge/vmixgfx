@@ -65,6 +65,28 @@ class PeriodSetRequest(BaseModel):
     """Request model for setting period"""
     period: int = Field(..., ge=1, le=20)
 
+class PlayerCreate(BaseModel):
+    """Request model for creating a player"""
+    name: str = Field(..., min_length=1, max_length=50, description="Player name")
+
+class PlayerAssign(BaseModel):
+    """Request model for assigning player to match"""
+    player_id: str = Field(..., description="Player ID to assign")
+    team: str = Field(..., description="Must be 'home' or 'away'")
+    
+    @field_validator('team')
+    @classmethod
+    def validate_team(cls, v: str) -> str:
+        if v.lower() not in ['home', 'away']:
+            raise ValueError("team must be 'home' or 'away'")
+        return v.lower()
+
+class Player(BaseModel):
+    """Player model"""
+    id: str
+    name: str
+    created_at: float
+
 class WebSocketEvent(BaseModel):
     """WebSocket message structure"""
     type: str  # "state" | "score_changed" | "timer_started" | "timer_stopped" | "period_changed" | "setup" | "reset"
@@ -143,6 +165,10 @@ matches: Dict[str, MatchState] = {}
 
 # Store GFX settings per match (can be extended to database)
 gfx_settings: Dict[str, dict] = {}
+
+# Store players (can be extended to database)
+players: Dict[str, Player] = {}
+player_id_counter = 0
 
 # WebSocket connections per match
 connections: Dict[str, Set[WebSocket]] = defaultdict(set)
@@ -530,6 +556,73 @@ async def upload_background(match_id: str, file: UploadFile = File(...)):
         "message": "Background uploaded successfully",
         "settings": gfx_settings[match_id]
     }
+
+# ============================================================================
+# Players Management API
+# ============================================================================
+
+@app.post("/api/players")
+async def create_player(request: PlayerCreate):
+    """Add a new player to the database"""
+    global player_id_counter
+    
+    player_id_counter += 1
+    player_id = str(player_id_counter)
+    
+    player = Player(
+        id=player_id,
+        name=request.name,
+        created_at=time.time()
+    )
+    
+    players[player_id] = player
+    
+    return {"status": "ok", "player": player.model_dump()}
+
+@app.get("/api/players")
+async def get_players():
+    """Get all players"""
+    player_list = [player.model_dump() for player in players.values()]
+    # Sort by creation time (newest first)
+    player_list.sort(key=lambda x: x.get('created_at', 0), reverse=True)
+    return {"status": "ok", "players": player_list}
+
+@app.delete("/api/players/{player_id}")
+async def delete_player(player_id: str):
+    """Delete a player"""
+    if player_id not in players:
+        raise HTTPException(status_code=404, detail="Player not found")
+    
+    del players[player_id]
+    return {"status": "ok", "message": "Player deleted"}
+
+@app.post("/api/match/{match_id}/players/assign")
+async def assign_player_to_match(match_id: str, request: PlayerAssign):
+    """Assign a player to a match (home or away)"""
+    if request.player_id not in players:
+        raise HTTPException(status_code=404, detail="Player not found")
+    
+    player = players[request.player_id]
+    
+    async with state_lock:
+        state = get_or_create_match(match_id)
+        
+        if request.team == "home":
+            state.homeName = player.name
+        else:
+            state.awayName = player.name
+        
+        state.rev += 1
+        matches[match_id] = state
+        
+        await broadcast_event(match_id, "setup", state, {
+            "field": "player_name",
+            "team": request.team,
+            "player_id": request.player_id,
+            "player_name": player.name
+        })
+    
+    return {"status": "ok", "state": state.model_dump()}
 
 @app.get("/")
 async def root(request: Request):

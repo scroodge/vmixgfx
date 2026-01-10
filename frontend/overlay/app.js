@@ -487,6 +487,11 @@ function applyGFXSettings(settings) {
             }
         }
     }
+    
+    // Apply text areas if present (for text centering within defined areas)
+    if (settings.textAreas && typeof settings.textAreas === 'object') {
+        applyTextAreaSettings(settings.textAreas);
+    }
 }
 
 // Helper function to adjust color brightness for gradient
@@ -1352,6 +1357,17 @@ function initializeOverlay() {
     const params = new URLSearchParams(window.location.search);
     const isPreview = params.get('preview') === 'true';
     
+    // Check if edit mode is enabled
+    if (checkEditMode()) {
+        console.log('Edit mode enabled, initializing text area editor...');
+        // Wait a bit for DOM to be ready
+        setTimeout(() => {
+            enableTextAreaEditor();
+        }, 500);
+        // Don't connect WebSocket or fetch state in edit mode
+        return;
+    }
+    
     if (isPreview) {
         console.log('Initializing overlay preview for match:', matchId);
         // In preview mode, update immediately when settings change
@@ -1392,6 +1408,492 @@ function initializeOverlay() {
                 fetchState();
             }
         }
+    });
+}
+
+// ============================================================================
+// Text Area Editor Mode
+// ============================================================================
+
+let editMode = false;
+let textAreaElements = {};
+let isDragging = false;
+let isResizing = false;
+let currentArea = null;
+let dragOffset = { x: 0, y: 0 };
+
+/**
+ * Check if edit mode is enabled via URL parameter
+ */
+function checkEditMode() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('editMode') === 'true';
+}
+
+/**
+ * Enable text area editor mode
+ */
+function enableTextAreaEditor() {
+    editMode = true;
+    
+    // Create editor overlay
+    const editorOverlay = document.createElement('div');
+    editorOverlay.id = 'text-area-editor-overlay';
+    editorOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10000;
+        pointer-events: none;
+    `;
+    document.body.appendChild(editorOverlay);
+    
+    // Create areas for each text element
+    createTextArea('left', elements.scoreSection.querySelector('#score-left') || document.getElementById('score-left'));
+    createTextArea('center', elements.scoreSection.querySelector('#score-center') || document.getElementById('score-center'));
+    createTextArea('right', elements.scoreSection.querySelector('#score-right') || document.getElementById('score-right'));
+    createTextArea('info', elements.infoSection);
+    
+    // Add save button
+    const saveBtn = document.createElement('button');
+    saveBtn.id = 'save-text-areas-btn';
+    saveBtn.textContent = 'Save Text Areas';
+    saveBtn.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 10001;
+        padding: 15px 30px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        pointer-events: auto;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    `;
+    saveBtn.addEventListener('click', saveTextAreaSettings);
+    document.body.appendChild(saveBtn);
+    
+    // Add cancel button
+    const cancelBtn = document.createElement('button');
+    cancelBtn.id = 'cancel-text-areas-btn';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 180px;
+        z-index: 10001;
+        padding: 15px 30px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        pointer-events: auto;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    `;
+    cancelBtn.addEventListener('click', () => {
+        window.location.search = window.location.search.replace(/[?&]editMode=true/, '');
+    });
+    document.body.appendChild(cancelBtn);
+    
+    console.log('Text area editor mode enabled');
+}
+
+/**
+ * Create a draggable/resizable text area
+ */
+function createTextArea(areaKey, element) {
+    if (!element) {
+        console.warn(`Element not found for area: ${areaKey}`);
+        return;
+    }
+    
+    const rect = element.getBoundingClientRect();
+    const container = document.getElementById('text-area-editor-overlay');
+    
+    // Create area wrapper
+    const areaWrapper = document.createElement('div');
+    areaWrapper.className = 'text-area-wrapper';
+    areaWrapper.dataset.areaKey = areaKey;
+    areaWrapper.style.cssText = `
+        position: absolute;
+        left: ${rect.left}px;
+        top: ${rect.top}px;
+        width: ${rect.width}px;
+        height: ${rect.height}px;
+        border: 2px dashed #ffd700;
+        background: rgba(255, 215, 0, 0.1);
+        pointer-events: auto;
+        cursor: move;
+        z-index: 10001;
+    `;
+    
+    // Add label
+    const label = document.createElement('div');
+    label.textContent = areaKey.toUpperCase();
+    label.style.cssText = `
+        position: absolute;
+        top: -20px;
+        left: 0;
+        background: #ffd700;
+        color: #000;
+        padding: 2px 8px;
+        font-size: 12px;
+        font-weight: bold;
+        border-radius: 3px 3px 0 0;
+    `;
+    areaWrapper.appendChild(label);
+    
+    // Add resize handles
+    const handles = ['nw', 'ne', 'sw', 'se', 'n', 's', 'e', 'w'];
+    handles.forEach(handle => {
+        const handleEl = document.createElement('div');
+        handleEl.className = `resize-handle resize-handle-${handle}`;
+        handleEl.style.cssText = `
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            border: 1px solid #000;
+            cursor: ${getResizeCursor(handle)};
+            z-index: 10002;
+        `;
+        
+        const positions = getResizeHandlePosition(handle, rect.width, rect.height);
+        handleEl.style.left = positions.x + 'px';
+        handleEl.style.top = positions.y + 'px';
+        
+        handleEl.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+            startResize(areaKey, handle, e);
+        });
+        
+        areaWrapper.appendChild(handleEl);
+    });
+    
+    // Make draggable
+    areaWrapper.addEventListener('mousedown', (e) => {
+        if (e.target.classList.contains('resize-handle')) return;
+        startDrag(areaKey, e);
+    });
+    
+    container.appendChild(areaWrapper);
+    textAreaElements[areaKey] = {
+        wrapper: areaWrapper,
+        element: element,
+        rect: rect
+    };
+}
+
+/**
+ * Get resize cursor based on handle position
+ */
+function getResizeCursor(handle) {
+    const cursors = {
+        'nw': 'nw-resize',
+        'ne': 'ne-resize',
+        'sw': 'sw-resize',
+        'se': 'se-resize',
+        'n': 'n-resize',
+        's': 's-resize',
+        'e': 'e-resize',
+        'w': 'w-resize'
+    };
+    return cursors[handle] || 'default';
+}
+
+/**
+ * Get resize handle position
+ */
+function getResizeHandlePosition(handle, width, height) {
+    const positions = {
+        'nw': { x: -5, y: -5 },
+        'ne': { x: width - 5, y: -5 },
+        'sw': { x: -5, y: height - 5 },
+        'se': { x: width - 5, y: height - 5 },
+        'n': { x: width / 2 - 5, y: -5 },
+        's': { x: width / 2 - 5, y: height - 5 },
+        'e': { x: width - 5, y: height / 2 - 5 },
+        'w': { x: -5, y: height / 2 - 5 }
+    };
+    return positions[handle] || { x: 0, y: 0 };
+}
+
+/**
+ * Start dragging an area
+ */
+function startDrag(areaKey, e) {
+    isDragging = true;
+    currentArea = areaKey;
+    const wrapper = textAreaElements[areaKey].wrapper;
+    const rect = wrapper.getBoundingClientRect();
+    dragOffset.x = e.clientX - rect.left;
+    dragOffset.y = e.clientY - rect.top;
+    
+    document.addEventListener('mousemove', onDrag);
+    document.addEventListener('mouseup', stopDrag);
+    e.preventDefault();
+}
+
+/**
+ * Handle drag
+ */
+function onDrag(e) {
+    if (!isDragging || !currentArea) return;
+    
+    const wrapper = textAreaElements[currentArea].wrapper;
+    const container = wrapper.parentElement;
+    const containerRect = container.getBoundingClientRect();
+    
+    let newX = e.clientX - containerRect.left - dragOffset.x;
+    let newY = e.clientY - containerRect.top - dragOffset.y;
+    
+    // Constrain to container bounds
+    newX = Math.max(0, Math.min(newX, containerRect.width - wrapper.offsetWidth));
+    newY = Math.max(0, Math.min(newY, containerRect.height - wrapper.offsetHeight));
+    
+    wrapper.style.left = newX + 'px';
+    wrapper.style.top = newY + 'px';
+}
+
+/**
+ * Stop dragging
+ */
+function stopDrag() {
+    isDragging = false;
+    currentArea = null;
+    document.removeEventListener('mousemove', onDrag);
+    document.removeEventListener('mouseup', stopDrag);
+}
+
+/**
+ * Start resizing an area
+ */
+function startResize(areaKey, handle, e) {
+    isResizing = true;
+    currentArea = areaKey;
+    const wrapper = textAreaElements[areaKey].wrapper;
+    const startRect = wrapper.getBoundingClientRect();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    
+    function onResize(e) {
+        if (!isResizing || !currentArea) return;
+        
+        const wrapper = textAreaElements[currentArea].wrapper;
+        const container = wrapper.parentElement;
+        const containerRect = container.getBoundingClientRect();
+        
+        let deltaX = e.clientX - startX;
+        let deltaY = e.clientY - startY;
+        
+        let newWidth = startRect.width;
+        let newHeight = startRect.height;
+        let newLeft = startRect.left - containerRect.left;
+        let newTop = startRect.top - containerRect.top;
+        
+        // Handle different resize directions
+        if (handle.includes('e')) {
+            newWidth = Math.max(50, startRect.width + deltaX);
+        }
+        if (handle.includes('w')) {
+            newWidth = Math.max(50, startRect.width - deltaX);
+            newLeft = startRect.left - containerRect.left + deltaX;
+        }
+        if (handle.includes('s')) {
+            newHeight = Math.max(50, startRect.height + deltaY);
+        }
+        if (handle.includes('n')) {
+            newHeight = Math.max(50, startRect.height - deltaY);
+            newTop = startRect.top - containerRect.top + deltaY;
+        }
+        
+        // Constrain to container bounds
+        if (newLeft < 0) {
+            newWidth += newLeft;
+            newLeft = 0;
+        }
+        if (newTop < 0) {
+            newHeight += newTop;
+            newTop = 0;
+        }
+        if (newLeft + newWidth > containerRect.width) {
+            newWidth = containerRect.width - newLeft;
+        }
+        if (newTop + newHeight > containerRect.height) {
+            newHeight = containerRect.height - newTop;
+        }
+        
+        wrapper.style.width = newWidth + 'px';
+        wrapper.style.height = newHeight + 'px';
+        wrapper.style.left = newLeft + 'px';
+        wrapper.style.top = newTop + 'px';
+        
+        // Update resize handles positions
+        updateResizeHandles(wrapper, newWidth, newHeight);
+    }
+    
+    function stopResize() {
+        isResizing = false;
+        currentArea = null;
+        document.removeEventListener('mousemove', onResize);
+        document.removeEventListener('mouseup', stopResize);
+    }
+    
+    document.addEventListener('mousemove', onResize);
+    document.addEventListener('mouseup', stopResize);
+    e.preventDefault();
+}
+
+/**
+ * Update resize handles positions
+ */
+function updateResizeHandles(wrapper, width, height) {
+    const handles = wrapper.querySelectorAll('.resize-handle');
+    handles.forEach(handle => {
+        const handleType = handle.className.match(/resize-handle-(\w+)/)[1];
+        const positions = getResizeHandlePosition(handleType, width, height);
+        handle.style.left = positions.x + 'px';
+        handle.style.top = positions.y + 'px';
+    });
+}
+
+/**
+ * Save text area settings to API
+ */
+async function saveTextAreaSettings() {
+    if (!editMode) return;
+    
+    const settings = {
+        textAreas: {}
+    };
+    
+    const container = document.getElementById('text-area-editor-overlay');
+    if (!container) return;
+    
+    const containerRect = container.getBoundingClientRect();
+    const overlayContainer = document.querySelector('.overlay-container');
+    const overlayRect = overlayContainer ? overlayContainer.getBoundingClientRect() : containerRect;
+    
+    // Convert pixel positions to percentages relative to overlay container
+    Object.keys(textAreaElements).forEach(areaKey => {
+        const wrapper = textAreaElements[areaKey].wrapper;
+        const wrapperRect = wrapper.getBoundingClientRect();
+        
+        // Calculate percentage positions relative to overlay container
+        const x = ((wrapperRect.left - overlayRect.left) / overlayRect.width) * 100;
+        const y = ((wrapperRect.top - overlayRect.top) / overlayRect.height) * 100;
+        const width = (wrapperRect.width / overlayRect.width) * 100;
+        const height = (wrapperRect.height / overlayRect.height) * 100;
+        
+        settings.textAreas[areaKey] = {
+            x: Math.max(0, Math.min(100, x)),
+            y: Math.max(0, Math.min(100, y)),
+            width: Math.max(5, Math.min(100, width)),
+            height: Math.max(5, Math.min(100, height))
+        };
+    });
+    
+    try {
+        // Get current GFX settings
+        const response = await fetch(`/api/match/${matchId}/gfx-settings`);
+        let gfxSettings = {};
+        if (response.ok) {
+            const data = await response.json();
+            if (data && Object.keys(data).length > 0) {
+                gfxSettings = data;
+            }
+        }
+        
+        // Merge text area settings
+        gfxSettings.textAreas = settings.textAreas;
+        
+        // Save to API
+        const saveResponse = await fetch(`/api/match/${matchId}/gfx-settings`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(gfxSettings)
+        });
+        
+        if (saveResponse.ok) {
+            alert(t('textAreasSaved') || 'Text areas saved successfully!');
+            // Apply settings immediately
+            applyTextAreaSettings(gfxSettings.textAreas);
+            // Exit edit mode
+            window.location.search = window.location.search.replace(/[?&]editMode=true/, '');
+        } else {
+            alert(t('error') || 'Error saving text areas');
+        }
+    } catch (error) {
+        console.error('Failed to save text area settings:', error);
+        alert(t('connectionError') || 'Connection error');
+    }
+}
+
+/**
+ * Apply text area settings to overlay
+ */
+function applyTextAreaSettings(textAreas) {
+    if (!textAreas || typeof textAreas !== 'object') return;
+    
+    // Note: overlay-container has position: relative by default, or position: absolute when class is added
+    // In both cases, percentage-based positioning on children works relative to the container
+    // So text areas will be positioned correctly relative to overlay-container dimensions
+    
+    Object.keys(textAreas).forEach(areaKey => {
+        const area = textAreas[areaKey];
+        if (!area || typeof area !== 'object') return;
+        
+        const element = document.getElementById(`score-${areaKey}`) || 
+                       (areaKey === 'info' ? elements.infoSection : null) ||
+                       (areaKey === 'left' ? document.getElementById('score-left') : null) ||
+                       (areaKey === 'center' ? document.getElementById('score-center') : null) ||
+                       (areaKey === 'right' ? document.getElementById('score-right') : null);
+        
+        if (!element) {
+            console.warn(`Element not found for text area: ${areaKey}`);
+            return;
+        }
+        
+        // Apply CSS variables or inline styles for positioning
+        element.style.position = 'absolute';
+        element.style.left = area.x + '%';
+        element.style.top = area.y + '%';
+        element.style.width = area.width + '%';
+        element.style.height = area.height + '%';
+        element.style.display = 'flex';
+        element.style.alignItems = 'center';
+        element.style.justifyContent = 'center';
+        element.style.textAlign = 'center';
+        element.style.margin = '0';
+        element.style.transform = 'none'; // Remove any existing transforms for accurate positioning
+        
+        // Ensure text is centered within the area
+        const innerElements = element.querySelectorAll('div, span');
+        innerElements.forEach(inner => {
+            inner.style.width = '100%';
+            inner.style.textAlign = 'center';
+            inner.style.display = 'flex';
+            inner.style.alignItems = 'center';
+            inner.style.justifyContent = 'center';
+        });
+        
+        console.log(`📍 Applied text area ${areaKey}:`, {
+            x: area.x + '%',
+            y: area.y + '%',
+            width: area.width + '%',
+            height: area.height + '%'
+        });
     });
 }
 

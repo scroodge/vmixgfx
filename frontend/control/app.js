@@ -64,6 +64,13 @@ const elements = {
     showTimerDisplay: document.getElementById('show-timer-display'),
     showMatchScoreNextTimer: document.getElementById('show-match-score-next-timer'),
     
+    // Player Management
+    playerNameInput: document.getElementById('player-name-input'),
+    addPlayerBtn: document.getElementById('add-player-btn'),
+    playersList: document.getElementById('players-list'),
+    player1Buttons: document.getElementById('player1-buttons'),
+    player2Buttons: document.getElementById('player2-buttons'),
+    
     // Reset
     resetBtn: document.getElementById('reset-btn')
 };
@@ -168,6 +175,9 @@ function updateUI(state) {
     if (elements.awayName.value === '' || elements.awayName.value === elements.awayName.defaultValue) {
         elements.awayName.value = state.awayName || '';
     }
+    
+    // Update player button selection
+    updatePlayerButtonSelection();
 }
 
 /**
@@ -185,6 +195,232 @@ async function fetchState() {
         console.error('Failed to fetch state:', error);
     }
     return null;
+}
+
+// ============================================================================
+// Player Management Functions
+// ============================================================================
+
+let playersList = [];
+
+/**
+ * Load players from API
+ */
+async function loadPlayers() {
+    try {
+        const response = await fetch(`${API_BASE}/api/players`);
+        if (response.ok) {
+            const data = await response.json();
+            playersList = data.players || [];
+            renderPlayersList();
+            renderPlayerButtons();
+            return playersList;
+        }
+    } catch (error) {
+        console.error('Failed to load players:', error);
+    }
+    return [];
+}
+
+/**
+ * Add a new player
+ */
+async function addPlayer(playerName) {
+    if (!playerName || !playerName.trim()) {
+        alert(t('playerNameRequired') || 'Player name is required');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/players`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: playerName.trim() })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            playersList.push(data.player);
+            renderPlayersList();
+            renderPlayerButtons();
+            
+            // Clear input
+            if (elements.playerNameInput) {
+                elements.playerNameInput.value = '';
+            }
+            
+            return data.player;
+        } else {
+            const error = await response.json();
+            alert(`${t('error') || 'Error'}: ${error.detail || t('unknownError') || 'Unknown error'}`);
+        }
+    } catch (error) {
+        console.error('Failed to add player:', error);
+        alert(t('connectionError') || 'Connection error');
+    }
+    return null;
+}
+
+/**
+ * Delete a player
+ */
+async function deletePlayer(playerId) {
+    if (!confirm(t('deletePlayerConfirm') || 'Are you sure you want to delete this player?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/players/${playerId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            playersList = playersList.filter(p => p.id !== playerId);
+            renderPlayersList();
+            renderPlayerButtons();
+            return true;
+        } else {
+            const error = await response.json();
+            alert(`${t('error') || 'Error'}: ${error.detail || t('unknownError') || 'Unknown error'}`);
+        }
+    } catch (error) {
+        console.error('Failed to delete player:', error);
+        alert(t('connectionError') || 'Connection error');
+    }
+    return false;
+}
+
+/**
+ * Render players list
+ */
+function renderPlayersList() {
+    if (!elements.playersList) return;
+    
+    elements.playersList.innerHTML = '';
+    
+    if (playersList.length === 0) {
+        elements.playersList.innerHTML = '<p style="color: #999; font-style: italic;">' + (t('noPlayers') || 'No players imported yet') + '</p>';
+        return;
+    }
+    
+    playersList.forEach(player => {
+        const playerItem = document.createElement('div');
+        playerItem.className = 'player-item';
+        playerItem.innerHTML = `
+            <span class="player-item-name">${player.name}</span>
+            <button class="player-item-delete" onclick="deletePlayer('${player.id}')" data-i18n="delete">Delete</button>
+        `;
+        elements.playersList.appendChild(playerItem);
+    });
+}
+
+/**
+ * Render player buttons in two columns
+ */
+function renderPlayerButtons() {
+    if (!elements.player1Buttons || !elements.player2Buttons) return;
+    
+    // Clear existing buttons
+    elements.player1Buttons.innerHTML = '';
+    elements.player2Buttons.innerHTML = '';
+    
+    if (playersList.length === 0) {
+        elements.player1Buttons.innerHTML = '<p style="color: #999; font-size: 12px; text-align: center; padding: 10px;">' + (t('noPlayers') || 'No players') + '</p>';
+        elements.player2Buttons.innerHTML = '<p style="color: #999; font-size: 12px; text-align: center; padding: 10px;">' + (t('noPlayers') || 'No players') + '</p>';
+        return;
+    }
+    
+    // Create buttons for each player (same buttons in both columns)
+    playersList.forEach(player => {
+        // Player 1 (Home) column
+        const btn1 = document.createElement('button');
+        btn1.className = 'player-button';
+        btn1.textContent = player.name;
+        btn1.dataset.playerId = player.id;
+        btn1.dataset.playerName = player.name;
+        btn1.dataset.team = 'home';
+        btn1.addEventListener('click', () => assignPlayerToMatch(player.id, 'home', player.name));
+        elements.player1Buttons.appendChild(btn1);
+        
+        // Player 2 (Away) column
+        const btn2 = document.createElement('button');
+        btn2.className = 'player-button';
+        btn2.textContent = player.name;
+        btn2.dataset.playerId = player.id;
+        btn2.dataset.playerName = player.name;
+        btn2.dataset.team = 'away';
+        btn2.addEventListener('click', () => assignPlayerToMatch(player.id, 'away', player.name));
+        elements.player2Buttons.appendChild(btn2);
+    });
+    
+    // Highlight current players if state is available
+    if (currentState) {
+        updatePlayerButtonSelection();
+    }
+}
+
+/**
+ * Assign a player to a match (home or away)
+ */
+async function assignPlayerToMatch(playerId, team, playerName) {
+    try {
+        const response = await fetch(`${API_BASE}/api/match/${matchId}/players/assign`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                player_id: playerId,
+                team: team
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.state) {
+                updateUI(data.state);
+                updatePlayerButtonSelection();
+            }
+        } else {
+            const error = await response.json();
+            alert(`${t('error') || 'Error'}: ${error.detail || t('unknownError') || 'Unknown error'}`);
+        }
+    } catch (error) {
+        console.error('Failed to assign player:', error);
+        alert(t('connectionError') || 'Connection error');
+    }
+}
+
+/**
+ * Update player button selection based on current state
+ */
+function updatePlayerButtonSelection() {
+    if (!currentState) return;
+    
+    // Remove all selected classes
+    const allButtons = document.querySelectorAll('.player-button');
+    allButtons.forEach(btn => btn.classList.remove('selected'));
+    
+    // Select buttons matching current player names
+    if (currentState.homeName) {
+        const homeButtons = elements.player1Buttons.querySelectorAll('.player-button');
+        homeButtons.forEach(btn => {
+            if (btn.dataset.playerName === currentState.homeName) {
+                btn.classList.add('selected');
+            }
+        });
+    }
+    
+    if (currentState.awayName) {
+        const awayButtons = elements.player2Buttons.querySelectorAll('.player-button');
+        awayButtons.forEach(btn => {
+            if (btn.dataset.playerName === currentState.awayName) {
+                btn.classList.add('selected');
+            }
+        });
+    }
 }
 
 // ============================================================================
@@ -304,6 +540,12 @@ elements.matchIdInput.addEventListener('change', () => {
     const previewFrame = document.getElementById('gfx-preview');
     if (previewFrame) {
         previewFrame.src = `/overlay?matchId=${matchId}&preview=true`;
+        // Update scale after iframe loads (if preview scale function is available)
+        previewFrame.addEventListener('load', () => {
+            if (typeof updatePreviewScale === 'function') {
+                setTimeout(() => updatePreviewScale(), 500);
+            }
+        }, { once: true });
     }
 });
 
@@ -323,6 +565,30 @@ elements.setupBtn.addEventListener('click', async () => {
         timerSeconds: totalSeconds
     });
 });
+
+// Player management
+if (elements.addPlayerBtn) {
+    elements.addPlayerBtn.addEventListener('click', async () => {
+        const playerName = elements.playerNameInput?.value.trim();
+        if (playerName) {
+            await addPlayer(playerName);
+        }
+    });
+}
+
+if (elements.playerNameInput) {
+    elements.playerNameInput.addEventListener('keypress', async (e) => {
+        if (e.key === 'Enter') {
+            const playerName = elements.playerNameInput.value.trim();
+            if (playerName) {
+                await addPlayer(playerName);
+            }
+        }
+    });
+}
+
+// Make deletePlayer available globally for onclick handlers
+window.deletePlayer = deletePlayer;
 
 // Score buttons
 elements.homePlus.addEventListener('click', () => apiCall('/score', 'POST', { team: 'home', delta: 1 }));
@@ -599,6 +865,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Load visibility settings (async, from API first)
     await loadVisibilitySettings();
+    
+    // Load players list
+    await loadPlayers();
     
     // Fetch initial state
     fetchState().then(() => {

@@ -150,6 +150,23 @@ const translations = {
         'importSettings': 'Import Settings',
         'applyToOverlay': 'Apply to Overlay',
         'resetChanges': 'Reset Changes',
+        'editTextAreas': 'Edit Text Areas (Interactive)',
+        'editTextAreasHint': 'Open an interactive editor to drag and resize text areas for perfect centering',
+        'textAreasSaved': 'Text areas saved successfully!',
+        
+        // Player Names Management
+        'playerNames': 'Player Names',
+        'addPlayerName': 'Add Player Name:',
+        'enterPlayerName': 'Enter player name',
+        'add': 'Add',
+        'importedPlayers': 'Imported Players:',
+        'selectPlayers': 'Select Players:',
+        'player1': 'Player 1 (Left)',
+        'player2': 'Player 2 (Right)',
+        'delete': 'Delete',
+        'playerNameRequired': 'Player name is required',
+        'deletePlayerConfirm': 'Are you sure you want to delete this player?',
+        'noPlayers': 'No players imported yet',
         
         // Overlay
         'gameLabel': 'Game'
@@ -300,6 +317,23 @@ const translations = {
         'importSettings': 'Импорт настроек',
         'applyToOverlay': 'Применить к оверлею',
         'resetChanges': 'Сбросить изменения',
+        'editTextAreas': 'Редактировать области текста (Интерактивно)',
+        'editTextAreasHint': 'Открыть интерактивный редактор для перетаскивания и изменения размера областей текста для идеального центрирования',
+        'textAreasSaved': 'Области текста успешно сохранены!',
+        
+        // Player Names Management
+        'playerNames': 'Имена игроков',
+        'addPlayerName': 'Добавить имя игрока:',
+        'enterPlayerName': 'Введите имя игрока',
+        'add': 'Добавить',
+        'importedPlayers': 'Импортированные игроки:',
+        'selectPlayers': 'Выбрать игроков:',
+        'player1': 'Игрок 1 (Слева)',
+        'player2': 'Игрок 2 (Справа)',
+        'delete': 'Удалить',
+        'playerNameRequired': 'Имя игрока обязательно',
+        'deletePlayerConfirm': 'Вы уверены, что хотите удалить этого игрока?',
+        'noPlayers': 'Игроки еще не импортированы',
         
         // Overlay
         'gameLabel': 'Игра'
@@ -450,6 +484,23 @@ const translations = {
         'importSettings': 'Імпарт налад',
         'applyToOverlay': 'Прымяніць да оверлея',
         'resetChanges': 'Скінуць змены',
+        'editTextAreas': 'Рэдагаваць вобласці тэксту (Інтэрактыўна)',
+        'editTextAreasHint': 'Адкрыць інтэрактыўны рэдактар для перацягвання і змены памеру вобласцяў тэксту для ідэальнага цэнтравання',
+        'textAreasSaved': 'Вобласці тэксту паспяхова захаваны!',
+        
+        // Player Names Management
+        'playerNames': 'Імёны гульцоў',
+        'addPlayerName': 'Дадаць імя гульца:',
+        'enterPlayerName': 'Увядзіце імя гульца',
+        'add': 'Дадаць',
+        'importedPlayers': 'Імпартаваныя гульцы:',
+        'selectPlayers': 'Выбраць гульцоў:',
+        'player1': 'Гулец 1 (Злева)',
+        'player2': 'Гулец 2 (Справа)',
+        'delete': 'Выдаліць',
+        'playerNameRequired': 'Імя гульца абавязкова',
+        'deletePlayerConfirm': 'Вы ўпэўнены, што хочаце выдаліць гэтага гульца?',
+        'noPlayers': 'Гульцы яшчэ не імпартаваны',
         
         // Overlay
         'gameLabel': 'Гульня'
