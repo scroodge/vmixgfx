@@ -276,6 +276,14 @@ function applyGFXSettings(settings) {
                     bgValue = `linear-gradient(${angle}deg, ${color1}, ${color2})`;
                 }
             } else if (bg.type === 'image' && bg.imageUrl) {
+                console.log('🖼️ Applying background image:', {
+                    imageUrl: bg.imageUrl.substring(0, 50) + '...',
+                    imageSize: bg.imageSize,
+                    imageOpacity: bg.imageOpacity,
+                    imagePositionX: bg.imagePositionX,
+                    imagePositionY: bg.imagePositionY
+                });
+                
                 const opacity = (bg.imageOpacity || 100) / 100;
                 const size = bg.imageSize || 'cover';
                 
@@ -291,37 +299,38 @@ function applyGFXSettings(settings) {
                             (bg.imagePositionY === 'bottom' ? '100%' : 
                              (bg.imagePositionY || '50%'))));
                 
-                // Build background value with opacity overlay
-                bgValue = `linear-gradient(rgba(0,0,0,${1 - opacity}), rgba(0,0,0,${1 - opacity})), url('${bg.imageUrl}')`;
+                // Build complete background shorthand with all properties
+                // This ensures all background properties are set together
+                const bgImageValue = opacity < 1 
+                    ? `linear-gradient(rgba(0,0,0,${1 - opacity}), rgba(0,0,0,${1 - opacity})), url('${bg.imageUrl}')`
+                    : `url('${bg.imageUrl}')`;
                 
-                // Set background position FIRST (before other properties to avoid reset)
                 const bgPosition = `${posX} ${posY}`;
                 
-                // Set all background properties in correct order
-                // Use individual properties instead of shorthand to preserve position
-                container.style.backgroundImage = bgValue.includes('linear-gradient') ? 
-                    `linear-gradient(rgba(0,0,0,${1 - opacity}), rgba(0,0,0,${1 - opacity})), url('${bg.imageUrl}')` : 
-                    `url('${bg.imageUrl}')`;
+                // Use complete background shorthand to avoid conflicts
+                container.style.background = `${bgImageValue} ${bgPosition} / ${size} no-repeat scroll`;
+                
+                // Also set individual properties as backup (some browsers need this)
+                container.style.backgroundImage = bgImageValue;
                 container.style.backgroundSize = size;
                 container.style.backgroundRepeat = 'no-repeat';
                 container.style.backgroundPosition = bgPosition;
                 container.style.backgroundAttachment = 'scroll';
                 
-                // Force reflow to ensure position is applied
+                // Force reflow to ensure styles are applied
                 void container.offsetWidth;
                 
-                // Verify the position was actually applied
-                const computedPosition = window.getComputedStyle(container).backgroundPosition;
-                console.log('✅ Background position updated:', {
-                    requested: bgPosition,
-                    computed: computedPosition,
-                    size: size,
-                    posX: posX,
-                    posY: posY
+                // Verify the styles were actually applied
+                const computedStyle = window.getComputedStyle(container);
+                console.log('✅ Background image applied:', {
+                    backgroundImage: computedStyle.backgroundImage.substring(0, 50),
+                    backgroundSize: computedStyle.backgroundSize,
+                    backgroundPosition: computedStyle.backgroundPosition,
+                    containerExists: !!container,
+                    containerVisible: computedStyle.display !== 'none'
                 });
                 
                 // When background image is uploaded, set flag
-                // Horizontal layout is always shown (text-only)
                 container.dataset.hasUploadedBackground = 'true';
                 
                 // Ensure horizontal layout is visible (banner is always hidden)
@@ -338,10 +347,21 @@ function applyGFXSettings(settings) {
                 // No uploaded image - clear the flag and restore normal layout behavior
                 if (container) {
                     container.dataset.hasUploadedBackground = 'false';
+                    // Clear background image properties
+                    container.style.backgroundImage = '';
+                    container.style.backgroundSize = '';
+                    container.style.backgroundRepeat = '';
+                    container.style.backgroundPosition = '';
+                    container.style.backgroundAttachment = '';
                 }
             }
             
-            container.style.background = bgValue;
+            // Only use bgValue shorthand for solid and gradient types
+            // For image type, complete background was already set above
+            if (bg.type === 'solid' || bg.type === 'gradient') {
+                container.style.background = bgValue;
+            }
+            // For image type, background is already set above with complete shorthand
         }
         
         // Score section background
@@ -594,9 +614,26 @@ const isPreview = window.location.search.includes('preview=true');
 if (isPreview) {
     window.addEventListener('message', (event) => {
         if (event.data && event.data.type === 'gfxSettings') {
+            console.log('📨 Received gfxSettings via postMessage');
             applyGFXSettings(event.data.settings);
             // Cache in localStorage for preview mode only
             localStorage.setItem('gfxSettings', JSON.stringify(event.data.settings));
+        } else if (event.data && event.data.type === 'reloadGFXSettings') {
+            // Reload settings from API (useful after background upload)
+            console.log('🔄 Reloading GFX settings from API...');
+            const matchId = event.data.matchId || getMatchId();
+            fetch(`/api/match/${matchId}/gfx-settings`)
+                .then(response => response.json())
+                .then(settings => {
+                    if (settings && Object.keys(settings).length > 0) {
+                        console.log('✅ GFX settings reloaded from API');
+                        applyGFXSettings(settings);
+                        localStorage.setItem('gfxSettings', JSON.stringify(settings));
+                    }
+                })
+                .catch(err => {
+                    console.error('⚠️ Failed to reload GFX settings from API:', err);
+                });
         } else if (event.data && event.data.type === 'visibilityUpdate') {
             // Handle visibility updates (preview mode)
             updateVisibility(

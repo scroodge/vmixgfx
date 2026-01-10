@@ -1159,15 +1159,24 @@ function initializeEventListeners() {
             
             if (response.ok) {
                 const data = await response.json();
+                // Use the settings returned from API (they include the uploaded background)
+                const uploadedSettings = data.settings || currentSettings;
+                
                 // Update current settings with uploaded background
+                if (!uploadedSettings.backgrounds) uploadedSettings.backgrounds = {};
+                if (!uploadedSettings.backgrounds.container) uploadedSettings.backgrounds.container = {};
+                uploadedSettings.backgrounds.container.type = 'image';
+                uploadedSettings.backgrounds.container.imageUrl = uploadedSettings.backgrounds.container.imageUrl || data.settings.backgrounds.container.imageUrl;
+                uploadedSettings.backgrounds.container.imageSize = uploadedSettings.backgrounds.container.imageSize || 'cover';
+                uploadedSettings.backgrounds.container.imageOpacity = uploadedSettings.backgrounds.container.imageOpacity || 100;
+                uploadedSettings.backgrounds.container.imagePositionX = uploadedSettings.backgrounds.container.imagePositionX || 50;
+                uploadedSettings.backgrounds.container.imagePositionY = uploadedSettings.backgrounds.container.imagePositionY || 50;
+                
+                // Merge with current settings to preserve other settings
+                currentSettings = { ...currentSettings, ...uploadedSettings };
                 if (!currentSettings.backgrounds) currentSettings.backgrounds = {};
                 if (!currentSettings.backgrounds.container) currentSettings.backgrounds.container = {};
-                currentSettings.backgrounds.container.type = 'image';
-                currentSettings.backgrounds.container.imageUrl = data.settings.backgrounds.container.imageUrl;
-                currentSettings.backgrounds.container.imageSize = 'cover';
-                currentSettings.backgrounds.container.imageOpacity = 100;
-                currentSettings.backgrounds.container.imagePositionX = data.settings.backgrounds.container.imagePositionX || 50;
-                currentSettings.backgrounds.container.imagePositionY = data.settings.backgrounds.container.imagePositionY || 50;
+                currentSettings.backgrounds.container = { ...currentSettings.backgrounds.container, ...uploadedSettings.backgrounds.container };
                 
                 // Update UI
                 if (gfxElements.bgContainerType) {
@@ -1175,13 +1184,13 @@ function initializeEventListeners() {
                     updateBackgroundControls('container', 'image');
                 }
                 if (gfxElements.bgContainerImageUrl) {
-                    gfxElements.bgContainerImageUrl.value = data.settings.backgrounds.container.imageUrl;
+                    gfxElements.bgContainerImageUrl.value = currentSettings.backgrounds.container.imageUrl;
                 }
                 // Convert position to number if needed
-                const posX = typeof data.settings.backgrounds.container.imagePositionX === 'number' ? 
-                             data.settings.backgrounds.container.imagePositionX : 50;
-                const posY = typeof data.settings.backgrounds.container.imagePositionY === 'number' ? 
-                             data.settings.backgrounds.container.imagePositionY : 50;
+                const posX = typeof currentSettings.backgrounds.container.imagePositionX === 'number' ? 
+                             currentSettings.backgrounds.container.imagePositionX : 50;
+                const posY = typeof currentSettings.backgrounds.container.imagePositionY === 'number' ? 
+                             currentSettings.backgrounds.container.imagePositionY : 50;
                              
                 if (gfxElements.bgContainerImagePositionX) {
                     gfxElements.bgContainerImagePositionX.value = posX;
@@ -1196,9 +1205,29 @@ function initializeEventListeners() {
                     gfxElements.bgContainerImagePositionYValue.textContent = posY + '%';
                 }
                 
+                // Save merged settings
                 saveSettings();
                 applySettingsToOverlay(currentSettings);
+                
+                // Force update preview with full settings including background
+                // Send settings immediately via postMessage
+                console.log('📤 Sending background settings to preview iframe:', currentSettings.backgrounds?.container);
                 updatePreview(currentSettings);
+                
+                // Also trigger reload from API after a delay to ensure settings are saved
+                setTimeout(() => {
+                    if (gfxElements.preview && gfxElements.preview.contentWindow) {
+                        try {
+                            // Send message to force reload from API
+                            gfxElements.preview.contentWindow.postMessage({
+                                type: 'reloadGFXSettings',
+                                matchId: matchId
+                            }, '*');
+                        } catch (e) {
+                            console.error('Failed to send reload message to preview:', e);
+                        }
+                    }
+                }, 500);
                 
                 gfxElements.backgroundUploadStatus.textContent = 'Background uploaded successfully!';
                 gfxElements.backgroundUploadStatus.style.color = '#44ff44';
