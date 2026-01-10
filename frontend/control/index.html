@@ -29,17 +29,28 @@
         </header>
 
         <main>
+            <!-- Tournament Management Section -->
+            <section class="panel tournament-panel">
+                <h2 data-i18n="tournamentManagement">Tournament Management</h2>
+                <div class="tournament-selector-group">
+                    <div class="form-group">
+                        <label for="tournament-select" data-i18n="currentTournament">Current Tournament:</label>
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <select id="tournament-select" class="tournament-select" style="flex: 1; min-width: 200px;">
+                                <option value="">Loading...</option>
+                            </select>
+                            <button id="create-tournament-btn" class="btn btn-small" data-i18n="createTournament">Create New</button>
+                            <button id="edit-tournament-btn" class="btn btn-small" data-i18n="editTournament">Edit</button>
+                            <button id="delete-tournament-btn" class="btn btn-small btn-danger" data-i18n="deleteTournament">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Setup Section -->
             <section class="panel setup-panel">
                 <h2 data-i18n="gameSetup">Game Setup</h2>
-                <div class="form-group">
-                    <label for="home-name" data-i18n="player1Name">Player 1 Name:</label>
-                    <input type="text" id="home-name" data-i18n-placeholder="player1Name" placeholder="Player 1" />
-                </div>
-                <div class="form-group">
-                    <label for="away-name" data-i18n="player2Name">Player 2 Name:</label>
-                    <input type="text" id="away-name" data-i18n-placeholder="player2Name" placeholder="Player 2" />
-                </div>
+                <p style="color: #666; margin-bottom: 15px; font-size: 14px;" data-i18n="gameSetupHint">Player names are selected via Player Names section below. Use this section to set Game number and Timer.</p>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="period-input" data-i18n="game">Game:</label>
@@ -821,6 +832,47 @@
                 </div>
             </section>
         </main>
+
+        <!-- Tournament Management Modals -->
+        <!-- Create Tournament Modal -->
+        <div id="create-tournament-modal" class="modal-overlay" style="display: none;">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 data-i18n="createTournament">Create Tournament</h3>
+                    <button class="modal-close" onclick="closeTournamentModals()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="new-tournament-name" data-i18n="tournamentName">Tournament Name:</label>
+                        <input type="text" id="new-tournament-name" maxlength="100" data-i18n-placeholder="enterTournamentName" placeholder="Enter tournament name" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="create-tournament-confirm" class="btn btn-primary" data-i18n="create">Create</button>
+                    <button id="create-tournament-cancel" class="btn btn-small" onclick="closeTournamentModals()" data-i18n="cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Tournament Modal -->
+        <div id="edit-tournament-modal" class="modal-overlay" style="display: none;">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 data-i18n="editTournament">Edit Tournament</h3>
+                    <button class="modal-close" onclick="closeTournamentModals()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="edit-tournament-name" data-i18n="tournamentName">Tournament Name:</label>
+                        <input type="text" id="edit-tournament-name" maxlength="100" data-i18n-placeholder="enterTournamentName" placeholder="Enter tournament name" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="edit-tournament-confirm" class="btn btn-primary" data-i18n="save">Save</button>
+                    <button id="edit-tournament-cancel" class="btn btn-small" onclick="closeTournamentModals()" data-i18n="cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="/frontend/translations.js"></script>

@@ -11,6 +11,8 @@ let reconnectTimeout = null;
 let reconnectDelay = 1000; // Start with 1 second
 const maxReconnectDelay = 8000; // Max 8 seconds
 let currentState = null;
+let currentTournamentId = null;
+let tournamentsList = [];
 
 // DOM Elements
 const elements = {
@@ -18,9 +20,19 @@ const elements = {
     connectionStatus: document.getElementById('connection-status'),
     matchIdInput: document.getElementById('match-id-input'),
     
+    // Tournament Management
+    tournamentSelect: document.getElementById('tournament-select'),
+    createTournamentBtn: document.getElementById('create-tournament-btn'),
+    editTournamentBtn: document.getElementById('edit-tournament-btn'),
+    deleteTournamentBtn: document.getElementById('delete-tournament-btn'),
+    createTournamentModal: document.getElementById('create-tournament-modal'),
+    editTournamentModal: document.getElementById('edit-tournament-modal'),
+    newTournamentName: document.getElementById('new-tournament-name'),
+    editTournamentName: document.getElementById('edit-tournament-name'),
+    createTournamentConfirm: document.getElementById('create-tournament-confirm'),
+    editTournamentConfirm: document.getElementById('edit-tournament-confirm'),
+    
     // Setup
-    homeName: document.getElementById('home-name'),
-    awayName: document.getElementById('away-name'),
     periodInput: document.getElementById('period-input'),
     timerMinutes: document.getElementById('timer-minutes'),
     timerSeconds: document.getElementById('timer-seconds'),
@@ -168,15 +180,7 @@ function updateUI(state) {
         elements.timerStatus.classList.add('stopped');
     }
     
-    // Update form inputs to match current state (but don't overwrite user input while typing)
-    if (elements.homeName.value === '' || elements.homeName.value === elements.homeName.defaultValue) {
-        elements.homeName.value = state.homeName || '';
-    }
-    if (elements.awayName.value === '' || elements.awayName.value === elements.awayName.defaultValue) {
-        elements.awayName.value = state.awayName || '';
-    }
-    
-    // Update player button selection
+    // Update player button selection (names are now selected via Player Names buttons)
     updatePlayerButtonSelection();
 }
 
@@ -198,13 +202,288 @@ async function fetchState() {
 }
 
 // ============================================================================
+// Tournament Management Functions
+// ============================================================================
+
+/**
+ * Load all tournaments from API
+ */
+async function loadTournaments() {
+    try {
+        const response = await fetch(`${API_BASE}/api/tournaments`);
+        if (response.ok) {
+            const data = await response.json();
+            tournamentsList = data.tournaments || [];
+            renderTournamentSelect();
+            return tournamentsList;
+        }
+    } catch (error) {
+        console.error('Failed to load tournaments:', error);
+    }
+    return [];
+}
+
+/**
+ * Get current tournament
+ */
+async function getCurrentTournament() {
+    try {
+        const response = await fetch(`${API_BASE}/api/tournaments/current`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.tournament) {
+                currentTournamentId = data.tournament.id;
+                return data.tournament;
+            }
+        }
+    } catch (error) {
+        console.error('Failed to get current tournament:', error);
+    }
+    return null;
+}
+
+/**
+ * Select a tournament as current
+ */
+async function selectTournament(tournamentId) {
+    try {
+        const response = await fetch(`${API_BASE}/api/tournaments/${tournamentId}/select`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            currentTournamentId = tournamentId;
+            // Reload tournaments to update dropdown
+            await loadTournaments();
+            // Reload players for the new tournament
+            await loadPlayers();
+            // Save to localStorage
+            localStorage.setItem('currentTournamentId', tournamentId);
+            return true;
+        } else {
+            const error = await response.json();
+            alert(`${t('error') || 'Error'}: ${error.detail || t('unknownError') || 'Unknown error'}`);
+        }
+    } catch (error) {
+        console.error('Failed to select tournament:', error);
+        alert(t('connectionError') || 'Connection error');
+    }
+    return false;
+}
+
+/**
+ * Create a new tournament
+ */
+async function createTournament(name) {
+    if (!name || !name.trim()) {
+        alert(t('tournamentNameRequired') || 'Tournament name is required');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/tournaments`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: name.trim() })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            // Reload tournaments to update dropdown
+            await loadTournaments();
+            // Select newly created tournament
+            if (data.tournament) {
+                await selectTournament(data.tournament.id);
+            }
+            // Close modal
+            closeTournamentModals();
+            return data.tournament;
+        } else {
+            const error = await response.json();
+            alert(`${t('error') || 'Error'}: ${error.detail || t('unknownError') || 'Unknown error'}`);
+        }
+    } catch (error) {
+        console.error('Failed to create tournament:', error);
+        alert(t('connectionError') || 'Connection error');
+    }
+    return null;
+}
+
+/**
+ * Update tournament name
+ */
+async function updateTournament(tournamentId, name) {
+    if (!name || !name.trim()) {
+        alert(t('tournamentNameRequired') || 'Tournament name is required');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/tournaments/${tournamentId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: name.trim() })
+        });
+        
+        if (response.ok) {
+            // Reload tournaments to update dropdown
+            await loadTournaments();
+            // Close modal
+            closeTournamentModals();
+            return true;
+        } else {
+            const error = await response.json();
+            alert(`${t('error') || 'Error'}: ${error.detail || t('unknownError') || 'Unknown error'}`);
+        }
+    } catch (error) {
+        console.error('Failed to update tournament:', error);
+        alert(t('connectionError') || 'Connection error');
+    }
+    return false;
+}
+
+/**
+ * Delete a tournament
+ */
+async function deleteTournament(tournamentId) {
+    if (!confirm(t('deleteTournamentConfirm') || 'Are you sure you want to delete this tournament? All players in this tournament will be deleted.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/tournaments/${tournamentId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            // Reload tournaments to update dropdown
+            await loadTournaments();
+            // Reload players for the new current tournament
+            await loadPlayers();
+            return true;
+        } else {
+            const error = await response.json();
+            alert(`${t('error') || 'Error'}: ${error.detail || t('unknownError') || 'Unknown error'}`);
+        }
+    } catch (error) {
+        console.error('Failed to delete tournament:', error);
+        alert(t('connectionError') || 'Connection error');
+    }
+    return false;
+}
+
+/**
+ * Render tournament selector dropdown
+ */
+function renderTournamentSelect() {
+    if (!elements.tournamentSelect) return;
+    
+    // Save current selection
+    const currentValue = elements.tournamentSelect.value;
+    
+    // Clear and populate dropdown
+    elements.tournamentSelect.innerHTML = '';
+    
+    if (tournamentsList.length === 0) {
+        elements.tournamentSelect.innerHTML = '<option value="">' + (t('noTournaments') || 'No tournaments') + '</option>';
+        updateTournamentButtonStates();
+        return;
+    }
+    
+    tournamentsList.forEach(tournament => {
+        const option = document.createElement('option');
+        option.value = tournament.id;
+        option.textContent = tournament.name + (tournament.player_count ? ` (${tournament.player_count} players)` : '');
+        if (tournament.id === currentTournamentId) {
+            option.selected = true;
+        }
+        elements.tournamentSelect.appendChild(option);
+    });
+    
+    // Restore selection if it still exists
+    if (currentValue && currentTournamentId && currentValue === currentTournamentId) {
+        elements.tournamentSelect.value = currentValue;
+    } else if (currentTournamentId) {
+        elements.tournamentSelect.value = currentTournamentId;
+    }
+    
+    // Update button states
+    updateTournamentButtonStates();
+}
+
+/**
+ * Update tournament button states (enable/disable based on selection)
+ */
+function updateTournamentButtonStates() {
+    const hasSelection = elements.tournamentSelect && elements.tournamentSelect.value;
+    
+    if (elements.editTournamentBtn) {
+        elements.editTournamentBtn.disabled = !hasSelection;
+    }
+    if (elements.deleteTournamentBtn) {
+        elements.deleteTournamentBtn.disabled = !hasSelection || tournamentsList.length <= 1;
+    }
+}
+
+/**
+ * Show create tournament modal
+ */
+function showCreateTournamentModal() {
+    if (!elements.createTournamentModal || !elements.newTournamentName) return;
+    
+    elements.newTournamentName.value = '';
+    elements.createTournamentModal.style.display = 'flex';
+    setTimeout(() => elements.newTournamentName.focus(), 100);
+}
+
+/**
+ * Show edit tournament modal
+ */
+function showEditTournamentModal() {
+    if (!elements.editTournamentModal || !elements.editTournamentName || !elements.tournamentSelect) return;
+    
+    const selectedId = elements.tournamentSelect.value;
+    if (!selectedId) {
+        alert(t('selectTournamentFirst') || 'Please select a tournament first');
+        return;
+    }
+    
+    const tournament = tournamentsList.find(t => t.id === selectedId);
+    if (!tournament) return;
+    
+    elements.editTournamentName.value = tournament.name;
+    elements.editTournamentName.dataset.tournamentId = selectedId;
+    elements.editTournamentModal.style.display = 'flex';
+    setTimeout(() => elements.editTournamentName.focus(), 100);
+}
+
+/**
+ * Close all tournament modals
+ */
+function closeTournamentModals() {
+    if (elements.createTournamentModal) {
+        elements.createTournamentModal.style.display = 'none';
+    }
+    if (elements.editTournamentModal) {
+        elements.editTournamentModal.style.display = 'none';
+    }
+}
+
+// Make function globally available for onclick handlers
+window.closeTournamentModals = closeTournamentModals;
+
+// ============================================================================
 // Player Management Functions
 // ============================================================================
 
 let playersList = [];
 
 /**
- * Load players from API
+ * Load players from API (from current tournament)
  */
 async function loadPlayers() {
     try {
@@ -549,18 +828,104 @@ elements.matchIdInput.addEventListener('change', () => {
     }
 });
 
+// Tournament management event handlers
+if (elements.tournamentSelect) {
+    elements.tournamentSelect.addEventListener('change', async (e) => {
+        const tournamentId = e.target.value;
+        if (tournamentId) {
+            await selectTournament(tournamentId);
+        }
+    });
+}
+
+if (elements.createTournamentBtn) {
+    elements.createTournamentBtn.addEventListener('click', () => {
+        showCreateTournamentModal();
+    });
+}
+
+if (elements.editTournamentBtn) {
+    elements.editTournamentBtn.addEventListener('click', () => {
+        showEditTournamentModal();
+    });
+}
+
+if (elements.deleteTournamentBtn) {
+    elements.deleteTournamentBtn.addEventListener('click', async () => {
+        const tournamentId = elements.tournamentSelect?.value;
+        if (tournamentId) {
+            await deleteTournament(tournamentId);
+        } else {
+            alert(t('selectTournamentFirst') || 'Please select a tournament first');
+        }
+    });
+}
+
+if (elements.createTournamentConfirm) {
+    elements.createTournamentConfirm.addEventListener('click', async () => {
+        const name = elements.newTournamentName?.value.trim();
+        if (name) {
+            await createTournament(name);
+        }
+    });
+    
+    // Also handle Enter key in input
+    if (elements.newTournamentName) {
+        elements.newTournamentName.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                const name = elements.newTournamentName.value.trim();
+                if (name) {
+                    await createTournament(name);
+                }
+            }
+        });
+    }
+}
+
+if (elements.editTournamentConfirm) {
+    elements.editTournamentConfirm.addEventListener('click', async () => {
+        const tournamentId = elements.editTournamentName?.dataset.tournamentId;
+        const name = elements.editTournamentName?.value.trim();
+        if (tournamentId && name) {
+            await updateTournament(tournamentId, name);
+        }
+    });
+    
+    // Also handle Enter key in input
+    if (elements.editTournamentName) {
+        elements.editTournamentName.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                const tournamentId = elements.editTournamentName.dataset.tournamentId;
+                const name = elements.editTournamentName.value.trim();
+                if (tournamentId && name) {
+                    await updateTournament(tournamentId, name);
+                }
+            }
+        });
+    }
+}
+
+// Close modals when clicking outside
+document.addEventListener('click', (e) => {
+    if (elements.createTournamentModal && e.target === elements.createTournamentModal) {
+        closeTournamentModals();
+    }
+    if (elements.editTournamentModal && e.target === elements.editTournamentModal) {
+        closeTournamentModals();
+    }
+});
+
 // Setup
 elements.setupBtn.addEventListener('click', async () => {
-    const homeName = elements.homeName.value.trim() || 'Player 1';
-    const awayName = elements.awayName.value.trim() || 'Player 2';
+    // Names are now optional - use current state values if not provided
     const period = parseInt(elements.periodInput.value) || 1;
     const timerMinutes = parseInt(elements.timerMinutes.value) || 0;
     const timerSeconds = parseInt(elements.timerSeconds.value) || 0;
     const totalSeconds = timerMinutes * 60 + timerSeconds;
     
+    // Don't send names - they are set via Player Names buttons
+    // API will use current state values if names are not provided
     await apiCall('/setup', 'POST', {
-        homeName,
-        awayName,
         period,
         timerSeconds: totalSeconds
     });
@@ -793,9 +1158,7 @@ async function loadVisibilitySettings() {
 elements.resetBtn.addEventListener('click', async () => {
     if (confirm(t('resetConfirm'))) {
         await apiCall('/reset', 'POST');
-        // Clear form inputs
-        elements.homeName.value = '';
-        elements.awayName.value = '';
+        // Clear form inputs (names are managed via Player Names section)
         elements.periodInput.value = '1';
         elements.timerMinutes.value = '0';
         elements.timerSeconds.value = '0';
@@ -866,8 +1229,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load visibility settings (async, from API first)
     await loadVisibilitySettings();
     
-    // Load players list
-    await loadPlayers();
+    // Load tournaments and get current tournament
+    await loadTournaments();
+    const currentTournament = await getCurrentTournament();
+    
+    // Restore tournament selection from localStorage if available
+    const savedTournamentId = localStorage.getItem('currentTournamentId');
+    if (savedTournamentId && tournamentsList.find(t => t.id === savedTournamentId)) {
+        await selectTournament(savedTournamentId);
+    } else if (currentTournament) {
+        // Use current tournament from API
+        currentTournamentId = currentTournament.id;
+        renderTournamentSelect();
+        await loadPlayers();
+    } else {
+        // No tournament selected, load players anyway (will use default)
+        await loadPlayers();
+    }
     
     // Fetch initial state
     fetchState().then(() => {

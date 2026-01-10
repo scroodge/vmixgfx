@@ -1,0 +1,40 @@
+{
+  "tournaments": {
+    "tournament_1": {
+      "id": "tournament_1",
+      "name": "Default Tournament",
+      "created_at": 1768032799.787134,
+      "players": []
+    },
+    "tournament_2": {
+      "id": "tournament_2",
+      "name": "Тестовый",
+      "created_at": 1768033128.234587,
+      "players": [
+        {
+          "id": "1",
+          "name": "Иван Иванов",
+          "created_at": 1768033292.326934
+        },
+        {
+          "id": "2",
+          "name": "Петр Петров",
+          "created_at": 1768033299.398795
+        },
+        {
+          "id": "3",
+          "name": "Андрей Сергеевич",
+          "created_at": 1768033312.056349
+        },
+        {
+          "id": "4",
+          "name": "Игорь Николаевич",
+          "created_at": 1768033319.3820758
+        }
+      ]
+    }
+  },
+  "current_tournament_id": "tournament_2",
+  "tournament_id_counter": 2,
+  "player_id_counter": 4
+}

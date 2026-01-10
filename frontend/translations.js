@@ -167,6 +167,22 @@ const translations = {
         'playerNameRequired': 'Player name is required',
         'deletePlayerConfirm': 'Are you sure you want to delete this player?',
         'noPlayers': 'No players imported yet',
+        'gameSetupHint': 'Player names are selected via Player Names section below. Use this section to set Game number and Timer.',
+        
+        // Tournament Management
+        'tournamentManagement': 'Tournament Management',
+        'currentTournament': 'Current Tournament:',
+        'createTournament': 'Create New',
+        'editTournament': 'Edit',
+        'deleteTournament': 'Delete',
+        'tournamentName': 'Tournament Name:',
+        'enterTournamentName': 'Enter tournament name',
+        'tournamentNameRequired': 'Tournament name is required',
+        'deleteTournamentConfirm': 'Are you sure you want to delete this tournament? All players in this tournament will be deleted.',
+        'noTournaments': 'No tournaments',
+        'selectTournamentFirst': 'Please select a tournament first',
+        'save': 'Save',
+        'cancel': 'Cancel',
         
         // Overlay
         'gameLabel': 'Game'
@@ -334,6 +350,22 @@ const translations = {
         'playerNameRequired': 'Имя игрока обязательно',
         'deletePlayerConfirm': 'Вы уверены, что хотите удалить этого игрока?',
         'noPlayers': 'Игроки еще не импортированы',
+        'gameSetupHint': 'Имена игроков выбираются через секцию Player Names ниже. Используйте эту секцию для установки номера игры и таймера.',
+        
+        // Tournament Management
+        'tournamentManagement': 'Управление турнирами',
+        'currentTournament': 'Текущий турнир:',
+        'createTournament': 'Создать новый',
+        'editTournament': 'Редактировать',
+        'deleteTournament': 'Удалить',
+        'tournamentName': 'Название турнира:',
+        'enterTournamentName': 'Введите название турнира',
+        'tournamentNameRequired': 'Название турнира обязательно',
+        'deleteTournamentConfirm': 'Вы уверены, что хотите удалить этот турнир? Все игроки в этом турнире будут удалены.',
+        'noTournaments': 'Нет турниров',
+        'selectTournamentFirst': 'Пожалуйста, сначала выберите турнир',
+        'save': 'Сохранить',
+        'cancel': 'Отмена',
         
         // Overlay
         'gameLabel': 'Игра'
@@ -501,6 +533,22 @@ const translations = {
         'playerNameRequired': 'Імя гульца абавязкова',
         'deletePlayerConfirm': 'Вы ўпэўнены, што хочаце выдаліць гэтага гульца?',
         'noPlayers': 'Гульцы яшчэ не імпартаваны',
+        'gameSetupHint': 'Імёны гульцоў выбіраюцца праз секцыю Player Names ніжэй. Выкарыстоўвайце гэтую секцыю для ўстаноўкі нумара гульні і таймера.',
+        
+        // Tournament Management
+        'tournamentManagement': 'Кіраванне турнірамі',
+        'currentTournament': 'Бягучы турнір:',
+        'createTournament': 'Стварыць новы',
+        'editTournament': 'Рэдагаваць',
+        'deleteTournament': 'Выдаліць',
+        'tournamentName': 'Назва турніра:',
+        'enterTournamentName': 'Увядзіце назву турніра',
+        'tournamentNameRequired': 'Назва турніра абавязкова',
+        'deleteTournamentConfirm': 'Вы ўпэўнены, што хочаце выдаліць гэты турнір? Усе гульцы ў гэтым турніры будуць выдалены.',
+        'noTournaments': 'Няма турніраў',
+        'selectTournamentFirst': 'Калі ласка, спачатку выберыце турнір',
+        'save': 'Захаваць',
+        'cancel': 'Адмена',
         
         // Overlay
         'gameLabel': 'Гульня'

@@ -10,7 +10,7 @@ import sys
 import os
 from pathlib import Path
 from collections import defaultdict
-from typing import Dict, Set, Optional
+from typing import Dict, Set, Optional, List
 from datetime import datetime
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, UploadFile, File, Form
@@ -40,8 +40,8 @@ class MatchState(BaseModel):
 
 class SetupRequest(BaseModel):
     """Request model for match setup"""
-    homeName: str = Field(default="Home", min_length=1, max_length=50)
-    awayName: str = Field(default="Away", min_length=1, max_length=50)
+    homeName: Optional[str] = Field(default=None, min_length=1, max_length=50, description="Optional: Player 1 name (if not provided, uses current state)")
+    awayName: Optional[str] = Field(default=None, min_length=1, max_length=50, description="Optional: Player 2 name (if not provided, uses current state)")
     period: int = Field(default=1, ge=1, le=20)
     timerSeconds: int = Field(default=0, ge=0)
 
@@ -86,6 +86,28 @@ class Player(BaseModel):
     id: str
     name: str
     created_at: float
+
+class Tournament(BaseModel):
+    """Tournament model"""
+    id: str
+    name: str
+    created_at: float
+    players: List[Player] = []
+
+class TournamentCreate(BaseModel):
+    """Request model for creating a tournament"""
+    name: str = Field(..., min_length=1, max_length=100, description="Tournament name")
+
+class TournamentUpdate(BaseModel):
+    """Request model for updating tournament name"""
+    name: str = Field(..., min_length=1, max_length=100, description="Tournament name")
+
+class TournamentData(BaseModel):
+    """Tournament data structure for JSON storage"""
+    tournaments: Dict[str, Tournament] = {}
+    current_tournament_id: Optional[str] = None
+    tournament_id_counter: int = 0
+    player_id_counter: int = 0
 
 class WebSocketEvent(BaseModel):
     """WebSocket message structure"""
@@ -157,6 +179,130 @@ else:
     print(f"ERROR: Overlay directory does not exist: {OVERLAY_DIR}")
 
 # ============================================================================
+# JSON Persistence for Tournaments
+# ============================================================================
+
+def get_data_directory() -> Path:
+    """Get the data directory path (works with PyInstaller and dev mode)"""
+    if getattr(sys, 'frozen', False):
+        # PyInstaller bundle - save data next to exe
+        return Path(sys.executable).parent / "data"
+    else:
+        # Development mode - save in backend/data
+        return Path(__file__).resolve().parent / "data"
+
+def get_tournaments_file_path() -> Path:
+    """Get the path to tournaments.json file"""
+    data_dir = get_data_directory()
+    return data_dir / "tournaments.json"
+
+def load_tournaments_data() -> TournamentData:
+    """Load tournaments data from JSON file"""
+    file_path = get_tournaments_file_path()
+    
+    # Create data directory if it doesn't exist
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Load data from file if exists
+    if file_path.exists():
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                # Parse into TournamentData model
+                tournaments = {}
+                for tid, tdata in data.get('tournaments', {}).items():
+                    # Parse players safely
+                    players = []
+                    for p in tdata.get('players', []):
+                        try:
+                            if isinstance(p, dict):
+                                # Ensure all required fields are present
+                                if 'id' in p and 'name' in p and 'created_at' in p:
+                                    players.append(Player(
+                                        id=str(p['id']),
+                                        name=str(p['name']),
+                                        created_at=float(p['created_at'])
+                                    ))
+                                else:
+                                    print(f"Warning: Player data missing required fields: {p}")
+                            elif isinstance(p, Player):
+                                # Already a Player object
+                                players.append(p)
+                            else:
+                                print(f"Warning: Unknown player type: {type(p)}")
+                        except Exception as e:
+                            print(f"Error parsing player {p}: {e}")
+                            continue
+                    
+                    try:
+                        tournaments[tid] = Tournament(
+                            id=str(tdata.get('id', tid)),
+                            name=str(tdata.get('name', 'Unknown Tournament')),
+                            created_at=float(tdata.get('created_at', time.time())),
+                            players=players
+                        )
+                    except Exception as e:
+                        print(f"Error creating tournament {tid}: {e}")
+                        continue
+                
+                return TournamentData(
+                    tournaments=tournaments,
+                    current_tournament_id=data.get('current_tournament_id'),
+                    tournament_id_counter=data.get('tournament_id_counter', 0),
+                    player_id_counter=data.get('player_id_counter', 0)
+                )
+        except Exception as e:
+            print(f"Error loading tournaments data: {e}")
+            import traceback
+            traceback.print_exc()
+            print("Creating default tournaments data...")
+    
+    # Return default empty data if file doesn't exist or loading failed
+    return TournamentData(
+        tournaments={},
+        current_tournament_id=None,
+        tournament_id_counter=0,
+        player_id_counter=0
+    )
+
+def save_tournaments_data(data: TournamentData):
+    """Save tournaments data to JSON file"""
+    file_path = get_tournaments_file_path()
+    
+    # Create data directory if it doesn't exist
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    try:
+        # Convert to dict for JSON serialization
+        json_data = {
+            'tournaments': {
+                tid: {
+                    'id': tournament.id,
+                    'name': tournament.name,
+                    'created_at': tournament.created_at,
+                    'players': [p.model_dump() for p in tournament.players]
+                }
+                for tid, tournament in data.tournaments.items()
+            },
+            'current_tournament_id': data.current_tournament_id,
+            'tournament_id_counter': data.tournament_id_counter,
+            'player_id_counter': data.player_id_counter
+        }
+        
+        # Write to file atomically (using temporary file)
+        temp_path = file_path.with_suffix('.json.tmp')
+        with open(temp_path, 'w', encoding='utf-8') as f:
+            json.dump(json_data, f, indent=2, ensure_ascii=False)
+        
+        # Replace original file
+        temp_path.replace(file_path)
+        
+        print(f"Tournaments data saved to: {file_path}")
+    except Exception as e:
+        print(f"Error saving tournaments data: {e}")
+        raise
+
+# ============================================================================
 # State Management
 # ============================================================================
 
@@ -166,9 +312,8 @@ matches: Dict[str, MatchState] = {}
 # Store GFX settings per match (can be extended to database)
 gfx_settings: Dict[str, dict] = {}
 
-# Store players (can be extended to database)
-players: Dict[str, Player] = {}
-player_id_counter = 0
+# Store tournaments data (loaded from JSON)
+tournaments_data: TournamentData = TournamentData()
 
 # WebSocket connections per match
 connections: Dict[str, Set[WebSocket]] = defaultdict(set)
@@ -213,6 +358,42 @@ def get_or_create_match(match_id: str) -> MatchState:
     if match_id not in matches:
         matches[match_id] = MatchState(match_id=match_id)
     return matches[match_id]
+
+def get_current_tournament() -> Optional[Tournament]:
+    """Get the current selected tournament"""
+    try:
+        if not hasattr(tournaments_data, 'current_tournament_id') or not tournaments_data.current_tournament_id:
+            return None
+        
+        if tournaments_data.current_tournament_id not in tournaments_data.tournaments:
+            # Current tournament ID doesn't exist in tournaments dict
+            print(f"Warning: Current tournament ID '{tournaments_data.current_tournament_id}' not found in tournaments")
+            return None
+        
+        return tournaments_data.tournaments[tournaments_data.current_tournament_id]
+    except Exception as e:
+        print(f"Error in get_current_tournament: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+def get_or_create_current_tournament() -> Tournament:
+    """Get current tournament or create default if none exists"""
+    tournament = get_current_tournament()
+    if tournament is None:
+        # Create default tournament
+        tournament_id = f"tournament_{tournaments_data.tournament_id_counter + 1}"
+        tournaments_data.tournament_id_counter += 1
+        tournament = Tournament(
+            id=tournament_id,
+            name="Default Tournament",
+            created_at=time.time(),
+            players=[]
+        )
+        tournaments_data.tournaments[tournament_id] = tournament
+        tournaments_data.current_tournament_id = tournament_id
+        save_tournaments_data(tournaments_data)
+    return tournament
 
 # ============================================================================
 # Timer Task
@@ -278,8 +459,20 @@ async def setup_match(match_id: str, request: SetupRequest):
     """Set up match with team names, period, and initial timer"""
     async with state_lock:
         state = get_or_create_match(match_id)
-        state.homeName = request.homeName
-        state.awayName = request.awayName
+        
+        # Update names only if provided (otherwise keep current values)
+        if request.homeName is not None:
+            state.homeName = request.homeName
+        # If homeName is None and state has no name, use default
+        elif not state.homeName or state.homeName == "Home":
+            state.homeName = "Player 1"
+        
+        if request.awayName is not None:
+            state.awayName = request.awayName
+        # If awayName is None and state has no name, use default
+        elif not state.awayName or state.awayName == "Away":
+            state.awayName = "Player 2"
+        
         state.period = request.period
         state.timerSecondsRemaining = request.timerSeconds
         state.timerRunning = False
@@ -558,16 +751,144 @@ async def upload_background(match_id: str, file: UploadFile = File(...)):
     }
 
 # ============================================================================
-# Players Management API
+# Tournament Management API
 # ============================================================================
 
-@app.post("/api/players")
-async def create_player(request: PlayerCreate):
-    """Add a new player to the database"""
-    global player_id_counter
+@app.get("/api/tournaments")
+async def get_tournaments():
+    """Get all tournaments"""
+    tournament_list = [{
+        "id": tournament.id,
+        "name": tournament.name,
+        "created_at": tournament.created_at,
+        "player_count": len(tournament.players)
+    } for tournament in tournaments_data.tournaments.values()]
+    # Sort by creation time (newest first)
+    tournament_list.sort(key=lambda x: x.get('created_at', 0), reverse=True)
+    return {"status": "ok", "tournaments": tournament_list}
+
+@app.post("/api/tournaments")
+async def create_tournament(request: TournamentCreate):
+    """Create a new tournament"""
+    tournaments_data.tournament_id_counter += 1
+    tournament_id = f"tournament_{tournaments_data.tournament_id_counter}"
     
-    player_id_counter += 1
-    player_id = str(player_id_counter)
+    tournament = Tournament(
+        id=tournament_id,
+        name=request.name,
+        created_at=time.time(),
+        players=[]
+    )
+    
+    tournaments_data.tournaments[tournament_id] = tournament
+    # Automatically select newly created tournament
+    tournaments_data.current_tournament_id = tournament_id
+    save_tournaments_data(tournaments_data)
+    
+    return {"status": "ok", "tournament": {
+        "id": tournament.id,
+        "name": tournament.name,
+        "created_at": tournament.created_at,
+        "player_count": len(tournament.players)
+    }}
+
+@app.get("/api/tournaments/{tournament_id}")
+async def get_tournament(tournament_id: str):
+    """Get tournament information"""
+    if tournament_id not in tournaments_data.tournaments:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    tournament = tournaments_data.tournaments[tournament_id]
+    return {"status": "ok", "tournament": {
+        "id": tournament.id,
+        "name": tournament.name,
+        "created_at": tournament.created_at,
+        "players": [p.model_dump() for p in tournament.players]
+    }}
+
+@app.put("/api/tournaments/{tournament_id}")
+async def update_tournament(tournament_id: str, request: TournamentUpdate):
+    """Update tournament name"""
+    if tournament_id not in tournaments_data.tournaments:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    tournaments_data.tournaments[tournament_id].name = request.name
+    save_tournaments_data(tournaments_data)
+    
+    return {"status": "ok", "tournament": {
+        "id": tournaments_data.tournaments[tournament_id].id,
+        "name": tournaments_data.tournaments[tournament_id].name,
+        "created_at": tournaments_data.tournaments[tournament_id].created_at,
+        "player_count": len(tournaments_data.tournaments[tournament_id].players)
+    }}
+
+@app.delete("/api/tournaments/{tournament_id}")
+async def delete_tournament(tournament_id: str):
+    """Delete a tournament"""
+    if tournament_id not in tournaments_data.tournaments:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    # Don't allow deleting if it's the only tournament
+    if len(tournaments_data.tournaments) <= 1:
+        raise HTTPException(status_code=400, detail="Cannot delete the only tournament")
+    
+    del tournaments_data.tournaments[tournament_id]
+    
+    # If deleted tournament was current, select first available
+    if tournaments_data.current_tournament_id == tournament_id:
+        if tournaments_data.tournaments:
+            tournaments_data.current_tournament_id = list(tournaments_data.tournaments.keys())[0]
+        else:
+            tournaments_data.current_tournament_id = None
+    
+    save_tournaments_data(tournaments_data)
+    return {"status": "ok", "message": "Tournament deleted"}
+
+@app.get("/api/tournaments/current")
+async def get_current_tournament_endpoint():
+    """Get current selected tournament"""
+    tournament = get_current_tournament()
+    if tournament is None:
+        # Return default structure if no tournament selected
+        return {"status": "ok", "tournament": None}
+    
+    return {"status": "ok", "tournament": {
+        "id": tournament.id,
+        "name": tournament.name,
+        "created_at": tournament.created_at,
+        "players": [p.model_dump() for p in tournament.players]
+    }}
+
+@app.post("/api/tournaments/{tournament_id}/select")
+async def select_tournament(tournament_id: str):
+    """Select a tournament as current"""
+    if tournament_id not in tournaments_data.tournaments:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    tournaments_data.current_tournament_id = tournament_id
+    save_tournaments_data(tournaments_data)
+    
+    return {"status": "ok", "message": "Tournament selected", "tournament_id": tournament_id}
+
+@app.get("/api/tournaments/{tournament_id}/players")
+async def get_tournament_players(tournament_id: str):
+    """Get players in a tournament"""
+    if tournament_id not in tournaments_data.tournaments:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    tournament = tournaments_data.tournaments[tournament_id]
+    player_list = [player.model_dump() for player in tournament.players]
+    player_list.sort(key=lambda x: x.get('created_at', 0), reverse=True)
+    return {"status": "ok", "players": player_list}
+
+@app.post("/api/tournaments/{tournament_id}/players")
+async def add_player_to_tournament(tournament_id: str, request: PlayerCreate):
+    """Add a player to a tournament"""
+    if tournament_id not in tournaments_data.tournaments:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    tournaments_data.player_id_counter += 1
+    player_id = str(tournaments_data.player_id_counter)
     
     player = Player(
         id=player_id,
@@ -575,34 +896,130 @@ async def create_player(request: PlayerCreate):
         created_at=time.time()
     )
     
-    players[player_id] = player
+    tournaments_data.tournaments[tournament_id].players.append(player)
+    save_tournaments_data(tournaments_data)
+    
+    return {"status": "ok", "player": player.model_dump()}
+
+@app.delete("/api/tournaments/{tournament_id}/players/{player_id}")
+async def delete_player_from_tournament(tournament_id: str, player_id: str):
+    """Delete a player from a tournament"""
+    if tournament_id not in tournaments_data.tournaments:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    tournament = tournaments_data.tournaments[tournament_id]
+    player_index = None
+    for i, p in enumerate(tournament.players):
+        if p.id == player_id:
+            player_index = i
+            break
+    
+    if player_index is None:
+        raise HTTPException(status_code=404, detail="Player not found in tournament")
+    
+    tournament.players.pop(player_index)
+    save_tournaments_data(tournaments_data)
+    
+    return {"status": "ok", "message": "Player deleted"}
+
+# ============================================================================
+# Players Management API (Updated to work with tournaments)
+# ============================================================================
+
+@app.post("/api/players")
+async def create_player(request: PlayerCreate):
+    """Add a new player to the current tournament"""
+    tournament = get_or_create_current_tournament()
+    
+    tournaments_data.player_id_counter += 1
+    player_id = str(tournaments_data.player_id_counter)
+    
+    player = Player(
+        id=player_id,
+        name=request.name,
+        created_at=time.time()
+    )
+    
+    tournament.players.append(player)
+    save_tournaments_data(tournaments_data)
     
     return {"status": "ok", "player": player.model_dump()}
 
 @app.get("/api/players")
 async def get_players():
-    """Get all players"""
-    player_list = [player.model_dump() for player in players.values()]
-    # Sort by creation time (newest first)
-    player_list.sort(key=lambda x: x.get('created_at', 0), reverse=True)
-    return {"status": "ok", "players": player_list}
+    """Get all players from the current tournament"""
+    try:
+        tournament = get_current_tournament()
+        if tournament is None:
+            return {"status": "ok", "players": []}
+        
+        # Ensure players is a list
+        if not isinstance(tournament.players, list):
+            print(f"Warning: tournament.players is not a list, it's {type(tournament.players)}")
+            return {"status": "ok", "players": []}
+        
+        # Convert players to dict format, handling both Player objects and dicts
+        player_list = []
+        for player in tournament.players:
+            try:
+                if hasattr(player, 'model_dump'):
+                    # It's a Pydantic model
+                    player_list.append(player.model_dump())
+                elif isinstance(player, dict):
+                    # It's already a dict
+                    player_list.append(player)
+                else:
+                    # Try to convert using model_dump_json or create dict manually
+                    print(f"Warning: Unknown player type: {type(player)}, skipping")
+            except Exception as e:
+                print(f"Error converting player {player}: {e}")
+                continue
+        
+        # Sort by creation time (newest first)
+        player_list.sort(key=lambda x: x.get('created_at', 0), reverse=True)
+        return {"status": "ok", "players": player_list}
+    except Exception as e:
+        print(f"Error in get_players: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.delete("/api/players/{player_id}")
 async def delete_player(player_id: str):
-    """Delete a player"""
-    if player_id not in players:
+    """Delete a player from the current tournament"""
+    tournament = get_current_tournament()
+    if tournament is None:
+        raise HTTPException(status_code=404, detail="No current tournament")
+    
+    player_index = None
+    for i, p in enumerate(tournament.players):
+        if p.id == player_id:
+            player_index = i
+            break
+    
+    if player_index is None:
         raise HTTPException(status_code=404, detail="Player not found")
     
-    del players[player_id]
+    tournament.players.pop(player_index)
+    save_tournaments_data(tournaments_data)
+    
     return {"status": "ok", "message": "Player deleted"}
 
 @app.post("/api/match/{match_id}/players/assign")
 async def assign_player_to_match(match_id: str, request: PlayerAssign):
     """Assign a player to a match (home or away)"""
-    if request.player_id not in players:
-        raise HTTPException(status_code=404, detail="Player not found")
+    tournament = get_current_tournament()
+    if tournament is None:
+        raise HTTPException(status_code=404, detail="No current tournament")
     
-    player = players[request.player_id]
+    player = None
+    for p in tournament.players:
+        if p.id == request.player_id:
+            player = p
+            break
+    
+    if player is None:
+        raise HTTPException(status_code=404, detail="Player not found")
     
     async with state_lock:
         state = get_or_create_match(match_id)
@@ -652,6 +1069,37 @@ async def root(request: Request):
 @app.on_event("startup")
 async def startup_event():
     """Initialize on startup"""
+    global tournaments_data
+    
+    # Load tournaments data from JSON
+    print("Loading tournaments data...")
+    tournaments_data = load_tournaments_data()
+    
+    # Create default tournament if none exists
+    if not tournaments_data.tournaments:
+        print("No tournaments found, creating default tournament...")
+        default_tournament = Tournament(
+            id="tournament_1",
+            name="Default Tournament",
+            created_at=time.time(),
+            players=[]
+        )
+        tournaments_data.tournaments["tournament_1"] = default_tournament
+        tournaments_data.current_tournament_id = "tournament_1"
+        tournaments_data.tournament_id_counter = 1
+        save_tournaments_data(tournaments_data)
+    elif tournaments_data.current_tournament_id is None:
+        # If tournaments exist but no current tournament, select first one
+        first_tournament_id = list(tournaments_data.tournaments.keys())[0]
+        tournaments_data.current_tournament_id = first_tournament_id
+        save_tournaments_data(tournaments_data)
+    
+    print(f"Loaded {len(tournaments_data.tournaments)} tournament(s)")
+    if tournaments_data.current_tournament_id:
+        current = tournaments_data.tournaments[tournaments_data.current_tournament_id]
+        print(f"Current tournament: {current.name} ({current.id})")
+        print(f"  Players: {len(current.players)}")
+    
     print("=" * 60)
     print("vMix Russian Billiard Score Control Server")
     print("=" * 60)
