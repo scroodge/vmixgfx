@@ -153,6 +153,7 @@ const translations = {
         'editTextAreas': 'Edit Text Areas (Interactive)',
         'editTextAreasHint': 'Open an interactive editor to drag and resize text areas for perfect centering',
         'textAreasSaved': 'Text areas saved successfully!',
+        'saveTextAreasToTournament': 'Save Text Areas to Tournament',
         
         // Player Names Management
         'playerNames': 'Player Names',
@@ -336,6 +337,7 @@ const translations = {
         'editTextAreas': 'Редактировать области текста (Интерактивно)',
         'editTextAreasHint': 'Открыть интерактивный редактор для перетаскивания и изменения размера областей текста для идеального центрирования',
         'textAreasSaved': 'Области текста успешно сохранены!',
+        'saveTextAreasToTournament': 'Сохранить области текста в турнир',
         
         // Player Names Management
         'playerNames': 'Имена игроков',
@@ -519,6 +521,7 @@ const translations = {
         'editTextAreas': 'Рэдагаваць вобласці тэксту (Інтэрактыўна)',
         'editTextAreasHint': 'Адкрыць інтэрактыўны рэдактар для перацягвання і змены памеру вобласцяў тэксту для ідэальнага цэнтравання',
         'textAreasSaved': 'Вобласці тэксту паспяхова захаваны!',
+        'saveTextAreasToTournament': 'Захаваць вобласці тэксту ў турнір',
         
         // Player Names Management
         'playerNames': 'Імёны гульцоў',

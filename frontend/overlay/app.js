@@ -299,23 +299,29 @@ function applyGFXSettings(settings) {
                             (bg.imagePositionY === 'bottom' ? '100%' : 
                              (bg.imagePositionY || '50%'))));
                 
-                // Build complete background shorthand with all properties
-                // This ensures all background properties are set together
+                // Build background image value with opacity overlay if needed
                 const bgImageValue = opacity < 1 
                     ? `linear-gradient(rgba(0,0,0,${1 - opacity}), rgba(0,0,0,${1 - opacity})), url('${bg.imageUrl}')`
                     : `url('${bg.imageUrl}')`;
                 
                 const bgPosition = `${posX} ${posY}`;
                 
-                // Use complete background shorthand to avoid conflicts
-                container.style.background = `${bgImageValue} ${bgPosition} / ${size} no-repeat scroll`;
+                // IMPORTANT: Clear shorthand background FIRST to avoid conflicts with CSS rules
+                // The CSS rule .overlay-container { background: var(--bg-container); } can override inline styles
+                container.style.background = '';
                 
-                // Also set individual properties as backup (some browsers need this)
-                container.style.backgroundImage = bgImageValue;
-                container.style.backgroundSize = size;
-                container.style.backgroundRepeat = 'no-repeat';
-                container.style.backgroundPosition = bgPosition;
-                container.style.backgroundAttachment = 'scroll';
+                // Set individual properties explicitly with !important to override CSS variables
+                // Order matters - set backgroundImage first
+                container.style.setProperty('background-image', bgImageValue, 'important');
+                // Then set size - ensure it's not 'auto'
+                const finalSize = size === 'auto' ? 'cover' : size;
+                container.style.setProperty('background-size', finalSize, 'important');
+                container.style.setProperty('background-position', bgPosition, 'important');
+                container.style.setProperty('background-repeat', 'no-repeat', 'important');
+                container.style.setProperty('background-attachment', 'scroll', 'important');
+                
+                // Set background color separately (transparent by default)
+                container.style.setProperty('background-color', 'transparent', 'important');
                 
                 // Force reflow to ensure styles are applied
                 void container.offsetWidth;
@@ -1248,47 +1254,71 @@ function scheduleReconnect() {
 async function loadGFXSettingsFromAPI() {
     try {
         const response = await fetch(`/api/match/${matchId}/gfx-settings`);
+        let settings = {};
         if (response.ok) {
-            const settings = await response.json();
-            if (settings && Object.keys(settings).length > 0) {
-                console.log('Loading GFX settings from API:', settings);
-                applyGFXSettings(settings);
-                
-                // Only use localStorage for preview mode (same-origin iframe), NOT for vMix
-                // Store settings globally for access in updateUI
-                window.gfxSettings = settings;
-                
-                const isPreview = window.location.search.includes('preview=true');
-                if (isPreview) {
-                    // Cache in localStorage for preview iframe performance only
-                    localStorage.setItem('gfxSettings', JSON.stringify(settings));
-                    if (settings.layout && settings.layout.style) {
-                        localStorage.setItem('gfxLayoutStyle', settings.layout.style);
-                    }
-                    if (settings.layout && settings.layout.showMatchScores !== undefined) {
-                        localStorage.setItem('gfxShowMatchScores', settings.layout.showMatchScores.toString());
-                    }
-                    if (settings.layout && settings.layout.matchScoreFormat) {
-                        localStorage.setItem('gfxMatchScoreFormat', settings.layout.matchScoreFormat);
-                    }
-                    if (settings.visibility) {
-                        localStorage.setItem('showGameDisplay', settings.visibility.showGame !== false ? 'true' : 'false');
-                        localStorage.setItem('showTimerDisplay', settings.visibility.showTimer !== false ? 'true' : 'false');
-                    }
-                }
-                // For vMix: Do NOT use localStorage - settings come from API/WebSocket only
-                
-                // Apply visibility settings if present (works for both preview and vMix)
-                if (settings.visibility) {
-                    updateVisibility(
-                        settings.visibility.showGame !== false,
-                        settings.visibility.showTimer !== false,
-                        settings.visibility.showMatchScoreNextTimer === true
-                    );
-                }
-                console.log('GFX settings loaded from API and applied');
-                return true;
+            const data = await response.json();
+            if (data && Object.keys(data).length > 0) {
+                settings = data;
             }
+        }
+        
+        // Also load text areas from current tournament (overrides match settings)
+        let hasTextAreas = false;
+        try {
+            const tournamentResponse = await fetch(`/api/tournaments/current/text-areas`);
+            if (tournamentResponse.ok) {
+                const tournamentData = await tournamentResponse.json();
+                if (tournamentData && tournamentData.text_areas && Object.keys(tournamentData.text_areas).length > 0) {
+                    // Merge tournament text_areas into settings (tournament takes priority)
+                    if (!settings.textAreas) settings.textAreas = {};
+                    settings.textAreas = tournamentData.text_areas;
+                    hasTextAreas = true;
+                    console.log('📐 Loaded text areas from tournament:', tournamentData.text_areas);
+                }
+            }
+        } catch (e) {
+            console.warn('Failed to load text areas from tournament:', e);
+        }
+        
+        // Apply settings if we have any (GFX settings or text areas from tournament)
+        if (settings && (Object.keys(settings).length > 0 || hasTextAreas)) {
+            console.log('Loading GFX settings from API:', settings);
+            applyGFXSettings(settings);
+            
+            // Only use localStorage for preview mode (same-origin iframe), NOT for vMix
+            // Store settings globally for access in updateUI
+            window.gfxSettings = settings;
+            
+            const isPreview = window.location.search.includes('preview=true');
+            if (isPreview) {
+                // Cache in localStorage for preview iframe performance only
+                localStorage.setItem('gfxSettings', JSON.stringify(settings));
+                if (settings.layout && settings.layout.style) {
+                    localStorage.setItem('gfxLayoutStyle', settings.layout.style);
+                }
+                if (settings.layout && settings.layout.showMatchScores !== undefined) {
+                    localStorage.setItem('gfxShowMatchScores', settings.layout.showMatchScores.toString());
+                }
+                if (settings.layout && settings.layout.matchScoreFormat) {
+                    localStorage.setItem('gfxMatchScoreFormat', settings.layout.matchScoreFormat);
+                }
+                if (settings.visibility) {
+                    localStorage.setItem('showGameDisplay', settings.visibility.showGame !== false ? 'true' : 'false');
+                    localStorage.setItem('showTimerDisplay', settings.visibility.showTimer !== false ? 'true' : 'false');
+                }
+            }
+            // For vMix: Do NOT use localStorage - settings come from API/WebSocket only
+            
+            // Apply visibility settings if present (works for both preview and vMix)
+            if (settings.visibility) {
+                updateVisibility(
+                    settings.visibility.showGame !== false,
+                    settings.visibility.showTimer !== false,
+                    settings.visibility.showMatchScoreNextTimer === true
+                );
+            }
+            console.log('GFX settings loaded from API and applied');
+            return true;
         }
     } catch (e) {
         console.error('Failed to load GFX settings from API:', e);
@@ -1496,7 +1526,7 @@ function enableTextAreaEditor() {
     // Add save button
     const saveBtn = document.createElement('button');
     saveBtn.id = 'save-text-areas-btn';
-    saveBtn.textContent = 'Save Text Areas';
+    saveBtn.textContent = t('saveTextAreasToTournament') || 'Save Text Areas to Tournament';
     saveBtn.style.cssText = `
         position: fixed;
         bottom: 20px;
@@ -1537,7 +1567,13 @@ function enableTextAreaEditor() {
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     `;
     cancelBtn.addEventListener('click', () => {
-        window.location.search = window.location.search.replace(/[?&]editMode=true/, '');
+        // If opened from control panel, close this window
+        if (window.opener) {
+            window.close();
+        } else {
+            // Otherwise, remove editMode from URL
+            window.location.search = window.location.search.replace(/[?&]editMode=true/, '');
+        }
     });
     document.body.appendChild(cancelBtn);
     
@@ -1809,9 +1845,7 @@ function updateResizeHandles(wrapper, width, height) {
 async function saveTextAreaSettings() {
     if (!editMode) return;
     
-    const settings = {
-        textAreas: {}
-    };
+    const textAreas = {};
     
     const container = document.getElementById('text-area-editor-overlay');
     if (!container) return;
@@ -1831,7 +1865,7 @@ async function saveTextAreaSettings() {
         const width = (wrapperRect.width / overlayRect.width) * 100;
         const height = (wrapperRect.height / overlayRect.height) * 100;
         
-        settings.textAreas[areaKey] = {
+        textAreas[areaKey] = {
             x: Math.max(0, Math.min(100, x)),
             y: Math.max(0, Math.min(100, y)),
             width: Math.max(5, Math.min(100, width)),
@@ -1840,36 +1874,47 @@ async function saveTextAreaSettings() {
     });
     
     try {
-        // Get current GFX settings
-        const response = await fetch(`/api/match/${matchId}/gfx-settings`);
-        let gfxSettings = {};
-        if (response.ok) {
-            const data = await response.json();
-            if (data && Object.keys(data).length > 0) {
-                gfxSettings = data;
-            }
-        }
-        
-        // Merge text area settings
-        gfxSettings.textAreas = settings.textAreas;
-        
-        // Save to API
-        const saveResponse = await fetch(`/api/match/${matchId}/gfx-settings`, {
+        // Save text areas to current tournament (not match settings)
+        console.log('💾 Saving text areas to tournament:', textAreas);
+        const saveResponse = await fetch(`/api/tournaments/current/text-areas`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(gfxSettings)
+            body: JSON.stringify(textAreas)
         });
         
         if (saveResponse.ok) {
-            alert(t('textAreasSaved') || 'Text areas saved successfully!');
+            const data = await saveResponse.json();
+            alert(t('textAreasSaved') || 'Text areas saved to tournament successfully!');
             // Apply settings immediately
-            applyTextAreaSettings(gfxSettings.textAreas);
-            // Exit edit mode
-            window.location.search = window.location.search.replace(/[?&]editMode=true/, '');
+            applyTextAreaSettings(textAreas);
+            
+            // Notify parent window (control panel) about the update
+            if (window.opener) {
+                try {
+                    window.opener.postMessage({
+                        type: 'textAreasUpdated',
+                        textAreas: textAreas
+                    }, '*');
+                } catch (e) {
+                    console.log('Could not notify parent window:', e);
+                }
+            }
+            
+            // Exit edit mode - close window or navigate back
+            setTimeout(() => {
+                if (window.opener) {
+                    // If opened from control panel, close this window
+                    window.close();
+                } else {
+                    // Otherwise, remove editMode from URL
+                    window.location.search = window.location.search.replace(/[?&]editMode=true/, '');
+                }
+            }, 500); // Small delay to show success message
         } else {
-            alert(t('error') || 'Error saving text areas');
+            const error = await saveResponse.json();
+            alert(`${t('error') || 'Error'}: ${error.detail || t('unknownError') || 'Unknown error'}`);
         }
     } catch (error) {
         console.error('Failed to save text area settings:', error);

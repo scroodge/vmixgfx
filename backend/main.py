@@ -93,6 +93,7 @@ class Tournament(BaseModel):
     name: str
     created_at: float
     players: List[Player] = []
+    text_areas: Optional[Dict[str, Dict[str, float]]] = None  # Text area positions per tournament
 
 class TournamentCreate(BaseModel):
     """Request model for creating a tournament"""
@@ -235,11 +236,17 @@ def load_tournaments_data() -> TournamentData:
                             continue
                     
                     try:
+                        # Parse text_areas if present
+                        text_areas = None
+                        if 'text_areas' in tdata and tdata['text_areas']:
+                            text_areas = tdata['text_areas']
+                        
                         tournaments[tid] = Tournament(
                             id=str(tdata.get('id', tid)),
                             name=str(tdata.get('name', 'Unknown Tournament')),
                             created_at=float(tdata.get('created_at', time.time())),
-                            players=players
+                            players=players,
+                            text_areas=text_areas
                         )
                     except Exception as e:
                         print(f"Error creating tournament {tid}: {e}")
@@ -280,7 +287,8 @@ def save_tournaments_data(data: TournamentData):
                     'id': tournament.id,
                     'name': tournament.name,
                     'created_at': tournament.created_at,
-                    'players': [p.model_dump() for p in tournament.players]
+                    'players': [p.model_dump() for p in tournament.players],
+                    'text_areas': tournament.text_areas if tournament.text_areas else None
                 }
                 for tid, tournament in data.tournaments.items()
             },
@@ -803,7 +811,8 @@ async def get_tournament(tournament_id: str):
         "id": tournament.id,
         "name": tournament.name,
         "created_at": tournament.created_at,
-        "players": [p.model_dump() for p in tournament.players]
+        "players": [p.model_dump() for p in tournament.players],
+        "text_areas": tournament.text_areas if tournament.text_areas else None
     }}
 
 @app.put("/api/tournaments/{tournament_id}")
@@ -856,8 +865,31 @@ async def get_current_tournament_endpoint():
         "id": tournament.id,
         "name": tournament.name,
         "created_at": tournament.created_at,
-        "players": [p.model_dump() for p in tournament.players]
+        "players": [p.model_dump() for p in tournament.players],
+        "text_areas": tournament.text_areas if tournament.text_areas else None
     }}
+
+@app.get("/api/tournaments/current/text-areas")
+async def get_current_tournament_text_areas():
+    """Get text areas for current tournament"""
+    tournament = get_current_tournament()
+    if tournament is None:
+        raise HTTPException(status_code=404, detail="No current tournament")
+    
+    return {"status": "ok", "text_areas": tournament.text_areas if tournament.text_areas else {}}
+
+@app.post("/api/tournaments/current/text-areas")
+async def save_current_tournament_text_areas(text_areas: Dict[str, Dict[str, float]]):
+    """Save text areas for current tournament"""
+    tournament = get_current_tournament()
+    if tournament is None:
+        raise HTTPException(status_code=404, detail="No current tournament")
+    
+    # Update tournament text_areas
+    tournament.text_areas = text_areas
+    save_tournaments_data(tournaments_data)
+    
+    return {"status": "ok", "message": "Text areas saved to tournament", "text_areas": text_areas}
 
 @app.post("/api/tournaments/{tournament_id}/select")
 async def select_tournament(tournament_id: str):

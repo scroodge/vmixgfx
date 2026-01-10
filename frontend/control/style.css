@@ -1142,6 +1142,19 @@ main {
 /* Tournament Management Styles */
 .tournament-panel {
     grid-column: span 2;
+    color: #333;
+}
+
+.tournament-panel * {
+    color: inherit;
+}
+
+.tournament-panel h2 {
+    color: #333 !important;
+}
+
+.tournament-panel label {
+    color: #333 !important;
 }
 
 @media (max-width: 992px) {
@@ -1154,6 +1167,17 @@ main {
     margin-bottom: 10px;
 }
 
+.tournament-selector-group .form-group {
+    color: #333;
+}
+
+.tournament-selector-group .form-group label {
+    color: #333 !important;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 5px;
+}
+
 .tournament-select {
     width: 100%;
     padding: 10px;
@@ -1161,8 +1185,14 @@ main {
     border-radius: 5px;
     font-size: 14px;
     background: white;
+    color: #333 !important;
     cursor: pointer;
     transition: border-color 0.3s;
+}
+
+.tournament-select option {
+    color: #333;
+    background: white;
 }
 
 .tournament-select:focus {
