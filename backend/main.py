@@ -349,15 +349,28 @@ def format_timer(seconds: int) -> str:
 
 def get_match_data_dict(state: MatchState) -> Dict:
     """Convert match state to dictionary format for JSON output"""
+    home_match_score = getattr(state, 'homeMatchScore', 0)
+    away_match_score = getattr(state, 'awayMatchScore', 0)
+    
     return {
         "match_id": state.match_id,
         "home_name": state.homeName,
         "away_name": state.awayName,
+        # Шары (balls) - текущий счет в игре
+        "balls_home": state.homeScore,
+        "balls_away": state.awayScore,
+        # Счет партий (score) - количество выигранных партий
+        "score_home": home_match_score,
+        "score_away": away_match_score,
+        # Партия (period) - номер текущей партии
+        "period": state.period,
+        "period_formatted": f"({state.period})",  # Партия в скобках для отображения
+        # Обратная совместимость (старые названия)
         "home_score": state.homeScore,
         "away_score": state.awayScore,
-        "home_match_score": getattr(state, 'homeMatchScore', 0),
-        "away_match_score": getattr(state, 'awayMatchScore', 0),
-        "period": state.period,
+        "home_match_score": home_match_score,
+        "away_match_score": away_match_score,
+        # Таймер
         "timer_seconds": state.timerSecondsRemaining,
         "timer_running": state.timerRunning,
         "timer_formatted": format_timer(state.timerSecondsRemaining),

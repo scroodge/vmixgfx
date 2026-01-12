@@ -38,13 +38,13 @@ const elements = {
     timerSeconds: document.getElementById('timer-seconds'),
     setupBtn: document.getElementById('setup-btn'),
     
-    // Score Display
+    // Balls Display
     homeTeamNameDisplay: document.getElementById('home-team-name-display'),
     awayTeamNameDisplay: document.getElementById('away-team-name-display'),
     homeScoreDisplay: document.getElementById('home-score-display'),
     awayScoreDisplay: document.getElementById('away-score-display'),
     
-    // Score Buttons
+    // Balls Buttons
     homePlus: document.getElementById('home-plus'),
     homeMinus: document.getElementById('home-minus'),
     homePlusBall: document.getElementById('home-plus-ball'),
@@ -52,10 +52,17 @@ const elements = {
     awayMinus: document.getElementById('away-minus'),
     awayPlusBall: document.getElementById('away-plus-ball'),
     
-    // Total Games Buttons (using homeMatchScore as total games)
-    totalGamesPlus: document.getElementById('total-games-plus'),
-    totalGamesMinus: document.getElementById('total-games-minus'),
-    totalGamesDisplay: document.getElementById('total-games-display'),
+    // Match Score Display (Games Won)
+    homeTeamNameDisplayMatch: document.getElementById('home-team-name-display-match'),
+    awayTeamNameDisplayMatch: document.getElementById('away-team-name-display-match'),
+    homeMatchScoreDisplay: document.getElementById('home-match-score-display'),
+    awayMatchScoreDisplay: document.getElementById('away-match-score-display'),
+    
+    // Match Score Buttons (Games Won)
+    homeMatchPlus: document.getElementById('home-match-plus'),
+    homeMatchMinus: document.getElementById('home-match-minus'),
+    awayMatchPlus: document.getElementById('away-match-plus'),
+    awayMatchMinus: document.getElementById('away-match-minus'),
     
     // Period
     periodDisplay: document.getElementById('period-display'),
@@ -123,15 +130,26 @@ function parseTimer(timeStr) {
  * Update connection status UI
  */
 function updateConnectionStatus(connected) {
+    if (!elements.connectionStatus) {
+        console.warn('Connection status element not found');
+        return;
+    }
+    
+    const statusText = elements.connectionStatus.querySelector('.status-text');
+    if (!statusText) {
+        console.warn('Status text element not found');
+        return;
+    }
+    
     if (connected) {
         elements.connectionStatus.classList.remove('disconnected');
         elements.connectionStatus.classList.add('connected');
-        elements.connectionStatus.querySelector('.status-text').textContent = t('connected');
+        statusText.textContent = t('connected');
         reconnectDelay = 1000; // Reset reconnect delay on successful connection
     } else {
         elements.connectionStatus.classList.remove('connected');
         elements.connectionStatus.classList.add('disconnected');
-        elements.connectionStatus.querySelector('.status-text').textContent = t('disconnected');
+        statusText.textContent = t('disconnected');
     }
 }
 
@@ -143,30 +161,30 @@ function updateUI(state) {
     
     currentState = state;
     
-    // Update team names
+    // Update team names (for both balls and match score sections)
     elements.homeTeamNameDisplay.textContent = state.homeName || 'Player 1';
     elements.awayTeamNameDisplay.textContent = state.awayName || 'Player 2';
+    if (elements.homeTeamNameDisplayMatch) elements.homeTeamNameDisplayMatch.textContent = state.homeName || 'Player 1';
+    if (elements.awayTeamNameDisplayMatch) elements.awayTeamNameDisplayMatch.textContent = state.awayName || 'Player 2';
     
-    
-    // Update scores
+    // Update balls (current game score)
     elements.homeScoreDisplay.textContent = state.homeScore || 0;
     elements.awayScoreDisplay.textContent = state.awayScore || 0;
     
-    // Update total games (using homeMatchScore as total games count)
-    const totalGames = state.homeMatchScore || 0;
-    if (elements.totalGamesDisplay) {
-        elements.totalGamesDisplay.textContent = totalGames;
-    }
+    // Update match scores (games won)
+    const homeMatchScore = state.homeMatchScore || 0;
+    const awayMatchScore = state.awayMatchScore || 0;
+    if (elements.homeMatchScoreDisplay) elements.homeMatchScoreDisplay.textContent = homeMatchScore;
+    if (elements.awayMatchScoreDisplay) elements.awayMatchScoreDisplay.textContent = awayMatchScore;
     
     // Enable/disable minus buttons based on score
     elements.homeMinus.disabled = (state.homeScore || 0) <= 0;
     elements.awayMinus.disabled = (state.awayScore || 0) <= 0;
-    if (elements.totalGamesMinus) {
-        elements.totalGamesMinus.disabled = totalGames <= 0;
-    }
+    if (elements.homeMatchMinus) elements.homeMatchMinus.disabled = homeMatchScore <= 0;
+    if (elements.awayMatchMinus) elements.awayMatchMinus.disabled = awayMatchScore <= 0;
     
-    // Update period
-    elements.periodDisplay.textContent = state.period || 1;
+    // Update period (display in brackets)
+    elements.periodDisplay.textContent = `(${state.period || 1})`;
     
     // Update timer
     elements.timerDisplay.textContent = formatTimer(state.timerSecondsRemaining || 0);
@@ -194,9 +212,15 @@ async function fetchState() {
             const state = await response.json();
             updateUI(state);
             return state;
+        } else {
+            console.error('Failed to fetch state: HTTP', response.status, response.statusText);
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
         }
     } catch (error) {
         console.error('Failed to fetch state:', error);
+        // Update connection status on fetch failure
+        updateConnectionStatus(false);
     }
     return null;
 }
@@ -210,15 +234,33 @@ async function fetchState() {
  */
 async function loadTournaments() {
     try {
+        console.log('Fetching tournaments from:', `${API_BASE}/api/tournaments`);
         const response = await fetch(`${API_BASE}/api/tournaments`);
+        console.log('Tournaments response status:', response.status);
+        
         if (response.ok) {
             const data = await response.json();
+            console.log('Tournaments data received:', data);
             tournamentsList = data.tournaments || [];
+            console.log('Tournaments list:', tournamentsList);
             renderTournamentSelect();
             return tournamentsList;
+        } else {
+            console.error('Failed to load tournaments: HTTP', response.status, response.statusText);
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            // Show user-friendly error message
+            if (elements.tournamentSelect) {
+                elements.tournamentSelect.innerHTML = '<option value="">' + (t('errorLoadingTournaments') || 'Error loading tournaments') + '</option>';
+            }
         }
     } catch (error) {
         console.error('Failed to load tournaments:', error);
+        console.error('Error details:', error.message, error.stack);
+        // Show user-friendly error message
+        if (elements.tournamentSelect) {
+            elements.tournamentSelect.innerHTML = '<option value="">' + (t('errorLoadingTournaments') || 'Error loading tournaments') + '</option>';
+        }
     }
     return [];
 }
@@ -711,14 +753,25 @@ function connectWebSocket() {
         return;
     }
     
+    // Close existing connection if any
+    if (ws) {
+        try {
+            ws.close();
+        } catch (e) {
+            // Ignore errors when closing
+        }
+    }
+    
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws/match/${matchId}`;
+    
+    console.log('Attempting to connect WebSocket:', wsUrl);
     
     try {
         ws = new WebSocket(wsUrl);
         
         ws.onopen = () => {
-            console.log('WebSocket connected');
+            console.log('WebSocket connected successfully');
             updateConnectionStatus(true);
             reconnectDelay = 1000; // Reset delay on successful connection
         };
@@ -739,10 +792,13 @@ function connectWebSocket() {
             updateConnectionStatus(false);
         };
         
-        ws.onclose = () => {
-            console.log('WebSocket disconnected');
+        ws.onclose = (event) => {
+            console.log('WebSocket disconnected', event.code, event.reason);
             updateConnectionStatus(false);
-            scheduleReconnect();
+            // Only schedule reconnect if it wasn't a manual close
+            if (event.code !== 1000) {
+                scheduleReconnect();
+            }
         };
     } catch (error) {
         console.error('Failed to create WebSocket:', error);
@@ -807,26 +863,30 @@ async function apiCall(endpoint, method = 'GET', body = null) {
 // ============================================================================
 
 // Match ID change
-elements.matchIdInput.addEventListener('change', () => {
-    matchId = elements.matchIdInput.value || '1';
-    if (ws) {
-        ws.close();
-    }
-    connectWebSocket();
-    fetchState();
+if (elements.matchIdInput) {
+    elements.matchIdInput.addEventListener('change', () => {
+        matchId = elements.matchIdInput.value || '1';
+        if (ws) {
+            ws.close();
+        }
+        connectWebSocket();
+        fetchState();
     
-    // Update preview iframe URL
-    const previewFrame = document.getElementById('gfx-preview');
-    if (previewFrame) {
-        previewFrame.src = `/overlay?matchId=${matchId}&preview=true`;
-        // Update scale after iframe loads (if preview scale function is available)
-        previewFrame.addEventListener('load', () => {
-            if (typeof updatePreviewScale === 'function') {
-                setTimeout(() => updatePreviewScale(), 500);
-            }
-        }, { once: true });
-    }
-});
+        // Update preview iframe URL
+        const previewFrame = document.getElementById('gfx-preview');
+        if (previewFrame) {
+            previewFrame.src = `/overlay?matchId=${matchId}&preview=true`;
+            // Update scale after iframe loads (if preview scale function is available)
+            previewFrame.addEventListener('load', () => {
+                if (typeof updatePreviewScale === 'function') {
+                    setTimeout(() => updatePreviewScale(), 500);
+                }
+            }, { once: true });
+        }
+    });
+} else {
+    console.warn('Match ID input element not found');
+}
 
 // Tournament management event handlers
 if (elements.tournamentSelect) {
@@ -955,7 +1015,7 @@ if (elements.playerNameInput) {
 // Make deletePlayer available globally for onclick handlers
 window.deletePlayer = deletePlayer;
 
-// Score buttons
+// Balls buttons (current game score)
 elements.homePlus.addEventListener('click', () => apiCall('/score', 'POST', { team: 'home', delta: 1 }));
 elements.homeMinus.addEventListener('click', () => {
     if ((currentState?.homeScore || 0) > 0) {
@@ -972,14 +1032,29 @@ elements.awayMinus.addEventListener('click', () => {
 });
 elements.awayPlusBall.addEventListener('click', () => apiCall('/score', 'POST', { team: 'away', delta: 1 })); // +Ball is same as +1 for now
 
-// Total games buttons (using homeMatchScore as total games)
-elements.totalGamesPlus.addEventListener('click', () => apiCall('/match-score', 'POST', { team: 'home', delta: 1 }));
-elements.totalGamesMinus.addEventListener('click', () => {
-    const totalGames = (currentState?.homeMatchScore || 0);
-    if (totalGames > 0) {
-        apiCall('/match-score', 'POST', { team: 'home', delta: -1 });
-    }
-});
+// Match score buttons (games won)
+if (elements.homeMatchPlus) {
+    elements.homeMatchPlus.addEventListener('click', () => apiCall('/match-score', 'POST', { team: 'home', delta: 1 }));
+}
+if (elements.homeMatchMinus) {
+    elements.homeMatchMinus.addEventListener('click', () => {
+        const homeMatchScore = (currentState?.homeMatchScore || 0);
+        if (homeMatchScore > 0) {
+            apiCall('/match-score', 'POST', { team: 'home', delta: -1 });
+        }
+    });
+}
+if (elements.awayMatchPlus) {
+    elements.awayMatchPlus.addEventListener('click', () => apiCall('/match-score', 'POST', { team: 'away', delta: 1 }));
+}
+if (elements.awayMatchMinus) {
+    elements.awayMatchMinus.addEventListener('click', () => {
+        const awayMatchScore = (currentState?.awayMatchScore || 0);
+        if (awayMatchScore > 0) {
+            apiCall('/match-score', 'POST', { team: 'away', delta: -1 });
+        }
+    });
+}
 
 // Period buttons
 elements.periodPlus.addEventListener('click', async () => {
@@ -1203,10 +1278,31 @@ function initializeCollapsibles() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Initializing control panel...');
+    console.log('API_BASE:', API_BASE);
+    
+    // Check if required elements exist
+    if (!elements.matchIdInput) {
+        console.error('Match ID input element not found!');
+        return;
+    }
+    
+    if (!elements.connectionStatus) {
+        console.warn('Connection status element not found');
+    }
+    
+    if (!elements.tournamentSelect) {
+        console.warn('Tournament select element not found');
+    }
+    
     matchId = elements.matchIdInput.value || '1';
+    console.log('Match ID:', matchId);
     
     // Initialize collapsible sections
     initializeCollapsibles();
+    
+    // Set initial connection status
+    updateConnectionStatus(false);
     
     // Initialize language switcher
     const languageSelect = document.getElementById('language-select');
@@ -1227,31 +1323,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     // Load visibility settings (async, from API first)
-    await loadVisibilitySettings();
+    try {
+        await loadVisibilitySettings();
+    } catch (error) {
+        console.error('Error loading visibility settings:', error);
+    }
     
     // Load tournaments and get current tournament
-    await loadTournaments();
-    const currentTournament = await getCurrentTournament();
-    
-    // Restore tournament selection from localStorage if available
-    const savedTournamentId = localStorage.getItem('currentTournamentId');
-    if (savedTournamentId && tournamentsList.find(t => t.id === savedTournamentId)) {
-        await selectTournament(savedTournamentId);
-    } else if (currentTournament) {
-        // Use current tournament from API
-        currentTournamentId = currentTournament.id;
-        renderTournamentSelect();
-        await loadPlayers();
-    } else {
-        // No tournament selected, load players anyway (will use default)
-        await loadPlayers();
+    try {
+        console.log('Loading tournaments...');
+        await loadTournaments();
+        console.log('Tournaments loaded:', tournamentsList.length);
+        const currentTournament = await getCurrentTournament();
+        console.log('Current tournament:', currentTournament?.id || 'none');
+        
+        // Restore tournament selection from localStorage if available
+        const savedTournamentId = localStorage.getItem('currentTournamentId');
+        if (savedTournamentId && tournamentsList.find(t => t.id === savedTournamentId)) {
+            await selectTournament(savedTournamentId);
+        } else if (currentTournament) {
+            // Use current tournament from API
+            currentTournamentId = currentTournament.id;
+            renderTournamentSelect();
+            await loadPlayers();
+        } else {
+            // No tournament selected, load players anyway (will use default)
+            await loadPlayers();
+        }
+    } catch (error) {
+        console.error('Error initializing tournaments:', error);
+        // Continue anyway - try to load players
+        try {
+            await loadPlayers();
+        } catch (playerError) {
+            console.error('Error loading players:', playerError);
+        }
     }
     
     // Fetch initial state
-    fetchState().then(() => {
+    try {
+        await fetchState();
         // Connect WebSocket after initial state is loaded
         connectWebSocket();
-    });
+    } catch (error) {
+        console.error('Error fetching initial state:', error);
+        // Try to connect WebSocket anyway
+        connectWebSocket();
+    }
     
     // Set up periodic state fetch as backup (every 2 seconds)
     setInterval(() => {

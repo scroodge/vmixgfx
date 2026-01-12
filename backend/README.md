@@ -145,19 +145,30 @@ The `/api/match/{match_id}/data.json` endpoint provides match data in a format o
     "match_id": "1",
     "home_name": "Team A",
     "away_name": "Team B",
-    "home_score": 5,
-    "away_score": 3,
-    "home_match_score": 2,
-    "away_match_score": 1,
+    "balls_home": 5,
+    "balls_away": 3,
+    "score_home": 2,
+    "score_away": 1,
     "period": 2,
+    "period_formatted": "(2)",
     "timer_seconds": 1200,
     "timer_running": false,
     "timer_formatted": "20:00",
     "timestamp": 1703123456789,
-    "rev": 42
+    "rev": 42,
+    "home_score": 5,
+    "away_score": 3,
+    "home_match_score": 2,
+    "away_match_score": 1
   }
 ]
 ```
+
+**Field structure:**
+- `balls_home` / `balls_away` - Balls scored in current game
+- `score_home` / `score_away` - Games won (match score)
+- `period` - Current game/period number
+- Old field names are preserved for backward compatibility
 
 **Key differences from `/state` endpoint:**
 - Field names use snake_case (e.g., `home_name` instead of `homeName`)

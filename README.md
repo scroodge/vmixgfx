@@ -254,19 +254,30 @@ GET /api/match/{match_id}/data.json
     "match_id": "1",
     "home_name": "Player 1",
     "away_name": "Player 2",
-    "home_score": 8,
-    "away_score": 5,
-    "home_match_score": 2,
-    "away_match_score": 1,
+    "balls_home": 8,
+    "balls_away": 5,
+    "score_home": 2,
+    "score_away": 1,
     "period": 2,
+    "period_formatted": "(2)",
     "timer_seconds": 1200,
     "timer_running": false,
     "timer_formatted": "20:00",
     "timestamp": 1703123456789,
-    "rev": 42
+    "rev": 42,
+    "home_score": 8,
+    "away_score": 5,
+    "home_match_score": 2,
+    "away_match_score": 1
   }
 ]
 ```
+
+**Field descriptions:**
+- `balls_home` / `balls_away` - Balls scored in current game
+- `score_home` / `score_away` - Games won (match score)
+- `period` - Current game/period number
+- Old field names (`home_score`, `away_score`, etc.) are kept for backward compatibility
 
 **Note:** vMix requires JSON as an array of objects, so the endpoint returns data in this format.
 
@@ -278,23 +289,34 @@ This endpoint provides match data in a format optimized for vMix Title. The `tim
 3. Use variables in your title template:
    - `{home_name}` - Home team name
    - `{away_name}` - Away team name
-   - `{home_score}` - Home team score
-   - `{away_score}` - Away team score
-   - `{home_match_score}` - Home team match score (games won)
-   - `{away_match_score}` - Away team match score (games won)
-   - `{period}` - Current period/game number
+   - `{balls_home}` - Home team balls (current game score)
+   - `{balls_away}` - Away team balls (current game score)
+   - `{score_home}` - Home team games won (match score)
+   - `{score_away}` - Away team games won (match score)
+   - `{period}` - Current period/game number (number only)
+   - `{period_formatted}` - Current period/game number in brackets, e.g. "(2)"
    - `{timer_formatted}` - Timer in MM:SS or HH:MM:SS format
    - `{timer_seconds}` - Timer in seconds
    - `{timer_running}` - Boolean indicating if timer is running
+   
+   **Backward compatibility:** Old field names (`{home_score}`, `{away_score}`, `{home_match_score}`, `{away_match_score}`) are still available
 
 **Detailed Setup Instructions:**
 For step-by-step instructions on configuring vMix Title (GTZIP) with JSON data, see [VMIX_TITLE_SETUP.md](VMIX_TITLE_SETUP.md).
 
 **Quick Mapping for GTZIP Fields:**
 - **Фамилия 1.Text** → `{home_name}` (Player 1 name)
-- **Шары 1.Text** → `{home_score}` (Player 1 score)
+- **Шары 1.Text** → `{balls_home}` (Player 1 balls in current game)
 - **Фамилия 2.Text** → `{away_name}` (Player 2 name)
-- **Шары 2.Text** → `{away_score}` (Player 2 score)
+- **Шары 2.Text** → `{balls_away}` (Player 2 balls in current game)
+- **Счет партий** → `{score_home}` - `{score_away}` (Games won)
+- **Партия** → `{period}` (Current game/period number)
+
+**Note:** For backward compatibility, old field names are also available:
+- `{home_score}` = `{balls_home}`
+- `{away_score}` = `{balls_away}`
+- `{home_match_score}` = `{score_home}`
+- `{away_match_score}` = `{score_away}`
 
 #### Get All Matches Data (JSON)
 ```http

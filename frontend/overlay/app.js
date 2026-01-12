@@ -991,8 +991,8 @@ function updateUI(state, eventType = null, changed = null) {
         }
     }
     
-    // Update period
-    elements.periodValue.textContent = state.period || 1;
+    // Update period (display in brackets)
+    elements.periodValue.textContent = `(${state.period || 1})`;
     
     // Update timer
     elements.timerValue.textContent = formatTimer(state.timerSecondsRemaining || 0);

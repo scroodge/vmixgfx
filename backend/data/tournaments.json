@@ -59,9 +59,27 @@
           "height": 5.0
         }
       }
+    },
+    "tournament_3": {
+      "id": "tournament_3",
+      "name": "ТЕСТ",
+      "created_at": 1768206602.721456,
+      "players": [
+        {
+          "id": "5",
+          "name": "Андрей Иванов",
+          "created_at": 1768206609.5188758
+        },
+        {
+          "id": "6",
+          "name": "Сергей Петров",
+          "created_at": 1768206615.268865
+        }
+      ],
+      "text_areas": null
     }
   },
   "current_tournament_id": "tournament_2",
-  "tournament_id_counter": 2,
-  "player_id_counter": 4
+  "tournament_id_counter": 3,
+  "player_id_counter": 6
 }
