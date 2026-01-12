@@ -51,7 +51,9 @@ A complete real-time billiard score control system for vMix broadcasting. Design
 ├── build.sh                 # Build script for Linux/macOS
 ├── build_windows.bat        # Windows build script (batch)
 ├── build_windows.ps1        # Windows build script (PowerShell)
+├── build_windows_on_mac.sh  # Script to build Windows .exe on macOS
 ├── BUILD.md                 # Build instructions
+├── BUILD_WINDOWS_ON_MAC.md  # Guide for building Windows .exe on macOS
 ├── QUICK_START.txt          # Quick start guide (English)
 ├── QUICK_START_RU.txt       # Quick start guide (Russian)
 └── README.md                # Main documentation
@@ -88,6 +90,8 @@ python build.py
 - Access Overlay: `http://localhost:8000/overlay?matchId=1`
 
 **For detailed instructions:** See [BUILD.md](BUILD.md) or [QUICK_START_RU.txt](QUICK_START_RU.txt) (Russian)
+
+**Building Windows .exe on macOS?** See [BUILD_WINDOWS_ON_MAC.md](BUILD_WINDOWS_ON_MAC.md) for cross-platform build options.
 
 ### Development Setup (Windows)
 
