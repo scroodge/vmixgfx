@@ -242,6 +242,67 @@ Content-Type: application/json
 }
 ```
 
+#### Get Match Data (JSON for vMix Title)
+```http
+GET /api/match/{match_id}/data.json
+```
+
+**Response:**
+```json
+[
+  {
+    "match_id": "1",
+    "home_name": "Player 1",
+    "away_name": "Player 2",
+    "home_score": 8,
+    "away_score": 5,
+    "home_match_score": 2,
+    "away_match_score": 1,
+    "period": 2,
+    "timer_seconds": 1200,
+    "timer_running": false,
+    "timer_formatted": "20:00",
+    "timestamp": 1703123456789,
+    "rev": 42
+  }
+]
+```
+
+**Note:** vMix requires JSON as an array of objects, so the endpoint returns data in this format.
+
+This endpoint provides match data in a format optimized for vMix Title. The `timer_formatted` field provides a ready-to-use time string in MM:SS or HH:MM:SS format.
+
+**Usage in vMix Title:**
+1. In vMix, add a Title input
+2. Configure the Title to read from HTTP endpoint: `http://localhost:8000/api/match/1/data.json`
+3. Use variables in your title template:
+   - `{home_name}` - Home team name
+   - `{away_name}` - Away team name
+   - `{home_score}` - Home team score
+   - `{away_score}` - Away team score
+   - `{home_match_score}` - Home team match score (games won)
+   - `{away_match_score}` - Away team match score (games won)
+   - `{period}` - Current period/game number
+   - `{timer_formatted}` - Timer in MM:SS or HH:MM:SS format
+   - `{timer_seconds}` - Timer in seconds
+   - `{timer_running}` - Boolean indicating if timer is running
+
+**Detailed Setup Instructions:**
+For step-by-step instructions on configuring vMix Title (GTZIP) with JSON data, see [VMIX_TITLE_SETUP.md](VMIX_TITLE_SETUP.md).
+
+**Quick Mapping for GTZIP Fields:**
+- **Фамилия 1.Text** → `{home_name}` (Player 1 name)
+- **Шары 1.Text** → `{home_score}` (Player 1 score)
+- **Фамилия 2.Text** → `{away_name}` (Player 2 name)
+- **Шары 2.Text** → `{away_score}` (Player 2 score)
+
+#### Get All Matches Data (JSON)
+```http
+GET /api/matches/data.json
+```
+
+Returns JSON array with all active matches (each match is an object in the array).
+
 ### WebSocket Endpoint
 
 ```ws

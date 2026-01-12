@@ -16,7 +16,7 @@ from datetime import datetime
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from pydantic import BaseModel, Field, field_validator
 import base64
 
@@ -336,6 +336,50 @@ state_lock = asyncio.Lock()
 # Helper Functions
 # ============================================================================
 
+def format_timer(seconds: int) -> str:
+    """Format timer seconds to MM:SS or HH:MM:SS"""
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    secs = seconds % 60
+    
+    if hours > 0:
+        return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+    else:
+        return f"{minutes:02d}:{secs:02d}"
+
+def get_match_data_dict(state: MatchState) -> Dict:
+    """Convert match state to dictionary format for JSON output"""
+    return {
+        "match_id": state.match_id,
+        "home_name": state.homeName,
+        "away_name": state.awayName,
+        "home_score": state.homeScore,
+        "away_score": state.awayScore,
+        "home_match_score": getattr(state, 'homeMatchScore', 0),
+        "away_match_score": getattr(state, 'awayMatchScore', 0),
+        "period": state.period,
+        "timer_seconds": state.timerSecondsRemaining,
+        "timer_running": state.timerRunning,
+        "timer_formatted": format_timer(state.timerSecondsRemaining),
+        "timestamp": int(time.time() * 1000),
+        "rev": state.rev
+    }
+
+def save_match_data_to_file(match_id: str, state: MatchState):
+    """Save match data to JSON file for vMix Title file access"""
+    data_dir = get_data_directory() / "vmix"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    
+    file_path = data_dir / f"match_{match_id}.json"
+    
+    data = get_match_data_dict(state)
+    
+    try:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"Error saving match data to file: {e}")
+
 async def broadcast_event(match_id: str, event_type: str, state: MatchState, changed: Optional[Dict] = None):
     """Broadcast an event to all WebSocket connections for a match"""
     if match_id not in connections:
@@ -360,6 +404,10 @@ async def broadcast_event(match_id: str, event_type: str, state: MatchState, cha
     
     # Remove disconnected clients
     connections[match_id] -= disconnected
+    
+    # Save JSON to file for vMix Title file access (optional)
+    # Uncomment the line below if you want to save JSON files to disk
+    # save_match_data_to_file(match_id, state)
 
 def get_or_create_match(match_id: str) -> MatchState:
     """Get existing match or create a new one"""
@@ -636,6 +684,39 @@ async def set_period(match_id: str, request: PeriodSetRequest):
         await broadcast_event(match_id, "period_changed", state, {"field": "period", "period": request.period})
     
     return {"status": "ok", "state": state.model_dump()}
+
+# ============================================================================
+# JSON Data Endpoints for vMix Title
+# ============================================================================
+
+@app.get("/api/match/{match_id}/data.json")
+async def get_match_data_json(match_id: str):
+    """Get match data in JSON format for vMix Title (returns array of objects)"""
+    state = get_or_create_match(match_id)
+    data = get_match_data_dict(state)
+    
+    # vMix requires JSON as an array of objects
+    data_array = [data]
+    
+    return Response(
+        content=json.dumps(data_array, ensure_ascii=False),
+        media_type="application/json",
+        headers={"Cache-Control": "no-cache"}
+    )
+
+@app.get("/api/matches/data.json")
+async def get_all_matches_data_json():
+    """Get all matches data in JSON format (returns array of objects)"""
+    # vMix requires JSON as an array of objects
+    matches_array = []
+    for match_id, state in matches.items():
+        matches_array.append(get_match_data_dict(state))
+    
+    return Response(
+        content=json.dumps(matches_array, ensure_ascii=False),
+        media_type="application/json",
+        headers={"Cache-Control": "no-cache"}
+    )
 
 # ============================================================================
 # WebSocket Endpoint

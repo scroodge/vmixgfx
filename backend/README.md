@@ -112,6 +112,8 @@ All endpoints follow the pattern: `/api/match/{match_id}/...`
 - `POST /api/match/{match_id}/timer/stop` - Stop countdown timer
 - `POST /api/match/{match_id}/timer/set` - Set timer to specific seconds
 - `POST /api/match/{match_id}/period/set` - Set period number
+- `GET /api/match/{match_id}/data.json` - Get match data in JSON format for vMix Title
+- `GET /api/matches/data.json` - Get all matches data in JSON format
 
 ### WebSocket
 
@@ -132,6 +134,41 @@ All endpoints follow the pattern: `/api/match/{match_id}/...`
   "rev": 42
 }
 ```
+
+## JSON Data Format for vMix Title
+
+The `/api/match/{match_id}/data.json` endpoint provides match data in a format optimized for vMix Title. vMix requires JSON as an array of objects:
+
+```json
+[
+  {
+    "match_id": "1",
+    "home_name": "Team A",
+    "away_name": "Team B",
+    "home_score": 5,
+    "away_score": 3,
+    "home_match_score": 2,
+    "away_match_score": 1,
+    "period": 2,
+    "timer_seconds": 1200,
+    "timer_running": false,
+    "timer_formatted": "20:00",
+    "timestamp": 1703123456789,
+    "rev": 42
+  }
+]
+```
+
+**Key differences from `/state` endpoint:**
+- Field names use snake_case (e.g., `home_name` instead of `homeName`)
+- Includes `timer_formatted` field with ready-to-use time string (MM:SS or HH:MM:SS)
+- Includes `home_match_score` and `away_match_score` for overall match scores
+- Includes `timestamp` for tracking when data was generated
+- Response headers include `Cache-Control: no-cache` to ensure fresh data
+
+**Usage in vMix Title:**
+1. Configure Title input to read from: `http://localhost:8000/api/match/1/data.json`
+2. Use variables like `{home_name}`, `{away_score}`, `{timer_formatted}`, etc. in your title template
 
 ## Timer Behavior
 
