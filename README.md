@@ -7,10 +7,15 @@ A complete real-time billiard score control system for vMix broadcasting. Design
 ## Features
 
 - **Real-time Updates**: WebSocket-based broadcasting ensures instant score updates
+- **JSON Data Export**: HTTP endpoints for vMix Title integration (works via polling, no WebSocket required)
 - **Server-side Timer**: Accurate countdown timer with automatic stop at zero
 - **Animated Overlay**: Smooth score change animations (bump/pop with glow effect)
 - **Multiple Game Support**: Handle multiple games simultaneously via game IDs
-- **Billiard-Specific Features**: Player 1/Player 2 scoring, game tracking, ball pocketing controls
+- **Billiard-Specific Features**: 
+  - Balls control (current game score)
+  - Match score control (games won)
+  - Period tracking with formatted display
+- **Tournament Management**: JSON-persisted tournament and player management
 - **Responsive Control Panel**: Clean, intuitive UI for score management
 - **Reliable Reconnection**: Exponential backoff reconnection logic for overlay
 - **No Build Step**: Pure HTML/CSS/JavaScript frontend, runs directly from FastAPI
@@ -290,37 +295,30 @@ This endpoint provides match data in a format optimized for vMix Title. The `tim
 4. Configure the Title to use the data source
 5. Use variables in your title template:
 
-**Note:** This endpoint works independently of WebSocket. vMix will poll the endpoint periodically to get updated data. No WebSocket connection is required for vMix Title.
+**Available Variables:**
    - `{home_name}` - Home team name
    - `{away_name}` - Away team name
-   - `{balls_home}` - Home team balls (current game score)
-   - `{balls_away}` - Away team balls (current game score)
-   - `{score_home}` - Home team games won (match score)
-   - `{score_away}` - Away team games won (match score)
-   - `{period}` - Current period/game number (number only)
-   - `{period_formatted}` - Current period/game number in brackets, e.g. "(2)"
+   - `{balls_home}` - Home team balls (current game)
+   - `{balls_away}` - Away team balls (current game)
+   - `{score_home}` - Home team games won
+   - `{score_away}` - Away team games won
+   - `{period}` - Current period number
+   - `{period_formatted}` - Current period in brackets, e.g. "(2)"
    - `{timer_formatted}` - Timer in MM:SS or HH:MM:SS format
    - `{timer_seconds}` - Timer in seconds
    - `{timer_running}` - Boolean indicating if timer is running
-   
-   **Backward compatibility:** Old field names (`{home_score}`, `{away_score}`, `{home_match_score}`, `{away_match_score}`) are still available
-
-**Detailed Setup Instructions:**
-For step-by-step instructions on configuring vMix Title (GTZIP) with JSON data, see [VMIX_TITLE_SETUP.md](VMIX_TITLE_SETUP.md).
 
 **Quick Mapping for GTZIP Fields:**
-- **Фамилия 1.Text** → `{home_name}` (Player 1 name)
-- **Шары 1.Text** → `{balls_home}` (Player 1 balls in current game)
-- **Фамилия 2.Text** → `{away_name}` (Player 2 name)
-- **Шары 2.Text** → `{balls_away}` (Player 2 balls in current game)
-- **Счет партий** → `{score_home}` - `{score_away}` (Games won)
-- **Партия** → `{period}` (Current game/period number)
+- **Фамилия 1.Text** → `{home_name}`
+- **Шары 1.Text** → `{balls_home}`
+- **Фамилия 2.Text** → `{away_name}`
+- **Шары 2.Text** → `{balls_away}`
+- **Счет партий** → `{score_home}` - `{score_away}`
+- **Партия** → `{period_formatted}`
 
-**Note:** For backward compatibility, old field names are also available:
-- `{home_score}` = `{balls_home}`
-- `{away_score}` = `{balls_away}`
-- `{home_match_score}` = `{score_home}`
-- `{away_match_score}` = `{score_away}`
+**Note:** This endpoint works via HTTP polling (not WebSocket). vMix will automatically request updated data at the configured interval. No WebSocket connection is required for vMix Title.
+
+**Detailed Setup:** See [VMIX_TITLE_SETUP.md](VMIX_TITLE_SETUP.md) for complete step-by-step instructions.
 
 #### Get All Matches Data (JSON)
 ```http

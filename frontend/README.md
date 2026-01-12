@@ -28,7 +28,9 @@ Web-based control interface for operators to manage match scores, timers, and pe
 ### Features
 
 - Real-time score control with +/- buttons
-- Team name configuration
+- Balls control (current game score)
+- Match score control (games won)
+- Tournament and player management
 - Period management
 - Timer controls (Start/Stop/Set)
 - Match reset functionality

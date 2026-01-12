@@ -130,16 +130,10 @@ function parseTimer(timeStr) {
  * Update connection status UI
  */
 function updateConnectionStatus(connected) {
-    if (!elements.connectionStatus) {
-        console.warn('Connection status element not found');
-        return;
-    }
+    if (!elements.connectionStatus) return;
     
     const statusText = elements.connectionStatus.querySelector('.status-text');
-    if (!statusText) {
-        console.warn('Status text element not found');
-        return;
-    }
+    if (!statusText) return;
     
     if (connected) {
         elements.connectionStatus.classList.remove('disconnected');
@@ -212,14 +206,9 @@ async function fetchState() {
             const state = await response.json();
             updateUI(state);
             return state;
-        } else {
-            console.error('Failed to fetch state: HTTP', response.status, response.statusText);
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
         }
     } catch (error) {
         console.error('Failed to fetch state:', error);
-        // Update connection status on fetch failure
         updateConnectionStatus(false);
     }
     return null;
@@ -234,30 +223,19 @@ async function fetchState() {
  */
 async function loadTournaments() {
     try {
-        console.log('Fetching tournaments from:', `${API_BASE}/api/tournaments`);
         const response = await fetch(`${API_BASE}/api/tournaments`);
-        console.log('Tournaments response status:', response.status);
-        
         if (response.ok) {
             const data = await response.json();
-            console.log('Tournaments data received:', data);
             tournamentsList = data.tournaments || [];
-            console.log('Tournaments list:', tournamentsList);
             renderTournamentSelect();
             return tournamentsList;
         } else {
-            console.error('Failed to load tournaments: HTTP', response.status, response.statusText);
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
-            // Show user-friendly error message
             if (elements.tournamentSelect) {
                 elements.tournamentSelect.innerHTML = '<option value="">' + (t('errorLoadingTournaments') || 'Error loading tournaments') + '</option>';
             }
         }
     } catch (error) {
         console.error('Failed to load tournaments:', error);
-        console.error('Error details:', error.message, error.stack);
-        // Show user-friendly error message
         if (elements.tournamentSelect) {
             elements.tournamentSelect.innerHTML = '<option value="">' + (t('errorLoadingTournaments') || 'Error loading tournaments') + '</option>';
         }
@@ -765,15 +743,12 @@ function connectWebSocket() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws/match/${matchId}`;
     
-    console.log('Attempting to connect WebSocket:', wsUrl);
-    
     try {
         ws = new WebSocket(wsUrl);
         
         ws.onopen = () => {
-            console.log('WebSocket connected successfully');
             updateConnectionStatus(true);
-            reconnectDelay = 1000; // Reset delay on successful connection
+            reconnectDelay = 1000;
         };
         
         ws.onmessage = (event) => {
@@ -787,15 +762,12 @@ function connectWebSocket() {
             }
         };
         
-        ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
+        ws.onerror = () => {
             updateConnectionStatus(false);
         };
         
         ws.onclose = (event) => {
-            console.log('WebSocket disconnected', event.code, event.reason);
             updateConnectionStatus(false);
-            // Only schedule reconnect if it wasn't a manual close
             if (event.code !== 1000) {
                 scheduleReconnect();
             }
@@ -813,10 +785,7 @@ function scheduleReconnect() {
     }
     
     reconnectTimeout = setTimeout(() => {
-        console.log(`Reconnecting WebSocket (delay: ${reconnectDelay}ms)...`);
         connectWebSocket();
-        
-        // Exponential backoff with max limit
         reconnectDelay = Math.min(reconnectDelay * 2, maxReconnectDelay);
     }, reconnectDelay);
 }
@@ -1153,7 +1122,6 @@ async function saveVisibilityToAPI() {
         });
         
         if (saveResponse.ok) {
-            console.log('Visibility settings saved to API');
         }
     } catch (e) {
         console.error('Error saving visibility settings to API:', e);
@@ -1193,7 +1161,6 @@ async function loadVisibilitySettings() {
         if (response.ok) {
             const settings = await response.json();
             if (settings && settings.visibility) {
-                console.log('Loaded visibility settings from API');
                 elements.showGameDisplay.checked = settings.visibility.showGame !== false;
                 elements.showTimerDisplay.checked = settings.visibility.showTimer !== false;
                 elements.showMatchScoreNextTimer.checked = settings.visibility.showMatchScoreNextTimer === true;
@@ -1207,7 +1174,6 @@ async function loadVisibilitySettings() {
             }
         }
     } catch (e) {
-        console.warn('Failed to load visibility from API, trying localStorage:', e);
     }
     
     // Fallback to localStorage
@@ -1278,25 +1244,13 @@ function initializeCollapsibles() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Initializing control panel...');
-    console.log('API_BASE:', API_BASE);
-    
     // Check if required elements exist
     if (!elements.matchIdInput) {
         console.error('Match ID input element not found!');
         return;
     }
     
-    if (!elements.connectionStatus) {
-        console.warn('Connection status element not found');
-    }
-    
-    if (!elements.tournamentSelect) {
-        console.warn('Tournament select element not found');
-    }
-    
     matchId = elements.matchIdInput.value || '1';
-    console.log('Match ID:', matchId);
     
     // Initialize collapsible sections
     initializeCollapsibles();
@@ -1331,11 +1285,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Load tournaments and get current tournament
     try {
-        console.log('Loading tournaments...');
         await loadTournaments();
-        console.log('Tournaments loaded:', tournamentsList.length);
         const currentTournament = await getCurrentTournament();
-        console.log('Current tournament:', currentTournament?.id || 'none');
         
         // Restore tournament selection from localStorage if available
         const savedTournamentId = localStorage.getItem('currentTournamentId');

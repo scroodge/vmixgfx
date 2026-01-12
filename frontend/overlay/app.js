@@ -29,25 +29,6 @@ function applyGFXSettings(settings) {
         return;
     }
     
-    console.log('🎨 Applying GFX Settings - Sections present:', {
-        colors: !!settings.colors,
-        typography: !!settings.typography,
-        layout: !!settings.layout,
-        effects: !!settings.effects,
-        positions: !!settings.positions,
-        backgrounds: !!settings.backgrounds,
-        banner: !!settings.banner,
-        animations: !!settings.animations
-    });
-    
-    // Log full settings structure for debugging
-    if (!settings.typography || !settings.layout) {
-        console.warn('⚠️ Missing settings sections:', {
-            missingTypography: !settings.typography,
-            missingLayout: !settings.layout,
-            allKeys: Object.keys(settings)
-        });
-    }
     
     const root = document.documentElement;
     const container = document.querySelector('.overlay-container');
@@ -109,15 +90,6 @@ function applyGFXSettings(settings) {
         root.style.setProperty('--font-size-score', scoreSize + 'px');
         root.style.setProperty('--font-size-game-timer', gameTimerSize + 'px');
         root.style.setProperty('--font-weight', settings.typography.fontWeight || 900);
-        
-        console.log('📝 Typography applied:', {
-            playerNameSize,
-            scoreSize,
-            gameTimerSize,
-            fontWeight: settings.typography.fontWeight || 900
-        });
-    } else {
-        console.warn('⚠️ No typography settings found in:', settings);
     }
     
     // Effects (with fallbacks)
@@ -136,15 +108,6 @@ function applyGFXSettings(settings) {
         root.style.setProperty('--spacing-scores', spacingScores + 'px');
         root.style.setProperty('--spacing-info', spacingInfo + 'px');
         root.style.setProperty('--separator-size', separatorSize + 'px');
-        
-        console.log('📐 Layout & Spacing applied:', {
-            spacingScores: spacingScores + 'px',
-            spacingInfo: spacingInfo + 'px',
-            separatorSize: separatorSize + 'px',
-            layoutStyle: settings.layout.style
-        });
-    } else {
-        console.warn('⚠️ No layout settings found in:', settings);
     }
     
     // Positions - apply to both score section and banner
@@ -175,12 +138,6 @@ function applyGFXSettings(settings) {
             const scoreY = scoreYNum + '%';
             const infoX = infoXNum + '%';
             const infoY = infoYNum === 'auto' ? 'auto' : infoYNum + '%';
-            
-            console.log('📍 Applying positions:', { 
-                scoreX: scoreXNum, scoreY: scoreYNum, 
-                infoX: infoXNum, infoY: infoYNum,
-                raw: settings.positions 
-            });
             
             // Apply individual positioning to horizontal layout elements
             const leftElement = document.getElementById('score-left');
@@ -276,13 +233,6 @@ function applyGFXSettings(settings) {
                     bgValue = `linear-gradient(${angle}deg, ${color1}, ${color2})`;
                 }
             } else if (bg.type === 'image' && bg.imageUrl) {
-                console.log('🖼️ Applying background image:', {
-                    imageUrl: bg.imageUrl.substring(0, 50) + '...',
-                    imageSize: bg.imageSize,
-                    imageOpacity: bg.imageOpacity,
-                    imagePositionX: bg.imagePositionX,
-                    imagePositionY: bg.imagePositionY
-                });
                 
                 const opacity = (bg.imageOpacity || 100) / 100;
                 const size = bg.imageSize || 'cover';
@@ -328,13 +278,6 @@ function applyGFXSettings(settings) {
                 
                 // Verify the styles were actually applied
                 const computedStyle = window.getComputedStyle(container);
-                console.log('✅ Background image applied:', {
-                    backgroundImage: computedStyle.backgroundImage.substring(0, 50),
-                    backgroundSize: computedStyle.backgroundSize,
-                    backgroundPosition: computedStyle.backgroundPosition,
-                    containerExists: !!container,
-                    containerVisible: computedStyle.display !== 'none'
-                });
                 
                 // When background image is uploaded, set flag
                 container.dataset.hasUploadedBackground = 'true';
@@ -438,7 +381,6 @@ function applyGFXSettings(settings) {
     
     if (settings.animations) {
         window.gfxSettings.animations = settings.animations;
-        console.log('✅ Animation settings stored:', settings.animations);
     } else {
         // Initialize with defaults if not present
         window.gfxSettings.animations = {
@@ -476,7 +418,6 @@ function applyGFXSettings(settings) {
             root.style.setProperty('--banner-center-width', (settings.banner.centerWidth || 200) + 'px');
             root.style.setProperty('--banner-name-size', bannerNameSize + 'px');
             root.style.setProperty('--banner-score-size', bannerScoreSize + 'px');
-            console.log('📝 Banner sizes applied:', { bannerScoreSize, bannerNameSize });
             root.style.setProperty('--banner-name-color', settings.banner.nameColor || '#ffffff');
             root.style.setProperty('--banner-score-color', settings.banner.scoreColor || '#000000');
             root.style.setProperty('--banner-match-score-color', settings.banner.matchScoreColor || '#666666');
@@ -605,13 +546,6 @@ function applyPosition(element, x, y) {
         element.style.transform = '';
     }
     
-    // Debug logging
-    console.log('📍 Position applied:', {
-        element: element.className,
-        left: leftValue || 'default',
-        top: topValue || 'default',
-        transform: element.style.transform || 'none'
-    });
 }
 
 // Listen for settings updates from control panel (preview mode only)
@@ -620,25 +554,20 @@ const isPreview = window.location.search.includes('preview=true');
 if (isPreview) {
     window.addEventListener('message', (event) => {
         if (event.data && event.data.type === 'gfxSettings') {
-            console.log('📨 Received gfxSettings via postMessage');
             applyGFXSettings(event.data.settings);
-            // Cache in localStorage for preview mode only
             localStorage.setItem('gfxSettings', JSON.stringify(event.data.settings));
         } else if (event.data && event.data.type === 'reloadGFXSettings') {
-            // Reload settings from API (useful after background upload)
-            console.log('🔄 Reloading GFX settings from API...');
             const matchId = event.data.matchId || getMatchId();
             fetch(`/api/match/${matchId}/gfx-settings`)
                 .then(response => response.json())
                 .then(settings => {
                     if (settings && Object.keys(settings).length > 0) {
-                        console.log('✅ GFX settings reloaded from API');
                         applyGFXSettings(settings);
                         localStorage.setItem('gfxSettings', JSON.stringify(settings));
                     }
                 })
                 .catch(err => {
-                    console.error('⚠️ Failed to reload GFX settings from API:', err);
+                    console.error('Failed to reload GFX settings from API:', err);
                 });
         } else if (event.data && event.data.type === 'visibilityUpdate') {
             // Handle visibility updates (preview mode)
@@ -736,7 +665,6 @@ if (window.location.search.includes('preview=true')) {
                     
                     // Ensure layout settings are present (for spacing, separator, etc.)
                     if (!settings.layout) {
-                        console.warn('⚠️ Layout settings missing from API response, using defaults');
                         settings.layout = {
                             spacingScores: 40,
                             spacingInfo: 30,
@@ -749,7 +677,6 @@ if (window.location.search.includes('preview=true')) {
                     
                     // Ensure typography settings are present
                     if (!settings.typography) {
-                        console.warn('⚠️ Typography settings missing from API response, using defaults');
                         settings.typography = {
                             fontFamily: "'Arial Black', 'Arial Bold', Arial, sans-serif",
                             playerNameSize: 48,
@@ -763,13 +690,6 @@ if (window.location.search.includes('preview=true')) {
                     const settingsStr = JSON.stringify(settings);
                     if (!window.lastSettingsStr || window.lastSettingsStr !== settingsStr) {
                         window.lastSettingsStr = settingsStr;
-                        console.log('🔄 Settings changed, applying:', {
-                            hasTypography: !!settings.typography,
-                            hasLayout: !!settings.layout,
-                            hasPositions: !!settings.positions,
-                            typography: settings.typography,
-                            layout: settings.layout
-                        });
                         applyGFXSettings(settings);
                         if (settings.visibility) {
                             updateVisibility(
@@ -1062,7 +982,6 @@ function animateScoreChange(element, newValue) {
     if (window.gfxSettings && window.gfxSettings.animations) {
         animationsEnabled = window.gfxSettings.animations.enabled === true;
         animationType = window.gfxSettings.animations.type || 'explosion';
-        console.log('🎬 Animation settings from window.gfxSettings:', { enabled: animationsEnabled, type: animationType });
     } else {
         // Fallback: check localStorage (works in both preview and vMix mode)
         const settingsStr = localStorage.getItem('gfxSettings');
@@ -1072,7 +991,6 @@ function animateScoreChange(element, newValue) {
                 if (settings.animations) {
                     animationsEnabled = settings.animations.enabled === true;
                     animationType = settings.animations.type || 'explosion';
-                    console.log('🎬 Animation settings from localStorage:', { enabled: animationsEnabled, type: animationType });
                     
                     // Also update window.gfxSettings for future calls
                     if (!window.gfxSettings) window.gfxSettings = {};
@@ -1090,7 +1008,6 @@ function animateScoreChange(element, newValue) {
     if (animationsEnabled && animationType) {
         // Apply fantastic animation
         const animationClass = `animation-${animationType}`;
-        console.log(`🎬 Applying animation: ${animationClass} to element:`, element.id || element.className);
         element.classList.add(animationClass);
         
         // Remove animation class after animation completes
@@ -1099,11 +1016,9 @@ function animateScoreChange(element, newValue) {
                                   animationType === 'particles' ? 1000 : 700;
         setTimeout(() => {
             element.classList.remove(animationClass);
-            console.log(`🎬 Removed animation: ${animationClass}`);
         }, animationDuration);
     } else {
         // Use default animation
-        console.log('🎬 Using default animation (fantastic animations disabled or not configured)');
         element.classList.add('score-changed');
         if (glowEnabled) {
             element.classList.add('glow-enabled');
@@ -1149,10 +1064,7 @@ function connectWebSocket() {
         ws = new WebSocket(wsUrl);
         
         ws.onopen = () => {
-            console.log('WebSocket connected to match', matchId);
-            reconnectDelay = 1000; // Reset delay on successful connection
-            
-            // Fetch current state immediately on connect
+            reconnectDelay = 1000;
             fetchState();
         };
         
@@ -1162,15 +1074,6 @@ function connectWebSocket() {
                 
                 // Handle GFX settings updates via WebSocket (for vMix - no localStorage needed)
                 if (data.type === 'gfxSettings' && data.settings) {
-                    console.log('📡 Received GFX settings update via WebSocket:', {
-                        keys: Object.keys(data.settings),
-                        hasTypography: !!data.settings.typography,
-                        hasLayout: !!data.settings.layout,
-                        hasColors: !!data.settings.colors,
-                        hasEffects: !!data.settings.effects,
-                        hasPositions: !!data.settings.positions,
-                        hasBackgrounds: !!data.settings.backgrounds
-                    });
                     applyGFXSettings(data.settings);
                     if (data.settings.visibility) {
                         updateVisibility(
@@ -1210,9 +1113,6 @@ function connectWebSocket() {
         };
         
         ws.onclose = (event) => {
-            console.log('WebSocket disconnected', event.code, event.reason);
-            
-            // Only attempt reconnect if not a normal closure
             if (event.code !== 1000) {
                 scheduleReconnect();
             }
@@ -1235,10 +1135,7 @@ function scheduleReconnect() {
     const jitter = Math.random() * 0.3 * reconnectDelay;
     const delay = reconnectDelay + jitter;
     
-    console.log(`Scheduling reconnect in ${Math.round(delay)}ms...`);
-    
     reconnectTimeout = setTimeout(() => {
-        console.log('Attempting to reconnect WebSocket...');
         connectWebSocket();
         
         // Exponential backoff with max limit
@@ -1273,16 +1170,14 @@ async function loadGFXSettingsFromAPI() {
                     if (!settings.textAreas) settings.textAreas = {};
                     settings.textAreas = tournamentData.text_areas;
                     hasTextAreas = true;
-                    console.log('📐 Loaded text areas from tournament:', tournamentData.text_areas);
                 }
             }
         } catch (e) {
-            console.warn('Failed to load text areas from tournament:', e);
+            // Ignore text areas loading errors
         }
         
         // Apply settings if we have any (GFX settings or text areas from tournament)
         if (settings && (Object.keys(settings).length > 0 || hasTextAreas)) {
-            console.log('Loading GFX settings from API:', settings);
             applyGFXSettings(settings);
             
             // Only use localStorage for preview mode (same-origin iframe), NOT for vMix
@@ -1317,7 +1212,6 @@ async function loadGFXSettingsFromAPI() {
                     settings.visibility.showMatchScoreNextTimer === true
                 );
             }
-            console.log('GFX settings loaded from API and applied');
             return true;
         }
     } catch (e) {
@@ -1357,7 +1251,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (settingsStr) {
                     try {
                         const settings = JSON.parse(settingsStr);
-                        console.log('Loading GFX settings from localStorage (preview mode fallback):', settings);
                         applyGFXSettings(settings);
                         
                         // Apply layout and visibility from settings
@@ -1400,7 +1293,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 // vMix mode: no localStorage fallback - use defaults
-                console.warn('No GFX settings found in API. Using default styling.');
                 if (elements.scoreSection && elements.scoreBanner) {
                     elements.scoreSection.style.display = 'flex';
                     elements.scoreBanner.style.display = 'none';
@@ -1426,7 +1318,6 @@ function initializeOverlay() {
     
     // Check if edit mode is enabled
     if (checkEditMode()) {
-        console.log('Edit mode enabled, initializing text area editor...');
         // Wait a bit for DOM to be ready
         setTimeout(() => {
             enableTextAreaEditor();
@@ -1436,14 +1327,12 @@ function initializeOverlay() {
     }
     
     if (isPreview) {
-        console.log('Initializing overlay preview for match:', matchId);
         // In preview mode, update immediately when settings change
         // Settings are already loaded above
         
         // Fetch state but don't connect WebSocket in preview (optional, can be enabled)
         fetchState();
     } else {
-        console.log('Initializing overlay for match:', matchId);
         
         // Fetch initial state first
         fetchState().then(() => {
@@ -1459,7 +1348,6 @@ function initializeOverlay() {
     // This ensures display stays updated even if WebSocket fails
     setInterval(() => {
         if (!ws || ws.readyState !== WebSocket.OPEN) {
-            console.log('WebSocket not connected, fetching state via REST...');
             fetchState();
         }
     }, 3000);
@@ -1577,7 +1465,6 @@ function enableTextAreaEditor() {
     });
     document.body.appendChild(cancelBtn);
     
-    console.log('Text area editor mode enabled');
 }
 
 /**
@@ -1585,7 +1472,6 @@ function enableTextAreaEditor() {
  */
 function createTextArea(areaKey, element) {
     if (!element) {
-        console.warn(`Element not found for area: ${areaKey}`);
         return;
     }
     
@@ -1875,7 +1761,6 @@ async function saveTextAreaSettings() {
     
     try {
         // Save text areas to current tournament (not match settings)
-        console.log('💾 Saving text areas to tournament:', textAreas);
         const saveResponse = await fetch(`/api/tournaments/current/text-areas`, {
             method: 'POST',
             headers: {
@@ -1898,7 +1783,6 @@ async function saveTextAreaSettings() {
                         textAreas: textAreas
                     }, '*');
                 } catch (e) {
-                    console.log('Could not notify parent window:', e);
                 }
             }
             
@@ -1943,7 +1827,6 @@ function applyTextAreaSettings(textAreas) {
                        (areaKey === 'right' ? document.getElementById('score-right') : null);
         
         if (!element) {
-            console.warn(`Element not found for text area: ${areaKey}`);
             return;
         }
         
@@ -1968,13 +1851,6 @@ function applyTextAreaSettings(textAreas) {
             inner.style.display = 'flex';
             inner.style.alignItems = 'center';
             inner.style.justifyContent = 'center';
-        });
-        
-        console.log(`📍 Applied text area ${areaKey}:`, {
-            x: area.x + '%',
-            y: area.y + '%',
-            width: area.width + '%',
-            height: area.height + '%'
         });
     });
 }

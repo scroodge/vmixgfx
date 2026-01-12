@@ -7,9 +7,11 @@ FastAPI backend server providing REST API and WebSocket endpoints for real-time 
 ## Features
 
 - REST API for match state management
-- WebSocket server for real-time updates
+- WebSocket server for real-time updates (overlay in browser)
+- JSON endpoints for vMix Title integration (HTTP polling)
 - Server-side timer with automatic countdown
 - Multiple match support (by match ID)
+- Tournament and player management with JSON persistence
 - In-memory state storage
 - CORS enabled for local LAN access
 
@@ -112,8 +114,13 @@ All endpoints follow the pattern: `/api/match/{match_id}/...`
 - `POST /api/match/{match_id}/timer/stop` - Stop countdown timer
 - `POST /api/match/{match_id}/timer/set` - Set timer to specific seconds
 - `POST /api/match/{match_id}/period/set` - Set period number
-- `GET /api/match/{match_id}/data.json` - Get match data in JSON format for vMix Title
-- `GET /api/matches/data.json` - Get all matches data in JSON format
+- `GET /api/match/{match_id}/data.json` - Get match data in JSON format for vMix Title (HTTP polling)
+- `GET /api/matches/data.json` - Get all matches data in JSON format (HTTP polling)
+- `GET /api/tournaments` - Get all tournaments
+- `POST /api/tournaments` - Create tournament
+- `GET /api/tournaments/current` - Get current tournament
+- `GET /api/players` - Get players from current tournament
+- `POST /api/players` - Add player to current tournament
 
 ### WebSocket
 

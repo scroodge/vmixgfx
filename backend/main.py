@@ -145,39 +145,25 @@ FRONTEND_DIR = BASE_DIR / "frontend"
 CONTROL_DIR = BASE_DIR / "frontend" / "control"
 OVERLAY_DIR = BASE_DIR / "frontend" / "overlay"
 
-# Verify directories exist and log paths for debugging
+# Verify directories exist
 if not FRONTEND_DIR.exists():
-    print(f"WARNING: Frontend directory not found at: {FRONTEND_DIR}")
-    print(f"BASE_DIR: {BASE_DIR}")
-    print(f"sys._MEIPASS: {getattr(sys, '_MEIPASS', 'N/A')}")
-    print(f"__file__: {__file__}")
     # Try alternative path structure (if files are in different location)
     if (BASE_DIR / "control").exists():
         FRONTEND_DIR = BASE_DIR
         CONTROL_DIR = BASE_DIR / "control"
         OVERLAY_DIR = BASE_DIR / "overlay"
     else:
-        print("ERROR: Frontend files not found. Cannot start server.")
         raise FileNotFoundError(f"Frontend directory not found at: {FRONTEND_DIR}")
-else:
-    print(f"Frontend directory found at: {FRONTEND_DIR}")
 
 # Mount frontend directory for shared files like translations.js
-# Verify directories exist before mounting
 if FRONTEND_DIR.exists():
     app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR), html=False), name="frontend")
-else:
-    print(f"ERROR: Frontend directory does not exist: {FRONTEND_DIR}")
 
 if CONTROL_DIR.exists():
     app.mount("/control", StaticFiles(directory=str(CONTROL_DIR), html=True), name="control")
-else:
-    print(f"ERROR: Control directory does not exist: {CONTROL_DIR}")
 
 if OVERLAY_DIR.exists():
     app.mount("/overlay", StaticFiles(directory=str(OVERLAY_DIR), html=True), name="overlay")
-else:
-    print(f"ERROR: Overlay directory does not exist: {OVERLAY_DIR}")
 
 # ============================================================================
 # JSON Persistence for Tournaments
@@ -224,15 +210,9 @@ def load_tournaments_data() -> TournamentData:
                                         name=str(p['name']),
                                         created_at=float(p['created_at'])
                                     ))
-                                else:
-                                    print(f"Warning: Player data missing required fields: {p}")
                             elif isinstance(p, Player):
-                                # Already a Player object
                                 players.append(p)
-                            else:
-                                print(f"Warning: Unknown player type: {type(p)}")
                         except Exception as e:
-                            print(f"Error parsing player {p}: {e}")
                             continue
                     
                     try:
@@ -249,7 +229,6 @@ def load_tournaments_data() -> TournamentData:
                             text_areas=text_areas
                         )
                     except Exception as e:
-                        print(f"Error creating tournament {tid}: {e}")
                         continue
                 
                 return TournamentData(
@@ -259,10 +238,7 @@ def load_tournaments_data() -> TournamentData:
                     player_id_counter=data.get('player_id_counter', 0)
                 )
         except Exception as e:
-            print(f"Error loading tournaments data: {e}")
-            import traceback
-            traceback.print_exc()
-            print("Creating default tournaments data...")
+            pass
     
     # Return default empty data if file doesn't exist or loading failed
     return TournamentData(
@@ -305,9 +281,7 @@ def save_tournaments_data(data: TournamentData):
         # Replace original file
         temp_path.replace(file_path)
         
-        print(f"Tournaments data saved to: {file_path}")
     except Exception as e:
-        print(f"Error saving tournaments data: {e}")
         raise
 
 # ============================================================================
@@ -391,7 +365,7 @@ def save_match_data_to_file(match_id: str, state: MatchState):
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
     except Exception as e:
-        print(f"Error saving match data to file: {e}")
+        pass
 
 async def broadcast_event(match_id: str, event_type: str, state: MatchState, changed: Optional[Dict] = None):
     """Broadcast an event to all WebSocket connections for a match"""
@@ -435,15 +409,10 @@ def get_current_tournament() -> Optional[Tournament]:
             return None
         
         if tournaments_data.current_tournament_id not in tournaments_data.tournaments:
-            # Current tournament ID doesn't exist in tournaments dict
-            print(f"Warning: Current tournament ID '{tournaments_data.current_tournament_id}' not found in tournaments")
             return None
         
         return tournaments_data.tournaments[tournaments_data.current_tournament_id]
     except Exception as e:
-        print(f"Error in get_current_tournament: {e}")
-        import traceback
-        traceback.print_exc()
         return None
 
 def get_or_create_current_tournament() -> Tournament:
@@ -776,8 +745,8 @@ async def websocket_endpoint(websocket: WebSocket, match_id: str):
             # For now, just keep connection alive
     except WebSocketDisconnect:
         pass
-    except Exception as e:
-        print(f"WebSocket error for match {match_id}: {e}")
+    except Exception:
+        pass
     finally:
         # Remove from connections
         connections[match_id].discard(websocket)
@@ -1097,7 +1066,6 @@ async def get_players():
         
         # Ensure players is a list
         if not isinstance(tournament.players, list):
-            print(f"Warning: tournament.players is not a list, it's {type(tournament.players)}")
             return {"status": "ok", "players": []}
         
         # Convert players to dict format, handling both Player objects and dicts
@@ -1110,20 +1078,13 @@ async def get_players():
                 elif isinstance(player, dict):
                     # It's already a dict
                     player_list.append(player)
-                else:
-                    # Try to convert using model_dump_json or create dict manually
-                    print(f"Warning: Unknown player type: {type(player)}, skipping")
-            except Exception as e:
-                print(f"Error converting player {player}: {e}")
+            except Exception:
                 continue
         
         # Sort by creation time (newest first)
         player_list.sort(key=lambda x: x.get('created_at', 0), reverse=True)
         return {"status": "ok", "players": player_list}
     except Exception as e:
-        print(f"Error in get_players: {e}")
-        import traceback
-        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.delete("/api/players/{player_id}")
@@ -1214,12 +1175,10 @@ async def startup_event():
     global tournaments_data
     
     # Load tournaments data from JSON
-    print("Loading tournaments data...")
     tournaments_data = load_tournaments_data()
     
     # Create default tournament if none exists
     if not tournaments_data.tournaments:
-        print("No tournaments found, creating default tournament...")
         default_tournament = Tournament(
             id="tournament_1",
             name="Default Tournament",
@@ -1236,26 +1195,13 @@ async def startup_event():
         tournaments_data.current_tournament_id = first_tournament_id
         save_tournaments_data(tournaments_data)
     
-    print(f"Loaded {len(tournaments_data.tournaments)} tournament(s)")
-    if tournaments_data.current_tournament_id:
-        current = tournaments_data.tournaments[tournaments_data.current_tournament_id]
-        print(f"Current tournament: {current.name} ({current.id})")
-        print(f"  Players: {len(current.players)}")
-    
     print("=" * 60)
     print("vMix Russian Billiard Score Control Server")
     print("=" * 60)
-    print(f"Server started successfully on http://0.0.0.0:8000")
-    print("")
-    print("Access the application:")
-    print("  Control Panel: http://localhost:8000/control")
-    print("  Overlay:       http://localhost:8000/overlay?matchId=1")
-    print("")
-    print("Network Access:")
-    print("  You can access this server from other devices on your network")
-    print("  using your computer's IP address (e.g., http://192.168.1.100:8000)")
-    print("")
-    print("Press Ctrl+C to stop the server")
+    print(f"Server started on http://0.0.0.0:8000")
+    print(f"Control Panel: http://localhost:8000/control")
+    print(f"Overlay:       http://localhost:8000/overlay?matchId=1")
+    print(f"JSON Data:     http://localhost:8000/api/match/1/data.json")
     print("=" * 60)
 
 if __name__ == "__main__":
