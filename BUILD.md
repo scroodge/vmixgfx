@@ -1,18 +1,28 @@
-# Building Windows Executable
+# Building Executables for All Platforms
 
 **Version: 0.1a (Alpha)**
 
-This guide explains how to build a single Windows executable file (.exe) that contains all services (backend server and frontend files). Users can simply double-click the .exe file to start everything.
+This guide explains how to build a single executable file that contains all services (backend server and frontend files) for Windows, Linux, and macOS. Users can simply run the executable to start everything without installing Python.
 
 ## Prerequisites
 
-- **Windows 10/11** (64-bit recommended)
+- **Operating System**: Windows 10/11, Linux, or macOS
 - **Python 3.8 or higher** installed from [python.org](https://www.python.org/)
 - **Internet connection** (for downloading dependencies during build)
 
 ## Quick Start
 
-### Option 1: Using Batch Script (Recommended)
+### Option 1: Using Universal Python Script (Recommended)
+
+1. Open **Command Prompt** or **PowerShell** in the project root directory
+2. Run:
+   ```cmd
+   python build.py
+   ```
+3. Wait for the build to complete (this may take 5-10 minutes)
+4. Find the executable at: `backend\dist\vmix_score_control.exe`
+
+### Option 2: Using Batch Script
 
 1. Open **Command Prompt** or **PowerShell** in the project root directory
 2. Double-click `build_windows.bat` or run:
@@ -22,7 +32,7 @@ This guide explains how to build a single Windows executable file (.exe) that co
 3. Wait for the build to complete (this may take 5-10 minutes)
 4. Find the executable at: `backend\dist\vmix_score_control.exe`
 
-### Option 2: Using PowerShell Script
+### Option 3: Using PowerShell Script
 
 1. Open **PowerShell** in the project root directory
 2. If you get an execution policy error, run:
@@ -36,7 +46,7 @@ This guide explains how to build a single Windows executable file (.exe) that co
 4. Wait for the build to complete
 5. Find the executable at: `backend\dist\vmix_score_control.exe`
 
-### Option 3: Manual Build
+### Option 4: Manual Build
 
 1. Open **Command Prompt** or **PowerShell** in the `backend` directory
 2. Create and activate virtual environment:
@@ -220,12 +230,99 @@ pyinstaller --onedir vmix_score_control.spec
 
 ## Building on Other Platforms
 
-While this guide focuses on Windows, you can build executables for other platforms:
+### Universal Build Script (All Platforms)
 
-- **Linux**: Similar process, but output will be a binary (no .exe extension)
-- **macOS**: Similar process, output will be an .app bundle or binary
+The project includes a universal Python build script that works on Windows, Linux, and macOS:
 
-Note: PyInstaller builds are platform-specific. Build on the target platform or use cross-compilation tools.
+**Using Python script:**
+```bash
+python build.py
+```
+
+This script will:
+1. Check Python installation
+2. Create virtual environment
+3. Install dependencies
+4. Build executable using PyInstaller
+5. Verify the build
+
+**Using shell script (Linux/macOS):**
+```bash
+./build.sh
+```
+
+### Platform-Specific Instructions
+
+#### Linux
+
+1. **Using the shell script (recommended):**
+   ```bash
+   ./build.sh
+   ```
+
+2. **Using Python script:**
+   ```bash
+   python3 build.py
+   ```
+
+3. **Manual build:**
+   ```bash
+   cd backend
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   pyinstaller --clean vmix_score_control.spec
+   ```
+
+4. **Output:** `backend/dist/vmix_score_control` (executable binary)
+
+5. **Make executable:**
+   ```bash
+   chmod +x backend/dist/vmix_score_control
+   ```
+
+6. **Run:**
+   ```bash
+   ./backend/dist/vmix_score_control
+   ```
+
+#### macOS
+
+1. **Using the shell script (recommended):**
+   ```bash
+   ./build.sh
+   ```
+
+2. **Using Python script:**
+   ```bash
+   python3 build.py
+   ```
+
+3. **Manual build:**
+   ```bash
+   cd backend
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   pyinstaller --clean vmix_score_control.spec
+   ```
+
+4. **Output:** 
+   - `backend/dist/vmix_score_control.app` (application bundle), or
+   - `backend/dist/vmix_score_control` (executable binary)
+
+5. **Run application bundle:**
+   ```bash
+   open backend/dist/vmix_score_control.app
+   ```
+
+6. **Or run executable:**
+   ```bash
+   chmod +x backend/dist/vmix_score_control
+   ./backend/dist/vmix_score_control
+   ```
+
+**Note:** PyInstaller builds are platform-specific. You must build on the target platform (you can't build a Windows .exe on Linux, etc.).
 
 ## Updating the Executable
 

@@ -47,10 +47,13 @@ A complete real-time billiard score control system for vMix broadcasting. Design
 │   │   └── app.js
 │   ├── translations.js      # Translations file
 │   └── README.md            # Frontend documentation
+├── build.py                 # Universal build script (Python, all platforms)
+├── build.sh                 # Build script for Linux/macOS
 ├── build_windows.bat        # Windows build script (batch)
 ├── build_windows.ps1        # Windows build script (PowerShell)
 ├── BUILD.md                 # Build instructions
-├── QUICK_START.txt          # Quick start guide
+├── QUICK_START.txt          # Quick start guide (English)
+├── QUICK_START_RU.txt       # Quick start guide (Russian)
 └── README.md                # Main documentation
 ```
 
@@ -61,7 +64,32 @@ A complete real-time billiard score control system for vMix broadcasting. Design
 - Python 3.8 or higher
 - pip (Python package installer)
 
-### Windows Setup
+### Creating a Single Executable File
+
+**Universal Method (All Platforms):**
+```bash
+python build.py
+```
+
+**Platform-Specific Methods:**
+
+- **Windows:** Double-click `build_windows.bat` or run `python build.py`
+- **Linux/macOS:** Run `./build.sh` or `python3 build.py`
+
+**Output:**
+- **Windows:** `backend\dist\vmix_score_control.exe`
+- **Linux:** `backend/dist/vmix_score_control` (binary)
+- **macOS:** `backend/dist/vmix_score_control.app` (bundle) or binary
+
+**Usage:**
+- Copy the executable to any machine (no Python needed!)
+- Run the executable to start the server
+- Access Control Panel: `http://localhost:8000/control`
+- Access Overlay: `http://localhost:8000/overlay?matchId=1`
+
+**For detailed instructions:** See [BUILD.md](BUILD.md) or [QUICK_START_RU.txt](QUICK_START_RU.txt) (Russian)
+
+### Development Setup (Windows)
 
 1. **Open Command Prompt or PowerShell** in the project directory
 
