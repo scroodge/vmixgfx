@@ -704,7 +704,11 @@ async def set_period(match_id: str, request: PeriodSetRequest):
 
 @app.get("/api/match/{match_id}/data.json")
 async def get_match_data_json(match_id: str):
-    """Get match data in JSON format for vMix Title (returns array of objects)"""
+    """Get match data in JSON format for vMix Title (returns array of objects)
+    
+    This endpoint always returns current data from server state.
+    No WebSocket connection required - vMix can poll this endpoint periodically.
+    """
     state = get_or_create_match(match_id)
     data = get_match_data_dict(state)
     
@@ -714,12 +718,20 @@ async def get_match_data_json(match_id: str):
     return Response(
         content=json.dumps(data_array, ensure_ascii=False),
         media_type="application/json",
-        headers={"Cache-Control": "no-cache"}
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
     )
 
 @app.get("/api/matches/data.json")
 async def get_all_matches_data_json():
-    """Get all matches data in JSON format (returns array of objects)"""
+    """Get all matches data in JSON format (returns array of objects)
+    
+    This endpoint always returns current data from server state.
+    No WebSocket connection required - vMix can poll this endpoint periodically.
+    """
     # vMix requires JSON as an array of objects
     matches_array = []
     for match_id, state in matches.items():
@@ -728,7 +740,11 @@ async def get_all_matches_data_json():
     return Response(
         content=json.dumps(matches_array, ensure_ascii=False),
         media_type="application/json",
-        headers={"Cache-Control": "no-cache"}
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
     )
 
 # ============================================================================

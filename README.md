@@ -285,8 +285,12 @@ This endpoint provides match data in a format optimized for vMix Title. The `tim
 
 **Usage in vMix Title:**
 1. In vMix, add a Title input
-2. Configure the Title to read from HTTP endpoint: `http://localhost:8000/api/match/1/data.json`
-3. Use variables in your title template:
+2. In Data Sources Manager, add a JSON data source with URL: `http://localhost:8000/api/match/1/data.json`
+3. **Important:** Set refresh interval to 1-2 seconds for real-time updates
+4. Configure the Title to use the data source
+5. Use variables in your title template:
+
+**Note:** This endpoint works independently of WebSocket. vMix will poll the endpoint periodically to get updated data. No WebSocket connection is required for vMix Title.
    - `{home_name}` - Home team name
    - `{away_name}` - Away team name
    - `{balls_home}` - Home team balls (current game score)

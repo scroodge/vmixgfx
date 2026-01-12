@@ -178,8 +178,12 @@ The `/api/match/{match_id}/data.json` endpoint provides match data in a format o
 - Response headers include `Cache-Control: no-cache` to ensure fresh data
 
 **Usage in vMix Title:**
-1. Configure Title input to read from: `http://localhost:8000/api/match/1/data.json`
-2. Use variables like `{home_name}`, `{away_score}`, `{timer_formatted}`, etc. in your title template
+1. In vMix Data Sources Manager, add a JSON data source with URL: `http://localhost:8000/api/match/1/data.json`
+2. **Important:** Set refresh interval to 1-2 seconds for real-time updates
+3. Configure Title input to use the data source
+4. Use variables like `{home_name}`, `{away_score}`, `{timer_formatted}`, etc. in your title template
+
+**Note:** This endpoint works via HTTP polling (not WebSocket). vMix will automatically request updated data at the configured interval. No WebSocket connection is required for vMix Title.
 
 ## Timer Behavior
 
