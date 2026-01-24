@@ -12,7 +12,7 @@ echo ""
 # Check if Python 3 is available
 if ! command -v python3 &> /dev/null; then
     echo "ERROR: Python 3 is not installed"
-    echo "Please install Python 3.8+ from https://www.python.org/"
+    echo "Please install Python 3.10+ from https://www.python.org/"
     exit 1
 fi
 

@@ -164,7 +164,7 @@ VM Setup Instructions:
 ======================
 
 1. Install a Windows VM (Parallels, VMware, VirtualBox, etc.)
-2. Install Python 3.8+ in the VM
+2. Install Python 3.10+ in the VM
 3. Copy this project to the VM
 4. Run the build script in the VM:
    - build_windows.bat

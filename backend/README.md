@@ -17,7 +17,7 @@ FastAPI backend server providing REST API and WebSocket endpoints for real-time 
 
 ## Requirements
 
-- Python 3.8 or higher
+- Python 3.10 or higher
 - pip (Python package installer)
 
 ## Installation
@@ -29,14 +29,32 @@ FastAPI backend server providing REST API and WebSocket endpoints for real-time 
 cd backend
 python -m venv venv
 venv\Scripts\activate
+python --version  # Verify: should show Python 3.10.x
 ```
 
 **Linux/Mac:**
 ```bash
 cd backend
-python3 -m venv venv
+
+# If using pyenv:
+pyenv local 3.10.13
+python -m venv venv
+
+# Without pyenv:
+python3.10 -m venv venv
+
 source venv/bin/activate
+python --version  # Verify: should show Python 3.10.x
 ```
+
+**Important:** 
+- **With pyenv:** Use `pyenv local 3.10.13` then `python -m venv venv`
+- **Without pyenv:** Use `python3.10 -m venv venv` to ensure Python 3.10
+
+If `python3.10` is not found:
+- **With pyenv:** `pyenv install 3.10.13` then `pyenv local 3.10.13`
+- **macOS:** `brew install python@3.10`
+- **Linux:** `sudo apt-get install python3.10 python3.10-venv`
 
 ### Step 2: Install Dependencies
 
@@ -296,7 +314,7 @@ FastAPI бэкэнд сервер, які прадастаўляе REST API і W
 
 ## Патрабаванні
 
-- Python 3.8 або вышэй
+- Python 3.10 або вышэй
 - pip (устаноўшчык пакетаў Python)
 
 ## Устаноўка

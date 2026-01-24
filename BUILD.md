@@ -7,7 +7,7 @@ This guide explains how to build a single executable file that contains all serv
 ## Prerequisites
 
 - **Operating System**: Windows 10/11, Linux, or macOS
-- **Python 3.8 or higher** installed from [python.org](https://www.python.org/)
+- **Python 3.10 or higher** installed from [python.org](https://www.python.org/)
 - **Internet connection** (for downloading dependencies during build)
 
 ## Quick Start
@@ -357,7 +357,7 @@ For issues or questions:
 ## Патрабаванні
 
 - **Windows 10/11** (рэкамендуецца 64-бітная)
-- **Python 3.8 або вышэй** усталяваны з [python.org](https://www.python.org/)
+- **Python 3.10 або вышэй** усталяваны з [python.org](https://www.python.org/)
 - **Інтэрнэт-падключэнне** (для спампоўкі залежнасцей падчас зборкі)
 
 ## Хуткі старт

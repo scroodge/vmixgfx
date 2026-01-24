@@ -20,8 +20,8 @@ def check_python():
     """Check if Python is installed and version is correct"""
     print("[1/6] Checking Python installation...")
     version = sys.version_info
-    if version.major < 3 or (version.major == 3 and version.minor < 8):
-        print(f"ERROR: Python 3.8+ required, found {version.major}.{version.minor}")
+    if version.major < 3 or (version.major == 3 and version.minor < 10):
+        print(f"ERROR: Python 3.10+ required, found {version.major}.{version.minor}")
         return False
     print(f"✓ Python {version.major}.{version.minor}.{version.micro} detected")
     return True

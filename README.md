@@ -22,7 +22,7 @@ A complete real-time billiard score control system for vMix broadcasting. Design
 
 ## Tech Stack
 
-- **Backend**: Python 3.8+ with FastAPI, WebSockets, Pydantic
+- **Backend**: Python 3.10+ with FastAPI, WebSockets, Pydantic
 - **Frontend**: Vanilla HTML/CSS/JavaScript (no frameworks)
 - **Server**: Uvicorn ASGI server
 
@@ -52,6 +52,8 @@ A complete real-time billiard score control system for vMix broadcasting. Design
 ├── build_windows.bat        # Windows build script (batch)
 ├── build_windows.ps1        # Windows build script (PowerShell)
 ├── build_windows_on_mac.sh  # Script to build Windows .exe on macOS
+├── setup_env.sh             # Environment setup script (Linux/macOS)
+├── setup_env.bat            # Environment setup script (Windows)
 ├── BUILD.md                 # Build instructions
 ├── BUILD_WINDOWS_ON_MAC.md  # Guide for building Windows .exe on macOS
 ├── QUICK_START.txt          # Quick start guide (English)
@@ -63,7 +65,7 @@ A complete real-time billiard score control system for vMix broadcasting. Design
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.10 or higher
 - pip (Python package installer)
 
 ### Creating a Single Executable File
@@ -93,35 +95,127 @@ python build.py
 
 **Building Windows .exe on macOS?** See [BUILD_WINDOWS_ON_MAC.md](BUILD_WINDOWS_ON_MAC.md) for cross-platform build options.
 
-### Development Setup (Windows)
+### Quick Setup (Automated)
+
+**Windows:**
+```cmd
+setup_env.bat
+```
+
+**Linux/macOS:**
+```bash
+./setup_env.sh
+```
+
+This will automatically:
+- Check for Python 3.10
+- Create a new virtual environment **with Python 3.10**
+- Install all dependencies
+- Verify the Python version in the environment
+
+**After setup, activate the environment:**
+```bash
+cd backend
+source venv/bin/activate  # macOS/Linux
+venv\Scripts\activate     # Windows
+
+# Verify Python version
+python --version  # Should show: Python 3.10.x
+```
+
+For detailed setup instructions, see [ENV_SETUP.md](ENV_SETUP.md).
+
+### Manual Development Setup
+
+**Windows:**
 
 1. **Open Command Prompt or PowerShell** in the project directory
 
-2. **Create a virtual environment:**
+2. **Create a virtual environment with Python 3.10:**
    ```cmd
+   cd backend
    python -m venv venv
+   ```
+   
+   **Note:** Make sure Python 3.10 is in PATH. If you have multiple Python versions:
+   ```cmd
+   py -3.10 -m venv venv
    ```
 
 3. **Activate the virtual environment:**
    ```cmd
    venv\Scripts\activate
    ```
+   
+   **Verify Python version:**
+   ```cmd
+   python --version  # Should show Python 3.10.x
+   ```
 
 4. **Install dependencies:**
    ```cmd
-   cd backend
+   pip install --upgrade pip
    pip install -r requirements.txt
    ```
 
-5. **Return to project root and start the server:**
+5. **Start the server:**
    ```cmd
-   cd ..
-   python backend/main.py
+   python main.py
    ```
 
    Or using uvicorn directly:
    ```cmd
-   uvicorn main:app --host 0.0.0.0 --port 8000
+   uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+   ```
+
+**Linux/macOS:**
+
+1. **Open Terminal** in the project directory
+
+2. **Create a virtual environment with Python 3.10:**
+   
+   **If using pyenv:**
+   ```bash
+   cd backend
+   pyenv local 3.10.13  # Set Python 3.10 for this directory
+   python -m venv venv   # Use 'python' (pyenv will use 3.10.13)
+   ```
+   
+   **Without pyenv:**
+   ```bash
+   cd backend
+   python3.10 -m venv venv
+   ```
+   
+   **Note:** If `python3.10` is not found:
+   - **With pyenv:** `pyenv install 3.10.13` then `pyenv local 3.10.13`
+   - **macOS:** `brew install python@3.10`
+   - **Linux:** `sudo apt-get install python3.10 python3.10-venv`
+
+3. **Activate the virtual environment:**
+   ```bash
+   source venv/bin/activate
+   ```
+   
+   **Verify Python version:**
+   ```bash
+   python --version  # Should show Python 3.10.x
+   ```
+
+4. **Install dependencies:**
+   ```bash
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+
+5. **Start the server:**
+   ```bash
+   python main.py
+   ```
+
+   Or using uvicorn directly:
+   ```bash
+   uvicorn main:app --host 0.0.0.0 --port 8000 --reload
    ```
 
 6. **Access the application:**
@@ -455,7 +549,7 @@ The overlay automatically connects via WebSocket and displays:
 ## Troubleshooting
 
 ### Server won't start
-- Check Python version: `python --version` (must be 3.8+)
+- Check Python version: `python --version` (must be 3.10+)
 - Ensure virtual environment is activated
 - Verify all dependencies are installed: `pip list`
 - Check port 8000 is not in use: `netstat -an | grep 8000` (Linux/Mac) or `netstat -an | findstr 8000` (Windows)
@@ -542,7 +636,7 @@ For complete build instructions, troubleshooting, and customization options, see
 
 **Requirements for Building:**
 - Windows 10/11
-- Python 3.8+ installed (only needed for building, not for running the .exe)
+- Python 3.10+ installed (only needed for building, not for running the .exe)
 - Internet connection (for downloading dependencies)
 
 ## License
@@ -583,7 +677,7 @@ For issues or questions, check:
 
 ## Тэхналогіі
 
-- **Бэкэнд**: Python 3.8+ з FastAPI, WebSockets, Pydantic
+- **Бэкэнд**: Python 3.10+ з FastAPI, WebSockets, Pydantic
 - **Фронтэнд**: Vanilla HTML/CSS/JavaScript (без фрэймворкаў)
 - **Сервер**: Uvicorn ASGI сервер
 
@@ -619,7 +713,7 @@ For issues or questions, check:
 
 ### Патрабаванні
 
-- Python 3.8 або вышэй
+- Python 3.10 або вышэй
 - pip (устаноўшчык пакетаў Python)
 
 ### Устаноўка для Windows
@@ -904,7 +998,7 @@ ws://localhost:8000/ws/match/{match_id}
 ## Вырашэнне праблем
 
 ### Сервер не запускаецца
-- Праверце версію Python: `python --version` (павінна быць 3.8+)
+- Праверце версію Python: `python --version` (павінна быць 3.10+)
 - Пераканайцеся, што віртуальнае асяроддзе актывавана
 - Праверце, што ўсе залежнасці ўсталяваны: `pip list`
 - Праверце, што порт 8000 не выкарыстоўваецца: `netstat -an | grep 8000` (Linux/Mac) або `netstat -an | findstr 8000` (Windows)
@@ -991,7 +1085,7 @@ curl -X POST http://localhost:8000/api/match/1/score \
 
 **Патрабаванні для зборкі:**
 - Windows 10/11
-- Python 3.8+ усталяваны (патрэбен толькі для зборкі, не для запуску .exe)
+- Python 3.10+ усталяваны (патрэбен толькі для зборкі, не для запуску .exe)
 - Інтэрнэт-падключэнне (для спампоўкі залежнасцей)
 
 ## Ліцэнзія

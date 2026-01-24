@@ -12,6 +12,7 @@ from pathlib import Path
 from collections import defaultdict
 from typing import Dict, Set, Optional, List
 from datetime import datetime
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -118,10 +119,59 @@ class WebSocketEvent(BaseModel):
     ts: int  # Unix timestamp in milliseconds
 
 # ============================================================================
+# Lifespan Events (Startup/Shutdown)
+# ============================================================================
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifespan (startup and shutdown)"""
+    global tournaments_data
+    
+    # Startup code
+    # Load tournaments data from JSON
+    tournaments_data = load_tournaments_data()
+    
+    # Create default tournament if none exists
+    if not tournaments_data.tournaments:
+        default_tournament = Tournament(
+            id="tournament_1",
+            name="Default Tournament",
+            created_at=time.time(),
+            players=[]
+        )
+        tournaments_data.tournaments["tournament_1"] = default_tournament
+        tournaments_data.current_tournament_id = "tournament_1"
+        tournaments_data.tournament_id_counter = 1
+        save_tournaments_data(tournaments_data)
+    elif tournaments_data.current_tournament_id is None:
+        # If tournaments exist but no current tournament, select first one
+        first_tournament_id = list(tournaments_data.tournaments.keys())[0]
+        tournaments_data.current_tournament_id = first_tournament_id
+        save_tournaments_data(tournaments_data)
+    
+    print("=" * 60)
+    print("vMix Russian Billiard Score Control Server")
+    print("=" * 60)
+    print(f"Server started on http://0.0.0.0:8000")
+    print(f"Control Panel: http://localhost:8000/control")
+    print(f"Overlay:       http://localhost:8000/overlay?matchId=1")
+    print(f"JSON Data:     http://localhost:8000/api/match/1/data.json")
+    print("=" * 60)
+    
+    # Yield control to the application
+    yield
+    
+    # Shutdown code (if needed in the future)
+    pass
+
+# ============================================================================
 # FastAPI App Setup
 # ============================================================================
 
-app = FastAPI(title="vMix Sports Score Control")
+app = FastAPI(
+    title="vMix Sports Score Control",
+    lifespan=lifespan
+)
 
 # CORS middleware for local LAN usage
 app.add_middleware(
@@ -1164,45 +1214,6 @@ async def root(request: Request):
         },
         "usage": "Add ?matchId=1 to access overlay directly, or use /overlay?matchId=1"
     }
-
-# ============================================================================
-# Startup
-# ============================================================================
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize on startup"""
-    global tournaments_data
-    
-    # Load tournaments data from JSON
-    tournaments_data = load_tournaments_data()
-    
-    # Create default tournament if none exists
-    if not tournaments_data.tournaments:
-        default_tournament = Tournament(
-            id="tournament_1",
-            name="Default Tournament",
-            created_at=time.time(),
-            players=[]
-        )
-        tournaments_data.tournaments["tournament_1"] = default_tournament
-        tournaments_data.current_tournament_id = "tournament_1"
-        tournaments_data.tournament_id_counter = 1
-        save_tournaments_data(tournaments_data)
-    elif tournaments_data.current_tournament_id is None:
-        # If tournaments exist but no current tournament, select first one
-        first_tournament_id = list(tournaments_data.tournaments.keys())[0]
-        tournaments_data.current_tournament_id = first_tournament_id
-        save_tournaments_data(tournaments_data)
-    
-    print("=" * 60)
-    print("vMix Russian Billiard Score Control Server")
-    print("=" * 60)
-    print(f"Server started on http://0.0.0.0:8000")
-    print(f"Control Panel: http://localhost:8000/control")
-    print(f"Overlay:       http://localhost:8000/overlay?matchId=1")
-    print(f"JSON Data:     http://localhost:8000/api/match/1/data.json")
-    print("=" * 60)
 
 if __name__ == "__main__":
     import uvicorn

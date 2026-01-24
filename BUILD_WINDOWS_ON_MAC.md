@@ -91,7 +91,7 @@ Use a Windows VM (Parallels, VMware, VirtualBox, etc.)
 ### Steps
 
 1. **Install Windows VM**
-2. **Install Python 3.8+** in the VM
+2. **Install Python 3.10+** in the VM
 3. **Copy project** to the VM
 4. **Run build script** in the VM:
    ```cmd
