@@ -37,6 +37,8 @@ class MatchState(BaseModel):
     period: int = 1
     timerSecondsRemaining: int = 0
     timerRunning: bool = False
+    foraHome: int = 0  # Handicap / fora (balls) for home — exposed as fora_home in data.json
+    foraAway: int = 0  # Handicap / fora for away — exposed as fora_away in data.json
     rev: int = 0  # Revision counter for tracking changes
 
 class SetupRequest(BaseModel):
@@ -45,6 +47,8 @@ class SetupRequest(BaseModel):
     awayName: Optional[str] = Field(default=None, min_length=1, max_length=50, description="Optional: Player 2 name (if not provided, uses current state)")
     period: int = Field(default=1, ge=1, le=20)
     timerSeconds: int = Field(default=0, ge=0)
+    foraHome: Optional[int] = Field(default=None, ge=0, le=999, description="Optional: set home fora (handicap)")
+    foraAway: Optional[int] = Field(default=None, ge=0, le=999, description="Optional: set away fora (handicap)")
 
 class ScoreRequest(BaseModel):
     """Request model for score updates"""
@@ -113,7 +117,7 @@ class TournamentData(BaseModel):
 
 class WebSocketEvent(BaseModel):
     """WebSocket message structure"""
-    type: str  # "state" | "score_changed" | "timer_started" | "timer_stopped" | "period_changed" | "setup" | "reset"
+    type: str  # "state" | "score_changed" | "fora_changed" | "timer_started" | "timer_stopped" | "period_changed" | "setup" | "reset"
     state: MatchState
     changed: Optional[Dict] = None  # Optional field with change details {field, team, delta}
     ts: int  # Unix timestamp in milliseconds
@@ -399,7 +403,9 @@ def get_match_data_dict(state: MatchState) -> Dict:
         "timer_running": state.timerRunning,
         "timer_formatted": format_timer(state.timerSecondsRemaining),
         "timestamp": int(time.time() * 1000),
-        "rev": state.rev
+        "rev": state.rev,
+        "fora_home": state.foraHome,
+        "fora_away": state.foraAway,
     }
 
 def save_match_data_to_file(match_id: str, state: MatchState):
@@ -564,6 +570,10 @@ async def setup_match(match_id: str, request: SetupRequest):
         state.period = request.period
         state.timerSecondsRemaining = request.timerSeconds
         state.timerRunning = False
+        if request.foraHome is not None:
+            state.foraHome = request.foraHome
+        if request.foraAway is not None:
+            state.foraAway = request.foraAway
         # Match scores default to 0 if not set
         if not hasattr(state, 'homeMatchScore'):
             state.homeMatchScore = 0
@@ -610,6 +620,8 @@ async def reset_match(match_id: str):
         state.awayScore = 0
         state.homeMatchScore = 0
         state.awayMatchScore = 0
+        state.foraHome = 0
+        state.foraAway = 0
         state.period = 1
         state.timerSecondsRemaining = 0
         state.timerRunning = False
@@ -701,6 +713,31 @@ async def set_timer(match_id: str, request: TimerSetRequest):
         stop_timer_task(match_id)
         
         await broadcast_event(match_id, "state", state, {"field": "timer", "seconds": request.seconds})
+    
+    return {"status": "ok", "state": state.model_dump()}
+
+@app.post("/api/match/{match_id}/fora")
+async def update_fora(match_id: str, request: ScoreRequest):
+    """Update fora (handicap) for home or away team"""
+    async with state_lock:
+        state = get_or_create_match(match_id)
+        
+        if request.team == "home":
+            new_fora = max(0, min(999, state.foraHome + request.delta))
+            state.foraHome = new_fora
+        else:
+            new_fora = max(0, min(999, state.foraAway + request.delta))
+            state.foraAway = new_fora
+        
+        state.rev += 1
+        matches[match_id] = state
+        
+        await broadcast_event(
+            match_id,
+            "fora_changed",
+            state,
+            {"field": "fora", "team": request.team, "delta": request.delta}
+        )
     
     return {"status": "ok", "state": state.model_dump()}
 

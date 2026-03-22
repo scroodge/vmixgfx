@@ -15,10 +15,14 @@ let currentTournamentId = null;
 let tournamentsList = [];
 
 // DOM Elements
+const GAME_MODE_STORAGE_KEY = 'vmixControlGameMode';
+
 const elements = {
     // Status
     connectionStatus: document.getElementById('connection-status'),
     matchIdInput: document.getElementById('match-id-input'),
+    gameModeToggle: document.getElementById('game-mode-toggle'),
+    gameModeNoForaToggle: document.getElementById('game-mode-no-fora-toggle'),
     
     // Tournament Management
     tournamentSelect: document.getElementById('tournament-select'),
@@ -45,10 +49,8 @@ const elements = {
     awayScoreDisplay: document.getElementById('away-score-display'),
     
     // Balls Buttons
-    homePlus: document.getElementById('home-plus'),
     homeMinus: document.getElementById('home-minus'),
     homePlusBall: document.getElementById('home-plus-ball'),
-    awayPlus: document.getElementById('away-plus'),
     awayMinus: document.getElementById('away-minus'),
     awayPlusBall: document.getElementById('away-plus-ball'),
     
@@ -63,6 +65,16 @@ const elements = {
     homeMatchMinus: document.getElementById('home-match-minus'),
     awayMatchPlus: document.getElementById('away-match-plus'),
     awayMatchMinus: document.getElementById('away-match-minus'),
+    
+    // Fora (handicap)
+    homeTeamNameDisplayFora: document.getElementById('home-team-name-display-fora'),
+    awayTeamNameDisplayFora: document.getElementById('away-team-name-display-fora'),
+    foraHomeDisplay: document.getElementById('fora-home-display'),
+    foraAwayDisplay: document.getElementById('fora-away-display'),
+    foraHomePlus: document.getElementById('fora-home-plus'),
+    foraHomeMinus: document.getElementById('fora-home-minus'),
+    foraAwayPlus: document.getElementById('fora-away-plus'),
+    foraAwayMinus: document.getElementById('fora-away-minus'),
     
     // Period
     periodDisplay: document.getElementById('period-display'),
@@ -129,6 +141,61 @@ function parseTimer(timeStr) {
 /**
  * Update connection status UI
  */
+/** @returns {'full' | 'game' | 'gameNoFora'} */
+function getControlLayoutMode() {
+    if (document.body.classList.contains('game-mode-no-fora')) return 'gameNoFora';
+    if (document.body.classList.contains('game-mode-active')) return 'game';
+    return 'full';
+}
+
+/** @param {'full' | 'game' | 'gameNoFora'} mode */
+function setControlLayoutMode(mode) {
+    const m = mode === 'gameNoFora' ? 'gameNoFora' : mode === 'game' ? 'game' : 'full';
+    document.body.classList.toggle('game-mode-active', m !== 'full');
+    document.body.classList.toggle('game-mode-no-fora', m === 'gameNoFora');
+    const btn1 = elements.gameModeToggle;
+    const btn2 = elements.gameModeNoForaToggle;
+    if (btn1) {
+        btn1.classList.toggle('active', m !== 'full');
+        btn1.setAttribute('aria-pressed', m !== 'full' ? 'true' : 'false');
+    }
+    if (btn2) {
+        btn2.classList.toggle('active', m === 'gameNoFora');
+        btn2.setAttribute('aria-pressed', m === 'gameNoFora' ? 'true' : 'false');
+    }
+    try {
+        localStorage.setItem(GAME_MODE_STORAGE_KEY, m === 'full' ? '0' : m === 'game' ? '1' : '2');
+    } catch (e) {
+        /* ignore */
+    }
+}
+
+function readStoredLayoutMode() {
+    try {
+        const v = localStorage.getItem(GAME_MODE_STORAGE_KEY);
+        if (v === '2') return 'gameNoFora';
+        if (v === '1') return 'game';
+        return 'full';
+    } catch (e) {
+        return 'full';
+    }
+}
+
+function initGameModeToggle() {
+    setControlLayoutMode(readStoredLayoutMode());
+    elements.gameModeToggle?.addEventListener('click', () => {
+        const cur = getControlLayoutMode();
+        if (cur === 'full') setControlLayoutMode('game');
+        else if (cur === 'game') setControlLayoutMode('full');
+        else setControlLayoutMode('game'); // gameNoFora -> game (show Fora, stay compact)
+    });
+    elements.gameModeNoForaToggle?.addEventListener('click', () => {
+        const cur = getControlLayoutMode();
+        if (cur === 'gameNoFora') setControlLayoutMode('game');
+        else setControlLayoutMode('gameNoFora');
+    });
+}
+
 function updateConnectionStatus(connected) {
     if (!elements.connectionStatus) return;
     
@@ -170,6 +237,15 @@ function updateUI(state) {
     const awayMatchScore = state.awayMatchScore || 0;
     if (elements.homeMatchScoreDisplay) elements.homeMatchScoreDisplay.textContent = homeMatchScore;
     if (elements.awayMatchScoreDisplay) elements.awayMatchScoreDisplay.textContent = awayMatchScore;
+    
+    const foraHome = state.foraHome ?? state.fora_home ?? 0;
+    const foraAway = state.foraAway ?? state.fora_away ?? 0;
+    if (elements.foraHomeDisplay) elements.foraHomeDisplay.textContent = foraHome;
+    if (elements.foraAwayDisplay) elements.foraAwayDisplay.textContent = foraAway;
+    if (elements.homeTeamNameDisplayFora) elements.homeTeamNameDisplayFora.textContent = state.homeName || 'Player 1';
+    if (elements.awayTeamNameDisplayFora) elements.awayTeamNameDisplayFora.textContent = state.awayName || 'Player 2';
+    if (elements.foraHomeMinus) elements.foraHomeMinus.disabled = foraHome <= 0;
+    if (elements.foraAwayMinus) elements.foraAwayMinus.disabled = foraAway <= 0;
     
     // Enable/disable minus buttons based on score
     elements.homeMinus.disabled = (state.homeScore || 0) <= 0;
@@ -985,7 +1061,6 @@ if (elements.playerNameInput) {
 window.deletePlayer = deletePlayer;
 
 // Balls buttons (current game score)
-elements.homePlus.addEventListener('click', () => apiCall('/score', 'POST', { team: 'home', delta: 1 }));
 elements.homeMinus.addEventListener('click', () => {
     if ((currentState?.homeScore || 0) > 0) {
         apiCall('/score', 'POST', { team: 'home', delta: -1 });
@@ -993,7 +1068,6 @@ elements.homeMinus.addEventListener('click', () => {
 });
 elements.homePlusBall.addEventListener('click', () => apiCall('/score', 'POST', { team: 'home', delta: 1 })); // +Ball is same as +1 for now
 
-elements.awayPlus.addEventListener('click', () => apiCall('/score', 'POST', { team: 'away', delta: 1 }));
 elements.awayMinus.addEventListener('click', () => {
     if ((currentState?.awayScore || 0) > 0) {
         apiCall('/score', 'POST', { team: 'away', delta: -1 });
@@ -1021,6 +1095,30 @@ if (elements.awayMatchMinus) {
         const awayMatchScore = (currentState?.awayMatchScore || 0);
         if (awayMatchScore > 0) {
             apiCall('/match-score', 'POST', { team: 'away', delta: -1 });
+        }
+    });
+}
+
+// Fora (handicap) — JSON keys: fora_home, fora_away
+if (elements.foraHomePlus) {
+    elements.foraHomePlus.addEventListener('click', () => apiCall('/fora', 'POST', { team: 'home', delta: 1 }));
+}
+if (elements.foraHomeMinus) {
+    elements.foraHomeMinus.addEventListener('click', () => {
+        const v = currentState?.foraHome ?? currentState?.fora_home ?? 0;
+        if (v > 0) {
+            apiCall('/fora', 'POST', { team: 'home', delta: -1 });
+        }
+    });
+}
+if (elements.foraAwayPlus) {
+    elements.foraAwayPlus.addEventListener('click', () => apiCall('/fora', 'POST', { team: 'away', delta: 1 }));
+}
+if (elements.foraAwayMinus) {
+    elements.foraAwayMinus.addEventListener('click', () => {
+        const v = currentState?.foraAway ?? currentState?.fora_away ?? 0;
+        if (v > 0) {
+            apiCall('/fora', 'POST', { team: 'away', delta: -1 });
         }
     });
 }
@@ -1251,6 +1349,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     matchId = elements.matchIdInput.value || '1';
+    
+    initGameModeToggle();
     
     // Initialize collapsible sections
     initializeCollapsibles();
