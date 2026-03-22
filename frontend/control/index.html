@@ -122,6 +122,7 @@
             <!-- Balls Control Section -->
             <section class="panel score-panel">
                 <h2 data-i18n="ballsControl">Balls Control</h2>
+                <div class="scoreboard-panel-subline" aria-hidden="true"></div>
                 <div class="score-controls">
                     <div class="team-control home-team">
                         <h3 id="home-team-name-display">Player 1</h3>
@@ -151,7 +152,8 @@
 
             <!-- Match Score Control Section (Games Won) -->
             <section class="panel match-score-panel">
-                <h2 data-i18n="matchScoreControl">Match Score Control (Games Won)</h2>
+                <h2 data-i18n="matchScoreControl">Match Score Control</h2>
+                <div class="scoreboard-panel-subline" aria-hidden="true"></div>
                 <div class="score-controls">
                     <div class="team-control home-team">
                         <h3 id="home-team-name-display-match">Player 1</h3>
@@ -182,7 +184,7 @@
             <!-- Fora (handicap) Control -->
             <section class="panel fora-panel">
                 <h2 data-i18n="foraControl">Handicap (Fora)</h2>
-                <p style="color: #666; margin-bottom: 15px; font-size: 14px;" data-i18n="foraHint">Values are sent to vMix as fora_home and fora_away in data.json.</p>
+                <p class="fora-hint" data-i18n="foraHint">Values are sent to vMix as fora_home and fora_away in data.json.</p>
                 <div class="score-controls">
                     <div class="team-control home-team">
                         <h3 id="home-team-name-display-fora">Player 1</h3>
@@ -868,7 +870,7 @@
                         <div class="gfx-controls">
                         <div class="gfx-control">
                             <button id="gfx-preset-default" class="btn btn-small" data-i18n="default">Default</button>
-                            <button id="gfx-preset-bold" class="btn btn-small" data-i18n="bold">Bold</button>
+                            <button id="gfx-preset-bold" class="btn btn-small" data-i18n="presetBold">Bold</button>
                             <button id="gfx-preset-elegant" class="btn btn-small" data-i18n="elegant">Elegant</button>
                             <button id="gfx-preset-minimal" class="btn btn-small" data-i18n="minimal">Minimal</button>
                         </div>

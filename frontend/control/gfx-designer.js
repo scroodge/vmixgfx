@@ -1116,10 +1116,10 @@ function initializeEventListeners() {
     gfxElements.applyBtn.addEventListener('click', () => {
         applySettingsToOverlay(currentSettings);
         updatePreview(currentSettings);
-        alert('Settings applied to overlay! Refresh overlay page to see changes.');
+        alert(t('settingsAppliedToOverlay'));
     });
     gfxElements.resetBtn.addEventListener('click', () => {
-        if (confirm('Reset all changes to default settings?')) {
+        if (confirm(t('resetGfxConfirm'))) {
             currentSettings = JSON.parse(JSON.stringify(defaultSettings));
             applySettingsToUI(currentSettings);
             applySettingsToOverlay(currentSettings);
@@ -1130,18 +1130,18 @@ function initializeEventListeners() {
     gfxElements.backgroundUploadBtn.addEventListener('click', async () => {
         const file = gfxElements.backgroundUpload.files[0];
         if (!file) {
-            gfxElements.backgroundUploadStatus.textContent = 'Please select a file first';
+            gfxElements.backgroundUploadStatus.textContent = t('pleaseSelectFileFirst');
             gfxElements.backgroundUploadStatus.style.color = '#ff4444';
             return;
         }
         
         if (!file.type.startsWith('image/')) {
-            gfxElements.backgroundUploadStatus.textContent = 'Please select an image file';
+            gfxElements.backgroundUploadStatus.textContent = t('pleaseSelectImageFile');
             gfxElements.backgroundUploadStatus.style.color = '#ff4444';
             return;
         }
         
-        gfxElements.backgroundUploadStatus.textContent = 'Uploading...';
+        gfxElements.backgroundUploadStatus.textContent = t('uploadingEllipsis');
         gfxElements.backgroundUploadStatus.style.color = '#666';
         gfxElements.backgroundUploadBtn.disabled = true;
         
@@ -1200,16 +1200,16 @@ function initializeEventListeners() {
                 applySettingsToOverlay(currentSettings);
                 updatePreview(currentSettings);
                 
-                gfxElements.backgroundUploadStatus.textContent = 'Background uploaded successfully!';
+                gfxElements.backgroundUploadStatus.textContent = t('backgroundUploadedSuccess');
                 gfxElements.backgroundUploadStatus.style.color = '#44ff44';
             } else {
                 const error = await response.json();
-                gfxElements.backgroundUploadStatus.textContent = 'Upload failed: ' + (error.detail || 'Unknown error');
+                gfxElements.backgroundUploadStatus.textContent = t('uploadFailed') + (error.detail || t('unknownError'));
                 gfxElements.backgroundUploadStatus.style.color = '#ff4444';
             }
         } catch (error) {
             console.error('Upload error:', error);
-            gfxElements.backgroundUploadStatus.textContent = 'Upload failed: ' + error.message;
+            gfxElements.backgroundUploadStatus.textContent = t('uploadFailed') + error.message;
             gfxElements.backgroundUploadStatus.style.color = '#ff4444';
         } finally {
             gfxElements.backgroundUploadBtn.disabled = false;
@@ -1218,7 +1218,7 @@ function initializeEventListeners() {
     
     // Remove Background
     gfxElements.backgroundRemoveBtn.addEventListener('click', () => {
-        if (confirm('Remove background image?')) {
+        if (confirm(t('removeBackgroundConfirm'))) {
             if (!currentSettings.backgrounds) currentSettings.backgrounds = {};
             if (!currentSettings.backgrounds.container) currentSettings.backgrounds.container = {};
             currentSettings.backgrounds.container.type = 'transparent';
@@ -1233,7 +1233,7 @@ function initializeEventListeners() {
             applySettingsToOverlay(currentSettings);
             updatePreview(currentSettings);
             
-            gfxElements.backgroundUploadStatus.textContent = 'Background removed';
+            gfxElements.backgroundUploadStatus.textContent = t('backgroundRemoved');
             gfxElements.backgroundUploadStatus.style.color = '#666';
         }
     });
@@ -1399,9 +1399,9 @@ function importSettings(e) {
             currentSettings = imported;
             applySettingsToUI(currentSettings);
             applySettingsToOverlay(currentSettings);
-            alert('Settings imported successfully!');
+            alert(t('settingsImportedSuccess'));
         } catch (error) {
-            alert('Failed to import settings: ' + error.message);
+            alert(t('importSettingsFailed') + error.message);
         }
     };
     reader.readAsText(file);

@@ -97,6 +97,122 @@ body.game-mode-no-fora .fora-panel {
     display: none !important;
 }
 
+/* Game Mode: one row of score panels, headers + player rows aligned across columns */
+.fora-hint {
+    color: #666;
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.scoreboard-panel-subline {
+    display: none;
+}
+
+body.game-mode-active main {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+}
+
+body.game-mode-active.game-mode-no-fora main {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+body.game-mode-active .score-panel,
+body.game-mode-active .match-score-panel,
+body.game-mode-active .fora-panel {
+    grid-column: auto !important;
+    min-width: 0 !important;
+    display: flex;
+    flex-direction: column;
+}
+
+body.game-mode-active .score-panel > h2,
+body.game-mode-active .match-score-panel > h2,
+body.game-mode-active .fora-panel > h2 {
+    min-height: 3.4rem;
+    margin-bottom: 0;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: flex-end;
+    line-height: 1.25;
+}
+
+body.game-mode-active .scoreboard-panel-subline {
+    display: block;
+    flex-shrink: 0;
+    min-height: 3.35em;
+    margin: 0 0 12px 0;
+    line-height: 1.45;
+    font-size: 14px;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+body.game-mode-active .fora-panel .fora-hint {
+    flex-shrink: 0;
+    min-height: 3.35em;
+    margin: 0 0 12px 0;
+}
+
+body.game-mode-active .score-panel .score-controls,
+body.game-mode-active .match-score-panel .score-controls,
+body.game-mode-active .fora-panel .score-controls {
+    flex: 1;
+    min-height: 0;
+    grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 520px) {
+    body.game-mode-active .score-panel .score-controls,
+    body.game-mode-active .match-score-panel .score-controls,
+    body.game-mode-active .fora-panel .score-controls {
+        grid-template-columns: 1fr;
+    }
+}
+
+body.game-mode-active .score-panel .team-control h3,
+body.game-mode-active .match-score-panel .team-control h3,
+body.game-mode-active .fora-panel .team-control h3 {
+    min-height: 3.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+@media (max-width: 992px) {
+    body.game-mode-active main,
+    body.game-mode-active.game-mode-no-fora main {
+        grid-template-columns: 1fr;
+    }
+
+    body.game-mode-active .scoreboard-panel-subline {
+        min-height: 0;
+        margin: 0;
+        display: none;
+    }
+
+    body.game-mode-active .fora-panel .fora-hint {
+        min-height: 0;
+    }
+
+    body.game-mode-active .score-panel > h2,
+    body.game-mode-active .match-score-panel > h2,
+    body.game-mode-active .fora-panel > h2 {
+        min-height: 0;
+        display: block;
+        align-items: unset;
+    }
+
+    body.game-mode-active .score-panel .team-control h3,
+    body.game-mode-active .match-score-panel .team-control h3,
+    body.game-mode-active .fora-panel .team-control h3 {
+        min-height: 0;
+        display: block;
+    }
+}
+
 header h1 {
     font-size: 28px;
     color: #333;

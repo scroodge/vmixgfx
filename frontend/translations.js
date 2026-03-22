@@ -25,7 +25,7 @@ const translations = {
         'scoreControl': 'Score Control',
         'score': 'Score:',
         'balls': 'Balls:',
-        'matchScoreControl': 'Match Score Control (Games Won)',
+        'matchScoreControl': 'Match Score Control',
         'foraControl': 'Handicap (Fora)',
         'foraHint': 'Values are sent to vMix as fora_home and fora_away in data.json.',
         'foraLabel': 'Fora:',
@@ -48,7 +48,6 @@ const translations = {
         'unknownError': 'Unknown error',
         'connectionError': 'Failed to connect to server. Please check your connection.',
         'errorLoadingTournaments': 'Error loading tournaments',
-        'noTournaments': 'No tournaments',
         
         // GFX Designer
         'gfxDesigner': 'GFX Designer',
@@ -197,6 +196,21 @@ const translations = {
         'selectTournamentFirst': 'Please select a tournament first',
         'save': 'Save',
         'cancel': 'Cancel',
+        'create': 'Create',
+        
+        // GFX Designer (dynamic messages)
+        'presetBold': 'Bold',
+        'settingsAppliedToOverlay': 'Settings applied to overlay! Refresh the overlay page to see changes.',
+        'resetGfxConfirm': 'Reset all changes to default settings?',
+        'pleaseSelectFileFirst': 'Please select a file first',
+        'pleaseSelectImageFile': 'Please select an image file',
+        'uploadingEllipsis': 'Uploading…',
+        'backgroundUploadedSuccess': 'Background uploaded successfully!',
+        'uploadFailed': 'Upload failed: ',
+        'removeBackgroundConfirm': 'Remove background image?',
+        'backgroundRemoved': 'Background removed',
+        'settingsImportedSuccess': 'Settings imported successfully!',
+        'importSettingsFailed': 'Failed to import settings: ',
         
         // Overlay
         'gameLabel': 'Game'
@@ -222,7 +236,7 @@ const translations = {
         'scoreControl': 'Управление счетом',
         'score': 'Счет:',
         'balls': 'Шары:',
-        'matchScoreControl': 'Управление счетом партий (Выигранные партии)',
+        'matchScoreControl': 'Управление счётом партий',
         'foraControl': 'Фора',
         'foraHint': 'Значения уходят в vMix как fora_home и fora_away в data.json.',
         'foraLabel': 'Фора:',
@@ -378,7 +392,7 @@ const translations = {
         'playerNameRequired': 'Имя игрока обязательно',
         'deletePlayerConfirm': 'Вы уверены, что хотите удалить этого игрока?',
         'noPlayers': 'Игроки еще не импортированы',
-        'gameSetupHint': 'Имена игроков выбираются через секцию Player Names ниже. Используйте эту секцию для установки номера игры и таймера.',
+        'gameSetupHint': 'Имена игроков выбираются в разделе «Имена игроков» ниже. Используйте эту секцию для номера игры и таймера.',
         
         // Tournament Management
         'tournamentManagement': 'Управление турнирами',
@@ -394,6 +408,21 @@ const translations = {
         'selectTournamentFirst': 'Пожалуйста, сначала выберите турнир',
         'save': 'Сохранить',
         'cancel': 'Отмена',
+        'create': 'Создать',
+        
+        // GFX Designer (dynamic messages)
+        'presetBold': 'Жирный',
+        'settingsAppliedToOverlay': 'Настройки применены к оверлею! Обновите страницу оверлея, чтобы увидеть изменения.',
+        'resetGfxConfirm': 'Сбросить все изменения к настройкам по умолчанию?',
+        'pleaseSelectFileFirst': 'Сначала выберите файл',
+        'pleaseSelectImageFile': 'Выберите файл изображения',
+        'uploadingEllipsis': 'Загрузка…',
+        'backgroundUploadedSuccess': 'Фон успешно загружен!',
+        'uploadFailed': 'Ошибка загрузки: ',
+        'removeBackgroundConfirm': 'Удалить фоновое изображение?',
+        'backgroundRemoved': 'Фон удалён',
+        'settingsImportedSuccess': 'Настройки успешно импортированы!',
+        'importSettingsFailed': 'Не удалось импортировать настройки: ',
         
         // Overlay
         'gameLabel': 'Игра'
@@ -419,7 +448,7 @@ const translations = {
         'scoreControl': 'Кіраванне лікам',
         'score': 'Лік:',
         'balls': 'Шары:',
-        'matchScoreControl': 'Кіраванне лікам партый (Выіграныя партыі)',
+        'matchScoreControl': 'Кіраванне лікам партый',
         'foraControl': 'Фора',
         'foraHint': 'Значэнні адпраўляюцца ў vMix як fora_home і fora_away у data.json.',
         'foraLabel': 'Фора:',
@@ -575,7 +604,7 @@ const translations = {
         'playerNameRequired': 'Імя гульца абавязкова',
         'deletePlayerConfirm': 'Вы ўпэўнены, што хочаце выдаліць гэтага гульца?',
         'noPlayers': 'Гульцы яшчэ не імпартаваны',
-        'gameSetupHint': 'Імёны гульцоў выбіраюцца праз секцыю Player Names ніжэй. Выкарыстоўвайце гэтую секцыю для ўстаноўкі нумара гульні і таймера.',
+        'gameSetupHint': 'Імёны гульцоў выбіраюцца ў раздзеле «Імёны гульцоў» ніжэй. Выкарыстоўвайце гэты раздзел для нумара гульні і таймера.',
         
         // Tournament Management
         'tournamentManagement': 'Кіраванне турнірамі',
@@ -591,6 +620,21 @@ const translations = {
         'selectTournamentFirst': 'Калі ласка, спачатку выберыце турнір',
         'save': 'Захаваць',
         'cancel': 'Адмена',
+        'create': 'Стварыць',
+        
+        // GFX Designer (dynamic messages)
+        'presetBold': 'Тлусты',
+        'settingsAppliedToOverlay': 'Налады прымянены да оверлея! Абнавіце старонку оверлея, каб убачыць змены.',
+        'resetGfxConfirm': 'Скінуць усе змены да наладаў па змаўчанні?',
+        'pleaseSelectFileFirst': 'Спачатку выберыце файл',
+        'pleaseSelectImageFile': 'Выберыце файл выявы',
+        'uploadingEllipsis': 'Загрузка…',
+        'backgroundUploadedSuccess': 'Фон паспяхова загружаны!',
+        'uploadFailed': 'Памылка загрузкі: ',
+        'removeBackgroundConfirm': 'Выдаліць фонавую выяву?',
+        'backgroundRemoved': 'Фон выдалены',
+        'settingsImportedSuccess': 'Налады паспяхова імпартаваны!',
+        'importSettingsFailed': 'Не ўдалося імпартаваць налады: ',
         
         // Overlay
         'gameLabel': 'Гульня'
