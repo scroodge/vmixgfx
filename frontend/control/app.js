@@ -16,6 +16,7 @@ let tournamentsList = [];
 
 // DOM Elements
 const GAME_MODE_STORAGE_KEY = 'vmixControlGameMode';
+const MATCH_SETTINGS_STORAGE_KEY = 'vmixMatchSettingsMode';
 
 const elements = {
     // Status
@@ -23,6 +24,7 @@ const elements = {
     matchIdInput: document.getElementById('match-id-input'),
     gameModeToggle: document.getElementById('game-mode-toggle'),
     gameModeNoForaToggle: document.getElementById('game-mode-no-fora-toggle'),
+    matchSettingsToggle: document.getElementById('match-settings-mode-toggle'),
     
     // Tournament Management
     tournamentSelect: document.getElementById('tournament-select'),
@@ -193,6 +195,33 @@ function initGameModeToggle() {
         const cur = getControlLayoutMode();
         if (cur === 'gameNoFora') setControlLayoutMode('game');
         else setControlLayoutMode('gameNoFora');
+    });
+}
+
+function setMatchSettingsMode(on) {
+    document.body.classList.toggle('match-settings-mode', on);
+    const btn = elements.matchSettingsToggle;
+    if (btn) {
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    try {
+        localStorage.setItem(MATCH_SETTINGS_STORAGE_KEY, on ? '1' : '0');
+    } catch (e) {
+        /* ignore */
+    }
+}
+
+function initMatchSettingsToggle() {
+    let on = false;
+    try {
+        on = localStorage.getItem(MATCH_SETTINGS_STORAGE_KEY) === '1';
+    } catch (e) {
+        /* ignore */
+    }
+    setMatchSettingsMode(on);
+    elements.matchSettingsToggle?.addEventListener('click', () => {
+        setMatchSettingsMode(!document.body.classList.contains('match-settings-mode'));
     });
 }
 
@@ -1356,6 +1385,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     matchId = elements.matchIdInput.value || '1';
     
     initGameModeToggle();
+    initMatchSettingsToggle();
     
     // Initialize collapsible sections
     initializeCollapsibles();

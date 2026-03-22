@@ -10,11 +10,16 @@
     <div class="container">
         <header>
             <div class="header-toolbar">
-                <button type="button" id="game-mode-toggle" class="btn btn-game-mode-toggle" data-i18n-title="gameModeHint" title="Hide tournament, setup, players, timer/overlay options, reset, and GFX during a match">
-                    <span data-i18n="gameModeToggle">Game Mode</span>
-                </button>
-                <button type="button" id="game-mode-no-fora-toggle" class="btn btn-game-mode-toggle btn-game-mode-toggle-alt" data-i18n-title="gameModeNoForaHint" title="Same as Game Mode but hide Handicap (Fora)">
-                    <span data-i18n="gameModeNoForaToggle">Game Mode (no Fora)</span>
+                <div class="header-toolbar-modes">
+                    <button type="button" id="game-mode-toggle" class="btn btn-game-mode-toggle" data-i18n-title="gameModeHint" title="Hide tournament, setup, players, timer/overlay options, reset, and GFX during a match">
+                        <span data-i18n="gameModeToggle">Game Mode</span>
+                    </button>
+                    <button type="button" id="game-mode-no-fora-toggle" class="btn btn-game-mode-toggle btn-game-mode-toggle-alt" data-i18n-title="gameModeNoForaHint" title="Same as Game Mode but hide Handicap (Fora)">
+                        <span data-i18n="gameModeNoForaToggle">Game Mode (no Fora)</span>
+                    </button>
+                </div>
+                <button type="button" id="match-settings-mode-toggle" class="btn btn-match-settings" data-i18n-title="matchSettingsModeHint" title="Show all sections: tournament, setup, players, timer, reset, GFX, Fora">
+                    <span data-i18n="matchSettingsMode">Match settings mode</span>
                 </button>
             </div>
             <h1 data-i18n="title">vMix Russian Billiard Score Control</h1>
