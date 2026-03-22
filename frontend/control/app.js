@@ -17,6 +17,7 @@ let tournamentsList = [];
 // DOM Elements
 const GAME_MODE_STORAGE_KEY = 'vmixControlGameMode';
 const MATCH_SETTINGS_STORAGE_KEY = 'vmixMatchSettingsMode';
+const MS_SECTION_PREFIX = 'vmixMsSection_';
 
 const elements = {
     // Status
@@ -198,6 +199,45 @@ function initGameModeToggle() {
     });
 }
 
+function syncMatchSettingsPanel(checkbox) {
+    const panel = checkbox.closest('.panel');
+    if (!panel) return;
+    const open = checkbox.checked;
+    panel.classList.toggle('match-settings-open', open);
+    checkbox.setAttribute('aria-expanded', open ? 'true' : 'false');
+    const key = panel.dataset.msSection;
+    if (key) {
+        try {
+            localStorage.setItem(MS_SECTION_PREFIX + key, open ? '1' : '0');
+        } catch (e) {
+            /* ignore */
+        }
+    }
+}
+
+function restoreMatchSettingsPanels() {
+    document.querySelectorAll('.match-settings-section-toggle').forEach((checkbox) => {
+        const panel = checkbox.closest('.panel');
+        const key = panel?.dataset?.msSection;
+        let open = false;
+        if (key) {
+            try {
+                open = localStorage.getItem(MS_SECTION_PREFIX + key) === '1';
+            } catch (e) {
+                /* ignore */
+            }
+        }
+        checkbox.checked = open;
+        syncMatchSettingsPanel(checkbox);
+    });
+}
+
+function initMatchSettingsSectionCollapses() {
+    document.querySelectorAll('.match-settings-section-toggle').forEach((checkbox) => {
+        checkbox.addEventListener('change', () => syncMatchSettingsPanel(checkbox));
+    });
+}
+
 function setMatchSettingsMode(on) {
     document.body.classList.toggle('match-settings-mode', on);
     const btn = elements.matchSettingsToggle;
@@ -209,6 +249,16 @@ function setMatchSettingsMode(on) {
         localStorage.setItem(MATCH_SETTINGS_STORAGE_KEY, on ? '1' : '0');
     } catch (e) {
         /* ignore */
+    }
+    if (on) {
+        restoreMatchSettingsPanels();
+    } else {
+        document.querySelectorAll('[data-ms-section]').forEach((panel) => {
+            panel.classList.remove('match-settings-open');
+        });
+        document.querySelectorAll('.match-settings-section-toggle').forEach((cb) => {
+            cb.setAttribute('aria-expanded', 'false');
+        });
     }
 }
 
@@ -1386,6 +1436,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     initGameModeToggle();
     initMatchSettingsToggle();
+    initMatchSettingsSectionCollapses();
     
     // Initialize collapsible sections
     initializeCollapsibles();

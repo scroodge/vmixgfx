@@ -61,8 +61,16 @@
             </section>
 
             <!-- Setup Section -->
-            <section class="panel setup-panel">
-                <h2 data-i18n="gameSetup">Game Setup</h2>
+            <section class="panel setup-panel" data-ms-section="setup">
+                <div class="match-settings-panel-head">
+                    <h2 data-i18n="gameSetup">Game Setup</h2>
+                    <label class="match-settings-expand-label">
+                        <input type="checkbox" class="match-settings-section-toggle" id="ms-toggle-setup" aria-controls="ms-body-setup" />
+                        <span class="match-settings-switch-track" aria-hidden="true"><span class="match-settings-switch-knob"></span></span>
+                        <span class="match-settings-expand-text" data-i18n="matchSettingsShowSection">Show</span>
+                    </label>
+                </div>
+                <div class="match-settings-panel-body" id="ms-body-setup">
                 <p style="color: #666; margin-bottom: 15px; font-size: 14px;" data-i18n="gameSetupHint">Player names are selected via Player Names section below. Use this section to set Game number and Timer.</p>
                 <div class="form-row">
                     <div class="form-group">
@@ -79,6 +87,7 @@
                     </div>
                 </div>
                 <button id="setup-btn" class="btn btn-primary" data-i18n="applySetup">Apply Setup</button>
+                </div>
             </section>
 
             <!-- Player Names Import Section -->
@@ -217,9 +226,16 @@
             </section>
 
             <!-- Game & Timer Control Section -->
-            <section class="panel period-timer-panel">
-                <h2 data-i18n="gameTimer">Game & Timer</h2>
-                
+            <section class="panel period-timer-panel" data-ms-section="timer">
+                <div class="match-settings-panel-head">
+                    <h2 data-i18n="gameTimer">Game & Timer</h2>
+                    <label class="match-settings-expand-label">
+                        <input type="checkbox" class="match-settings-section-toggle" id="ms-toggle-timer" aria-controls="ms-body-timer" />
+                        <span class="match-settings-switch-track" aria-hidden="true"><span class="match-settings-switch-knob"></span></span>
+                        <span class="match-settings-expand-text" data-i18n="matchSettingsShowSection">Show</span>
+                    </label>
+                </div>
+                <div class="match-settings-panel-body" id="ms-body-timer">
                 <!-- Visibility Toggles -->
                 <div class="visibility-controls">
                     <div class="visibility-toggle">
@@ -270,6 +286,7 @@
                         <button id="timer-set-btn" class="btn btn-small" data-i18n="set">Set</button>
                     </div>
                 </div>
+                </div>
             </section>
 
             <!-- Reset Section -->
@@ -279,9 +296,16 @@
             </section>
 
             <!-- GFX Designer Section -->
-            <section class="panel gfx-panel">
-                <h2 data-i18n="gfxDesigner">GFX Designer</h2>
-                
+            <section class="panel gfx-panel" data-ms-section="gfx">
+                <div class="match-settings-panel-head">
+                    <h2 data-i18n="gfxDesigner">GFX Designer</h2>
+                    <label class="match-settings-expand-label">
+                        <input type="checkbox" class="match-settings-section-toggle" id="ms-toggle-gfx" aria-controls="ms-body-gfx" />
+                        <span class="match-settings-switch-track" aria-hidden="true"><span class="match-settings-switch-knob"></span></span>
+                        <span class="match-settings-expand-text" data-i18n="matchSettingsShowSection">Show</span>
+                    </label>
+                </div>
+                <div class="match-settings-panel-body" id="ms-body-gfx">
                 <!-- Preview -->
                 <div class="gfx-preview-container">
                     <div class="gfx-preview-label" data-i18n="livePreview">Live Preview:</div>
@@ -890,6 +914,7 @@
                         </div>
                     </div>
                     </div>
+                </div>
                 </div>
             </section>
         </main>
