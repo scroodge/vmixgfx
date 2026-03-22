@@ -26,6 +26,18 @@ body {
     }
 }
 
+.site-footer {
+    margin-top: 24px;
+    padding: 16px 12px 8px;
+    text-align: center;
+}
+
+.site-footer p {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: 0.02em;
+}
+
 /* Header */
 header {
     background: white;
@@ -98,13 +110,6 @@ body.game-mode-no-fora .fora-panel {
 }
 
 /* Game Mode: one row of score panels, headers + player rows aligned across columns */
-.fora-hint {
-    color: #666;
-    margin: 0 0 15px 0;
-    font-size: 14px;
-    line-height: 1.45;
-}
-
 .scoreboard-panel-subline {
     display: none;
 }
@@ -134,8 +139,16 @@ body.game-mode-active .fora-panel > h2 {
     margin-bottom: 0;
     padding-bottom: 8px;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     line-height: 1.25;
+}
+
+html[lang="ru"] body.game-mode-active .match-score-panel > h2,
+html[lang="be"] body.game-mode-active .match-score-panel > h2 {
+    min-height: 2.65rem;
+    font-size: 13px;
 }
 
 body.game-mode-active .scoreboard-panel-subline {
@@ -147,12 +160,6 @@ body.game-mode-active .scoreboard-panel-subline {
     font-size: 14px;
     visibility: hidden;
     pointer-events: none;
-}
-
-body.game-mode-active .fora-panel .fora-hint {
-    flex-shrink: 0;
-    min-height: 3.35em;
-    margin: 0 0 12px 0;
 }
 
 body.game-mode-active .score-panel .score-controls,
@@ -193,16 +200,13 @@ body.game-mode-active .fora-panel .team-control h3 {
         display: none;
     }
 
-    body.game-mode-active .fora-panel .fora-hint {
-        min-height: 0;
-    }
-
     body.game-mode-active .score-panel > h2,
     body.game-mode-active .match-score-panel > h2,
     body.game-mode-active .fora-panel > h2 {
         min-height: 0;
         display: block;
         align-items: unset;
+        text-align: center;
     }
 
     body.game-mode-active .score-panel .team-control h3,
@@ -357,6 +361,19 @@ main {
     color: #333;
     border-bottom: 2px solid #667eea;
     padding-bottom: 10px;
+}
+
+.score-panel > h2,
+.match-score-panel > h2,
+.fora-panel > h2 {
+    text-align: center;
+}
+
+/* RU/BE: long "Match score" title — smaller type so Game Mode columns stay aligned */
+html[lang="ru"] .match-score-panel > h2,
+html[lang="be"] .match-score-panel > h2 {
+    font-size: 14px;
+    line-height: 1.25;
 }
 
 /* Form Styles */

@@ -1342,6 +1342,11 @@ function initializeCollapsibles() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
+    const copyrightYearEl = document.getElementById('copyright-year');
+    if (copyrightYearEl) {
+        copyrightYearEl.textContent = String(new Date().getFullYear());
+    }
+
     // Check if required elements exist
     if (!elements.matchIdInput) {
         console.error('Match ID input element not found!');
