@@ -259,7 +259,6 @@ const translations = {
         'unknownError': 'Неизвестная ошибка',
         'connectionError': 'Не удалось подключиться к серверу. Проверьте подключение.',
         'errorLoadingTournaments': 'Ошибка загрузки турниров',
-        'noTournaments': 'Нет турниров',
         
         // GFX Designer
         'gfxDesigner': 'Дизайнер GFX',
@@ -471,7 +470,6 @@ const translations = {
         'unknownError': 'Невядомая памылка',
         'connectionError': 'Не ўдалося падключыцца да сервера. Праверце падключэнне.',
         'errorLoadingTournaments': 'Памылка загрузкі турніраў',
-        'noTournaments': 'Няма турніраў',
         
         // GFX Designer
         'gfxDesigner': 'Дызайнер GFX',
